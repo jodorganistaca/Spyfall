@@ -1,0 +1,57 @@
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const db = require("../db/MongoUtils");
+const { User } = require("../db/models/User");
+const config = require("config");
+const dbName = config.get("dbName");
+const usersCollection = config.get("usersCollection");
+
+const passportInit = () => {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        //TODO: Change URL
+        callbackURL: "http://localhost:3001/auth/callback",
+      },
+      function (accessToken, refreshToken, profile, cb) {
+        let imageUrl = "https://www.twago.es/img/2018/default/no-user.png";
+        if (profile.photos && profile.photos.length) {
+          imageUrl = profile.photos[0].value;
+        }
+        //TODO: Encrypt Google id
+        let potentialOldUser = new User(
+          profile.id,
+          profile.displayName,
+          imageUrl
+        );
+        Object.keys(potentialOldUser).forEach(
+          (key) =>
+            potentialOldUser[key] === undefined && delete potentialOldUser[key]
+        );
+        console.log(potentialOldUser);
+        return db
+          .findOrCreateDocumentPromise(
+            dbName,
+            usersCollection,
+            potentialOldUser,
+            new User(profile.id, profile.displayName, imageUrl, 0)
+          )
+          .then((user) => {
+            console.log(user);
+            return cb(null, user);
+          });
+      }
+    )
+  );
+
+  passport.serializeUser(function (user, cb) {
+    cb(null, user);
+  });
+
+  passport.deserializeUser(function (obj, cb) {
+    cb(null, obj);
+  });
+};
+module.exports.passportInit = passportInit;
