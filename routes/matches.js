@@ -15,9 +15,21 @@ router.get("/", function (req, res) {
 });
 
 router.get("/:id", function (req, res) {
-  db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) =>
-    res.json(docs)
-  );
+  db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) => {
+    if (docs && docs[0]) {
+      return res.status(200).json(docs[0]);
+    } else return res.status(404).json({ msg: "Match not found" });
+  });
+});
+
+router.get("/token/:token", function (req, res) {
+  db.findOneObjectPromise(dbName, matchesCollection, {
+    token: req.params.token,
+  }).then((docs) => {
+    if (docs && docs[0]) {
+      return res.status(200).json(docs[0]);
+    } else return res.status(404).json({ msg: "Match not found" });
+  });
 });
 
 router.post(
@@ -33,14 +45,12 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    console.log(Match);
-
     const { maxRounds } = req.body;
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
       new Match([], maxRounds)
-    ).then((docs) => res.json(docs.ops[0]));
+    ).then((docs) => res.status(201).json(docs.ops[0]));
   }
 );
 

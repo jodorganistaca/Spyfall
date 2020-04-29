@@ -12,6 +12,8 @@ const indexRouter = require("./routes/index");
 const userRouter = require("./routes/users");
 const matchRouter = require("./routes/matches");
 const authRouter = require("./routes/auth");
+const locationRouter = require("./routes/locations");
+const questionRouter = require("./routes/questions");
 
 const { passportInit } = require("./middleware/passportInit");
 const passport = require("passport");
@@ -52,5 +54,7 @@ app.use("/", indexRouter);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/matches", matchRouter);
+app.use("/questions", questionRouter);
+app.use("/locations", locationRouter);
 
 module.exports = app;

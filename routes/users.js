@@ -12,9 +12,11 @@ router.get("/", function (req, res) {
 });
 
 router.get("/:id", function (req, res) {
-  db.findOnePromise(dbName, usersCollection, req.params.id).then((docs) =>
-    res.json(docs)
-  );
+  db.findOnePromise(dbName, usersCollection, req.params.id).then((docs) => {
+    if (docs && docs[0]) {
+      return res.status(200).json(docs[0]);
+    } else return res.status(404).json({ msg: "User not found" });
+  });
 });
 
 module.exports = router;
