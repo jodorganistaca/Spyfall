@@ -40,7 +40,7 @@ router.post(
       dbName,
       matchesCollection,
       new Match([], maxRounds)
-    ).then((docs) => res.json(docs));
+    ).then((docs) => res.json(docs.ops[0]));
   }
 );
 
@@ -56,18 +56,30 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const player = req.body;
+    const { player } = req.body;
+    const { user, role, location } = player;
+    if (!user || !role || !location) {
+      return res.status(400).json({ msg: "Bad Request" });
+    }
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
+      let updatedMatch;
       if (docs && docs[0]) {
+        updatedMatch = docs[0];
         const _id = docs[0]._id;
-        db.findAndUpdateOnePromise(
-          dbName,
-          matchesCollection,
-          _id,
-          docs[0].players.push(player)
-        );
+        console.log(player);
+        console.log(user, role, location);
+        db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
+          $push: {
+            players: { user, role, location },
+          },
+        }).then((docs) => {
+          if (docs.ok === 1) {
+            updatedMatch.players.push({ user, role, location });
+            return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }
@@ -89,14 +101,62 @@ router.put(
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
+      let updatedMatch;
       if (docs && docs[0]) {
+        updatedMatch = docs[0];
+        const _id = docs[0]._id;
+        db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
+          $push: {
+            chat: newMessage,
+          },
+        }).then((docs) => {
+          if (docs.ok === 1) {
+            updatedMatch.chat.push(newMessage);
+            return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
+      } else return res.status(400).json({ msg: "Match not found" });
+    });
+  }
+);
+
+router.put(
+  "/score/:token",
+  [
+    check(
+      "nonSpiesScore",
+      "Non Spies Score is required and must be a positive integer"
+    ).isInt({ gt: 0 }),
+    check(
+      "spiesScore",
+      "Spies Score is required and must be a positive integer"
+    ).isInt({ gt: 0 }),
+  ],
+  function (req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { spiesScore, nonSpiesScore } = req.body;
+    db.findOneObjectPromise(dbName, matchesCollection, {
+      token: req.params.token,
+    }).then((docs) => {
+      let updatedMatch;
+      if (docs && docs[0]) {
+        updatedMatch = docs[0];
+        updatedMatch.nonSpiesScore = nonSpiesScore;
+        updatedMatch.spiesScore = spiesScore;
         const _id = docs[0]._id;
         db.findAndUpdateOnePromise(
           dbName,
           matchesCollection,
           _id,
-          docs[0].chat.push(newMessage)
-        );
+          updatedMatch
+        ).then((docs) => {
+          if (docs.ok === 1) {
+            return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }
