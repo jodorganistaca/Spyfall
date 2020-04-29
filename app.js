@@ -12,12 +12,9 @@ const indexRouter = require("./routes/index");
 const userRouter = require("./routes/users");
 const matchRouter = require("./routes/matches");
 const authRouter = require("./routes/auth");
-<<<<<<< HEAD
 const locationRouter = require("./routes/locations");
 const questionRouter = require("./routes/questions");
 const playerRouter = require("./routes/players");
-=======
->>>>>>> 74802ec... Added API routes for users and matches.
 
 const { passportInit } = require("./middleware/passportInit");
 const passport = require("passport");
@@ -58,11 +55,8 @@ app.use("/", indexRouter);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/matches", matchRouter);
-<<<<<<< HEAD
 app.use("/players", playerRouter);
 app.use("/questions", questionRouter);
 app.use("/locations", locationRouter);
-=======
->>>>>>> 74802ec... Added API routes for users and matches.
 
 module.exports = app;
