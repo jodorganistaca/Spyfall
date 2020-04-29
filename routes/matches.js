@@ -92,8 +92,13 @@ router.post(
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
+<<<<<<< HEAD
       new Match([].push(player), maxRounds)
     ).then((docs) => res.status(201).json(docs.ops[0]));
+=======
+      new Match([], maxRounds)
+    ).then((docs) => res.json(docs.ops[0]));
+>>>>>>> 5844670... Added/fixed  matches PUT routes.
   }
 );
 
@@ -127,6 +132,11 @@ router.put(
       if (docs && docs[0]) {
         updatedMatch = docs[0];
         const _id = docs[0]._id;
+<<<<<<< HEAD
+=======
+        console.log(player);
+        console.log(user, role, location);
+>>>>>>> 5844670... Added/fixed  matches PUT routes.
         db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
           $push: {
             players: { user, role, location },
@@ -184,6 +194,7 @@ router.put(
   }
 );
 
+<<<<<<< HEAD
 /**
  * PUT /matches/score/:token
  * Updates the score of a match.
@@ -191,6 +202,8 @@ router.put(
  * @param spiesScore Body parameter spiesScore. Must be integer > 0.
  * @access public
  */
+=======
+>>>>>>> 5844670... Added/fixed  matches PUT routes.
 router.put(
   "/score/:token",
   [
@@ -228,6 +241,7 @@ router.put(
             return res.status(200).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
+<<<<<<< HEAD
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }
@@ -316,6 +330,8 @@ router.post(
             return res.status(201).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
+=======
+>>>>>>> 5844670... Added/fixed  matches PUT routes.
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }
