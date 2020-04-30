@@ -14,6 +14,7 @@ const matchRouter = require("./routes/matches");
 const authRouter = require("./routes/auth");
 const locationRouter = require("./routes/locations");
 const questionRouter = require("./routes/questions");
+const playerRouter = require("./routes/players");
 
 const { passportInit } = require("./middleware/passportInit");
 const passport = require("passport");
@@ -54,6 +55,7 @@ app.use("/", indexRouter);
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/matches", matchRouter);
+app.use("/players", playerRouter);
 app.use("/questions", questionRouter);
 app.use("/locations", locationRouter);
 

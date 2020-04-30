@@ -10,12 +10,22 @@ const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
 const { Vote } = require("../db/models/Vote");
 
+/**
+ * GET /matches
+ * Returns all matches in the database.
+ * @access public
+ */
 router.get("/", function (req, res) {
   db.getDocumentsPromise(dbName, matchesCollection).then((docs) =>
     res.json(docs)
   );
 });
 
+/**
+ * GET /matches/:id
+ * Returns the match associated to the on MongoDB's _id.
+ * @access public
+ */
 router.get("/:id", function (req, res) {
   db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) => {
     if (docs && docs[0]) {
@@ -24,6 +34,27 @@ router.get("/:id", function (req, res) {
   });
 });
 
+/**
+ * DELETE /matches/:id
+ * Deletes a match based on its MongoDB's _id.
+ * Returns the deleted document (MongoDB default).
+ * @access public
+ */
+router.delete("/:id", function (req, res) {
+  db.findAndDeleteOnePromise(dbName, matchesCollection, req.params.id).then(
+    (docs) => {
+      if (docs && docs[0]) {
+        return res.status(200).json(docs[0]);
+      } else return res.status(404).json({ msg: "Match not found" });
+    }
+  );
+});
+
+/**
+ * GET /matches/token/:token
+ * Returns a match based on its unique token.
+ * @access public
+ */
 router.get("/token/:token", function (req, res) {
   db.findOneObjectPromise(dbName, matchesCollection, {
     token: req.params.token,
@@ -34,6 +65,13 @@ router.get("/token/:token", function (req, res) {
   });
 });
 
+/**
+ * POST /matches
+ * Creates a match.
+ * @param maxRounds Body parameter maxRounds. Must be integer > 0.
+ * @param Body parameter player. Must be consistent with Player Model.
+ * @access public
+ */
 router.post(
   "/",
   [
@@ -41,6 +79,9 @@ router.post(
       "maxRounds",
       "Maximum number of rounds is required and must be a positive number"
     ).isInt({ gt: 0 }),
+    check("player", "The match must be created by an authenticated user.")
+      .not()
+      .isEmpty(),
   ],
   function (req, res) {
     const errors = validationResult(req);
@@ -51,11 +92,17 @@ router.post(
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
-      new Match([], maxRounds)
+      new Match([].push(player), maxRounds)
     ).then((docs) => res.status(201).json(docs.ops[0]));
   }
 );
 
+/**
+ * PUT /matches/join/:token
+ * Adds a user to the match.
+ * @param player Body parameter player. Must be consistent with Player Model.
+ * @access public
+ */
 router.put(
   "/join/:token",
   [
@@ -95,6 +142,13 @@ router.put(
   }
 );
 
+/**
+ * PUT /matches/chat/:token
+ * Adds a message to the match.
+ * @param message Body parameter message. Must be string and not empty.
+ * @param player Body parameter player. Must be consistent with Player Model.
+ * @access public
+ */
 router.put(
   "/chat/:token",
   [
@@ -130,6 +184,13 @@ router.put(
   }
 );
 
+/**
+ * PUT /matches/score/:token
+ * Updates the score of a match.
+ * @param nonSpiesScore Body parameter nonSpiesScore. Must be integer > 0.
+ * @param spiesScore Body parameter spiesScore. Must be integer > 0.
+ * @access public
+ */
 router.put(
   "/score/:token",
   [
@@ -172,6 +233,12 @@ router.put(
   }
 );
 
+/**
+ * POST /matches/createTimer/:token
+ * Creates the timer of a round of a match.
+ * @param duration Body parameter duration. Must be integer greater than 179999 ms (3 minutes).
+ * @access public
+ */
 router.post(
   "/createTimer/:token",
   [
@@ -208,14 +275,21 @@ router.post(
     });
   }
 );
-
+/**
+ * POST /matches/createVote/:token
+ * Creates a vote in a match.
+ * @param votingPlayer Body parameter votingPlayer. Must be consistent with Player Model.
+ * @param votedPlayer Body parameter votedPlayer. Must be consistent with Player Model.
+ * @param isSpy Body parameter isSpy. Must be boolean.
+ * @access public
+ */
 router.post(
   "/createVote/:token",
   [
-    check("votingUser", "The user owner of the vote is required.")
+    check("votingPlayer", "The user owner of the vote is required.")
       .not()
       .isEmpty(),
-    check("votedUser", "The voted user is required.").not().isEmpty(),
+    check("votedPlayer", "The voted user is required.").not().isEmpty(),
     check("isSpy", "The vote is required and must be boolean.").isBoolean(),
   ],
   function (req, res) {
@@ -223,8 +297,8 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { votingUser, votedUser, isSpy } = req.body;
-    const newVote = new Vote(votingUser, votedUser, isSpy);
+    const { votingPlayer, votedPlayer, isSpy } = req.body;
+    const newVote = new Vote(votingPlayer, votedPlayer, isSpy);
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {

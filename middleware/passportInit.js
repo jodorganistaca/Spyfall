@@ -39,8 +39,8 @@ const passportInit = () => {
             new User(profile.id, profile.displayName, imageUrl, 0)
           )
           .then((user) => {
-            console.log(user);
-            return cb(null, user);
+            console.log(user.value);
+            return cb(null, user.value);
           });
       }
     )
