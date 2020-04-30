@@ -7,6 +7,8 @@ const dbName = config.get("dbName");
 const matchesCollection = config.get("matchesCollection");
 const { Match } = require("../db/models/Match");
 const { Message } = require("../db/models/Message");
+const { Timer } = require("../db/models/Timer");
+const { Vote } = require("../db/models/Vote");
 
 router.get("/", function (req, res) {
   db.getDocumentsPromise(dbName, matchesCollection).then((docs) =>
@@ -78,8 +80,6 @@ router.put(
       if (docs && docs[0]) {
         updatedMatch = docs[0];
         const _id = docs[0]._id;
-        console.log(player);
-        console.log(user, role, location);
         db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
           $push: {
             players: { user, role, location },
@@ -165,6 +165,81 @@ router.put(
         ).then((docs) => {
           if (docs.ok === 1) {
             return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
+      } else return res.status(400).json({ msg: "Match not found" });
+    });
+  }
+);
+
+router.post(
+  "/createTimer/:token",
+  [
+    check(
+      "duration",
+      "The duration of the timer must be greater than 3 minutes."
+    ).isInt({ gt: 179999 }),
+  ],
+  function (req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { duration } = req.body;
+    db.findOneObjectPromise(dbName, matchesCollection, {
+      token: req.params.token,
+    }).then((docs) => {
+      let updatedMatch;
+      if (docs && docs[0]) {
+        updatedMatch = docs[0];
+        updatedMatch.timer = new Timer(duration);
+        const _id = docs[0]._id;
+        db.findAndUpdateOnePromise(
+          dbName,
+          matchesCollection,
+          _id,
+          updatedMatch
+        ).then((docs) => {
+          if (docs.ok === 1) {
+            return res.status(201).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
+      } else return res.status(400).json({ msg: "Match not found" });
+    });
+  }
+);
+
+router.post(
+  "/createVote/:token",
+  [
+    check("votingUser", "The user owner of the vote is required.")
+      .not()
+      .isEmpty(),
+    check("votedUser", "The voted user is required.").not().isEmpty(),
+    check("isSpy", "The vote is required and must be boolean.").isBoolean(),
+  ],
+  function (req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { votingUser, votedUser, isSpy } = req.body;
+    const newVote = new Vote(votingUser, votedUser, isSpy);
+    db.findOneObjectPromise(dbName, matchesCollection, {
+      token: req.params.token,
+    }).then((docs) => {
+      let updatedMatch;
+      if (docs && docs[0]) {
+        updatedMatch = docs[0];
+        const _id = docs[0]._id;
+        db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
+          $push: {
+            votes: newVote,
+          },
+        }).then((docs) => {
+          if (docs.ok === 1) {
+            updatedMatch.votes.push(newVote);
+            return res.status(201).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
       } else return res.status(400).json({ msg: "Match not found" });
