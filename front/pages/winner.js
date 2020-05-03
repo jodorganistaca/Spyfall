@@ -3,12 +3,14 @@ import {
   Typography,
   Box,
   makeStyles,
-  Button,
   IconButton,
-  Divider,
+  Button,
+  Avatar
 } from "@material-ui/core";
 import Image from "material-ui-image";
-import { Add, PlayArrow } from "@material-ui/icons";
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import { NavigationSharp, PlayArrow } from "@material-ui/icons";
 import NextLink from "../components/NextLink";
 import FacebookIcon from "../public/assets/facebook.svg";
 import GoogleIcon from "../public/assets/google.svg";
@@ -18,8 +20,8 @@ const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
     borderRadius: "87px",
-    margin: "0px 0px 32px 0px",
-    width: 300,
+    margin: "0px 0px 32px 10px",
+    width: 220,
     letterSpacing: 1.25,
   },
   socialIcon: {
@@ -51,52 +53,83 @@ const Winner = function Winner({ t }) {
           </Typography>
       </Box>
 
-      <Box display="flex" justifyContent="center" marginBottom="120px" className={styles.imageContainer}>
-        <Image src="/assets/logo.png" aspectRatio={1.9} />
-        <Image src="/assets/logo.png" aspectRatio={1.9} />
+      <Box display="flex" flexDirection="row">
+        <Box className={styles.imageContainer}>
+          <Image src="/assets/logo.png" aspectRatio={1.9} />
+        </Box>
+        <Box className={styles.imageContainer}>
+          <Image src="/assets/spy.png" aspectRatio={1} />
+        </Box>
       </Box>
 
-      <Box display="flex" flexDirection="column">
+      <Box display="flex" flexDirection="row">
         <Button
           variant="contained"
           size="medium"
-          color="secondary"
+          color="success"
           className={styles.button}
-          startIcon={<Add />}
+          startIcon={<NavigationSharp />}
         >
           {t("next-round")}
         </Button>
-      </Box>
-
-      
-      <Box
-        display="flex"
-        justifyContent="center"
-        position="relative"
-        width="60%"
-        margin="30px 0px 30px 0px"
-      >
-        <Divider variant="fullWidth" style={{ height: 1, width: "100%" }} />
-        <Typography variant="caption" className={styles.textDivider}>
-          {t("or")}
-        </Typography>
-      </Box>
-
-      <Box>
-        <Typography
-          variant="subtitle1"
-          style={{ marginBottom: 20, letterSpacing: 1.25 }}
+        <Button
+          variant="contained"
+          size="medium"
+          color="error"
+          className={styles.button}
+          startIcon={<NavigationSharp />}
         >
-          {t("login-title")}
-        </Typography>
+          {t("finish")}
+        </Button>
+      </Box>
 
-        <Box display="flex" justifyContent="center" marginBottom="120px">
-          <IconButton aria-label="Google">
-            <GoogleIcon className={styles.socialIcon} />
-          </IconButton>
-          <IconButton aria-label="Facebook">
-            <FacebookIcon className={styles.socialIcon} />
-          </IconButton>
+      <Box display="flex" flexDirection="row">
+        <Box display="flex" flexDirection="column" justifyContent="left" margin="0px 30px 0px 0px">
+          <Typography
+            align="left"
+            variant="subtitle2"
+            >
+            {t("participants")}
+          </Typography>
+        </Box>   
+        <Box display="flex" flexDirection="column" justifyContent="left" margin="0px 30px 0px 0px">
+        <Typography
+            align="left"
+            variant="subtitle2"
+            >
+            {t("secret-place")}
+          </Typography>
+        </Box>   
+      </Box>
+      <Box display="flex" flexDirection="row">
+        <Box display="flex" flexDirection="column" justifyContent="center">
+          
+          <Box display="flex" flexDirection="row" alignItems="center">
+            <Avatar>H</Avatar>
+            <Typography
+            align="center"
+            variant="subtitle1"
+            >
+            {t("title")}
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="row" alignItems="center">
+            <Avatar>H</Avatar>
+            <Typography
+            align="center"
+            variant="subtitle1"
+            >
+            {t("title")}
+            </Typography>
+          </Box>
+          
+        </Box>
+        <Box display="flex" flexDirection="column" justifyContent="center">
+          <Box display="flex" flexDirection="row">
+            <Box className={styles.imageContainer}>
+              <Image src="/assets/logo.png" aspectRatio={1.9} />
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Layout>

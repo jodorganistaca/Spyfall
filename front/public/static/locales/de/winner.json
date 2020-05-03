@@ -1,9 +1,8 @@
 {
-    "title": "¡LOS ESPIAS SON LOS GANADORES!",
-    "create-match": "Crear partida",
-    "join-match": "Unirse a una partida",
-    "how-to-play": "¿Cómo jugar?",
-    "login-title": "Inicia sesión para guardar tu marcador",
-    "change-locale": "Cambiar idioma",
-    "or": "o"
+    "title": "THE SPIES ARE THE WINNERS!",
+    "next-round": "NEXT ROUND",
+    "finish": "FINISH",
+    "participants": "spies",
+    "secret-place": "secret place"
+    
 }
