@@ -8,16 +8,20 @@ export default function Layout({ children, secondary = false }) {
   return (
     <Box height="100%">
       <Box
-        height="30%"
+        height="33%"
         width="100%"
         position="absolute"
         bgcolor={secondary ? "secondary.main" : "primary.main"}
       />
-      <Box position="relative" display="flex" height="100%" alignItems="center">
+      <Box
+        position="relative"
+        padding="30px 0px 30px 0px"
+        display="flex"
+        alignItems="center"
+      >
         <Container className={styles.container}>
           <Paper elevation={3} className={styles.paper}>
             {children}
-
             <Copyright />
           </Paper>
         </Container>
@@ -32,6 +36,14 @@ const reactStyles = makeStyles({
     padding: "20px",
     height: "100%",
     borderRadius: "10px",
+    alignItems: "center",
+    justifyContent: "center",
+    display: "flex",
+    flexDirection: "column",
   },
-  container: { minHeight: "80%" },
+  container: {
+    height: "auto",
+    // marginTop: "60px",
+    // marginBottom: "60px",
+  },
 });

@@ -36,47 +36,39 @@ const useStyles = makeStyles({
   },
 });
 
-const Home = function Home({ t }) {
+const Winner = function Winner({ t }) {
   const styles = useStyles();
   return (
     <Layout>
-      <Box className={styles.imageContainer}>
+
+      <Box display="flex" flexDirection="column" alignItems="center">
+          <Typography
+          align="center"
+          variant="h2"
+          style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
+          >
+          {t("title")}
+          </Typography>
+      </Box>
+
+      <Box display="flex" justifyContent="center" marginBottom="120px" className={styles.imageContainer}>
+        <Image src="/assets/logo.png" aspectRatio={1.9} />
         <Image src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
 
-      <Box display="flex" flexDirection="column" alignItems="center">
-        <Typography
-          align="center"
-          variant="subtitle1"
-          style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
+      <Box display="flex" flexDirection="column">
+        <Button
+          variant="contained"
+          size="medium"
+          color="secondary"
+          className={styles.button}
+          startIcon={<Add />}
         >
-          {t("title")}
-        </Typography>
-
-        <Box display="flex" flexDirection="column">
-          <Button
-            variant="contained"
-            size="medium"
-            color="secondary"
-            className={styles.button}
-            startIcon={<Add />}
-          >
-            {t("create-match")}
-          </Button>
-          <Button
-            variant="contained"
-            size="medium"
-            color="secondary"
-            className={styles.button}
-            startIcon={<PlayArrow />}
-          >
-            {t("join-match")}
-          </Button>
-        </Box>
-
-        <NextLink href="/how-to-play">{t("how-to-play")}</NextLink>
+          {t("next-round")}
+        </Button>
       </Box>
 
+      
       <Box
         display="flex"
         justifyContent="center"
@@ -111,8 +103,8 @@ const Home = function Home({ t }) {
   );
 };
 
-Home.getInitialProps = async () => ({
-  namespacesRequired: ["home"],
+Winner.getInitialProps = async () => ({
+  namespacesRequired: ["winner"],
 });
 
-export default withTranslation("home")(Home);
+export default withTranslation("winner")(Winner);
