@@ -3,6 +3,7 @@ import Head from "next/head";
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import theme from "../styles/theme";
+import "react-perfect-scrollbar/dist/css/styles.css";
 import "../styles/app.css";
 import { appWithTranslation } from "../plugins/i18n";
 import App from "next/app";

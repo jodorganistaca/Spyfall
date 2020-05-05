@@ -1,5 +1,5 @@
 {
-  "name": "front",
+  "name": "spyfall-webapp",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,13 +10,15 @@
   "dependencies": {
     "@material-ui/core": "^4.9.12",
     "@material-ui/icons": "^4.9.1",
-    "express": "^4.17.1",
     "material-ui-image": "^3.2.3",
+    "moment": "^2.25.1",
+    "moment-locales-webpack-plugin": "^1.2.0",
     "next": "9.3.6",
     "next-i18next": "^4.4.0",
     "react": "16.13.1",
+    "react-chat-widget": "^3.0.1",
     "react-dom": "16.13.1",
-    "react-i18next": "^11.4.0"
+    "react-perfect-scrollbar": "^1.5.8"
   },
   "devDependencies": {
     "@svgr/webpack": "^5.4.0"

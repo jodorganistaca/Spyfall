@@ -1,6 +1,7 @@
 {
-    "votation": "VOTACIÓN",
-    "results": "RESULTADOS",
-    "player": "JUGADOR",
-    "votes": "VOTOS"
+  "votation": "VOTACIÓN",
+  "results": "RESULTADOS",
+  "player": "JUGADOR",
+  "votes": "VOTOS",
+  "continue": "Continuar"
 }

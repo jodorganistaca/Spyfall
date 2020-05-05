@@ -1,6 +1,7 @@
 {
-    "votation": "ABSTIMMUNG",
-    "results": "ERGEBNISSE",
-    "player": "SPIELER",
-    "votes": "STIMMEN"
+  "votation": "Abstimmung",
+  "results": "Ergebnisse",
+  "player": "Spieler",
+  "votes": "Stimmen",
+  "continue": "Weiter"
 }

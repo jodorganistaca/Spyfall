@@ -12,7 +12,7 @@ import { Add, PlayArrow } from "@material-ui/icons";
 import NextLink from "../components/NextLink";
 import FacebookIcon from "../public/assets/facebook.svg";
 import GoogleIcon from "../public/assets/google.svg";
-import { withTranslation } from "../plugins/i18n";
+import { withTranslation, Router } from "../plugins/i18n";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
 const Home = function Home({ t }) {
   const styles = useStyles();
   return (
-    <Layout>
+    <Layout justifyContent="space-between">
       <Box className={styles.imageContainer}>
         <Image src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
@@ -60,6 +60,7 @@ const Home = function Home({ t }) {
             color="secondary"
             className={styles.button}
             startIcon={<Add />}
+            onClick={() => Router.push("/waiting-room")}
           >
             {t("create-match")}
           </Button>

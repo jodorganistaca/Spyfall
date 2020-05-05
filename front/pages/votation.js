@@ -6,14 +6,12 @@ import {
   Button,
   Avatar,
   Card,
-  CardContent
+  CardContent,
 } from "@material-ui/core";
-import Image from "material-ui-image";
-import { NavigationSharp, PlayArrow } from "@material-ui/icons";
-import NextLink from "../components/NextLink";
-import FacebookIcon from "../public/assets/facebook.svg";
-import GoogleIcon from "../public/assets/google.svg";
+import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
+
+import { Router } from "../plugins/i18n";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -39,55 +37,53 @@ const useStyles = makeStyles({
     margin: "5px 5px 5px 5px",
     width: 150,
     height: 80,
-    flex: "0 0 45%"
-  }
+    flex: "0 0 45%",
+  },
 });
 
 const Votation = function Votation({ t }) {
   const styles = useStyles();
   const createTable = () => {
-    let table = []
+    let table = [];
     for (let i = 0; i < 12; i++) {
       table.push(
         <Card className={styles.card}>
-            <CardContent>
-                <Box
-                display="flex"
-                justifyContent="left"
-                alignItems="center"
-                >
-                    <Box margin="0px 10px 0px 10px">
-                        <Avatar align="center">H</Avatar>
-                    </Box>
-                  
-                  <Typography
-                    align="center"
-                    variant="subtitle1"
-                    >
-                    {t("votation")}
-                </Typography>
-                </Box>
-            </CardContent>            
+          <CardContent>
+            <Box display="flex" justifyContent="left" alignItems="center">
+              <Box margin="0px 10px 0px 10px">
+                <Avatar align="center">H</Avatar>
+              </Box>
+
+              <Typography align="center" variant="subtitle1">
+                {t("votation")}
+              </Typography>
+            </Box>
+          </CardContent>
         </Card>
-        )
+      );
     }
-    return table
-  }
+    return table;
+  };
   return (
     <Layout secondary={true}>
-
       <Box display="flex" flexDirection="column" alignItems="left">
-          <Typography
+        <Typography
           align="left"
           variant="h4"
           style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
-          >
+        >
           {t("votation")}
-          </Typography>
+        </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" justifyContent="center" flexWrap="wrap" margin="0px 20% 0px 20%">
-          {createTable()}
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="center"
+        flexWrap="wrap"
+        margin="0px 20% 0px 20%"
+      >
+        {createTable()}
       </Box>
       <Box display="flex" flexDirection="row" margin="3% 0px 0px 0px">
         <Button
@@ -96,10 +92,11 @@ const Votation = function Votation({ t }) {
           color="success"
           className={styles.button}
           startIcon={<NavigationSharp />}
+          onClick={() => Router.push("/publish-votation")}
         >
           {t("vote")}
         </Button>
-    	</Box>
+      </Box>
     </Layout>
   );
 };

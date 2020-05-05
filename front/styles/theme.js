@@ -18,7 +18,7 @@ export default createMuiTheme({
       main: red.A400,
     },
     success: {
-      main: "#00916E",
+      main: "#219653",
       light: "#23CE6B",
     },
     background: {
@@ -31,7 +31,8 @@ export default createMuiTheme({
     h2: { fontFamily: ["'Raleway', sans-serif"].join(",") },
     h3: { fontFamily: ["'Raleway', sans-serif"].join(",") },
     h4: { fontFamily: ["'Raleway', sans-serif"].join(",") },
+    h5: { fontFamily: ["'Raleway', sans-serif"].join(",") },
+    h6: { fontFamily: ["'Raleway', sans-serif"].join(",") },
     subtitle1: { fontFamily: ["'Raleway', sans-serif"].join(",") },
-    subtitle2: { fontFamily: ["'Raleway', sans-serif"].join(",") },
   },
 });

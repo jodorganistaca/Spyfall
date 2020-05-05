@@ -1,6 +1,7 @@
 {
-    "votation": "VOTATION",
-    "results": "RESULTS",
-    "player": "PLAYER",
-    "votes": "VOTES"
+  "votation": "VOTATION",
+  "results": "RESULTS",
+  "player": "PLAYER",
+  "votes": "VOTES",
+  "continue": "Continue"
 }

@@ -1,4 +1,4 @@
-const NextI18Next = require('next-i18next').default;
+const NextI18Next = require("next-i18next").default;
 
 const NextI18NextInstance = new NextI18Next({
   defaultLanguage: "en",
@@ -9,9 +9,5 @@ const NextI18NextInstance = new NextI18Next({
     en: "en",
   },
 });
-
-const { appWithTranslation, withTranslation, Link } = NextI18NextInstance;
-
-
 
 module.exports = NextI18NextInstance;

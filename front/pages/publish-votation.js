@@ -6,7 +6,8 @@ import {
   Divider,
   Avatar,
   Card,
-  CardContent
+  CardContent,
+  Button,
 } from "@material-ui/core";
 import Image from "material-ui-image";
 import { NavigationSharp, PlayArrow } from "@material-ui/icons";
@@ -39,115 +40,112 @@ const useStyles = makeStyles({
     margin: "5px 5px 5px 5px",
     width: 150,
     height: 110,
-    flex: "0 0 15%"
+    flex: "0 0 15%",
   },
   header: {
     flex: "0 0 33%",
     margin: "0px 10% 0px 0%",
-  }
+  },
 });
 
 const PublishVotation = function PublishVotation({ t }) {
   const styles = useStyles();
   const createTable = () => {
-    let table = []
+    let table = [];
     for (let i = 0; i < 12; i++) {
       table.push(
         <Card className={styles.card}>
-            <CardContent className={styles.cardContent}>
-                <Typography
-                align="center"
-                variant="subtitle1"
-                >
-                    {t("votation")}
-                </Typography>
-                <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                >
-                  <Avatar align="center" margin="auto">H</Avatar>
-                </Box>
-            </CardContent>            
+          <CardContent className={styles.cardContent}>
+            <Typography align="center" variant="subtitle1">
+              {t("votation")}
+            </Typography>
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <Avatar align="center" margin="auto">
+                H
+              </Avatar>
+            </Box>
+          </CardContent>
         </Card>
-        )
+      );
     }
-    return table
-  }
+    return table;
+  };
   const createPlayers = () => {
-    let table = []
+    let table = [];
     for (let i = 0; i < 3; i++) {
       table.push(
         <Box display="flex" flexDirection="column" justifyContent="center">
           <Box display="flex" flexDirection="row">
-              <Box flexBasis="80%">
-                <Typography
-                align="left"
-                variant="subtitle1"
-                >
-                  {t("player")}
-                </Typography>
-              </Box>
-              <Box flexBasis="20%">
-                <Typography
-                align="left"
-                variant="subtitle1"
-                >
-                  {t("votes")}
-                </Typography>
-              </Box>
+            <Box flexBasis="80%">
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </Box>
+            <Box flexBasis="20%">
+              <Typography align="left" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </Box>
           </Box>
           <Box display="flex" flexDirection="row" alignItems="center">
             <Avatar>H</Avatar>
-            <Typography
-            align="center"
-            variant="subtitle1"
-            >
-            {t("title")}
+            <Typography align="center" variant="subtitle1">
+              {t("title")}
             </Typography>
-            <Typography
-            align="center"
-            variant="subtitle1"
-            >
-            {t("1")}
+            <Typography align="center" variant="subtitle1">
+              {t("1")}
             </Typography>
           </Box>
         </Box>
-      )
+      );
     }
-    return table
-  }
+    return table;
+  };
   return (
     <Layout secondary={true}>
-
       <Box display="flex" flexDirection="column" alignItems="left">
-          <Typography
+        <Typography
           align="left"
           variant="h4"
           style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
-          >
+        >
           {t("votation")}
-          </Typography>
+        </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" justifyContent="center" flexWrap="wrap" margin="0px 20% 0px 20%">
-          {createTable()}
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="center"
+        flexWrap="wrap"
+        margin="0px 20% 0px 20%"
+      >
+        {createTable()}
       </Box>
 
-      <Divider variant="fullWidth" style={{ height: 1, width: "80%", margin:"30px 0px 30px 0px" }} />
+      <Divider
+        variant="fullWidth"
+        style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
+      />
 
       <Box display="flex" flexDirection="column" alignItems="left">
-          <Typography
-          align="left"
-          variant="h4"
-          >
+        <Typography align="left" variant="h4">
           {t("results")}
-          </Typography>
+        </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" justifyContent="center" margin="0px 10% 0px 10%">
-          {createPlayers()}
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="center"
+        margin="0px 10% 0px 10%"
+      >
+        {createPlayers()}
       </Box>
+
+      <Button color="primary" onClick={() => Router.push("/finish")}>
+        {t("continue")}
+      </Button>
     </Layout>
   );
 };

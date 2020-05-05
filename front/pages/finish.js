@@ -5,16 +5,12 @@ import {
   makeStyles,
   IconButton,
   Button,
-  Avatar
+  Avatar,
 } from "@material-ui/core";
 import Image from "material-ui-image";
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
-import { NavigationSharp, PlayArrow } from "@material-ui/icons";
-import NextLink from "../components/NextLink";
-import FacebookIcon from "../public/assets/facebook.svg";
-import GoogleIcon from "../public/assets/google.svg";
+import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
+import { Router } from "../plugins/i18n";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -42,15 +38,14 @@ const Winner = function Winner({ t }) {
   const styles = useStyles();
   return (
     <Layout>
-
       <Box display="flex" flexDirection="column" alignItems="center">
-          <Typography
+        <Typography
           align="center"
           variant="h2"
           style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
-          >
+        >
           {t("title")}
-          </Typography>
+        </Typography>
       </Box>
 
       <Box display="flex" flexDirection="row">
@@ -69,6 +64,7 @@ const Winner = function Winner({ t }) {
           color="success"
           className={styles.button}
           startIcon={<NavigationSharp />}
+          onClick={() => Router.push("/waiting-room")}
         >
           {t("next-round")}
         </Button>
@@ -78,51 +74,48 @@ const Winner = function Winner({ t }) {
           color="error"
           className={styles.button}
           startIcon={<NavigationSharp />}
+          onClick={() => Router.push("/")}
         >
           {t("finish")}
         </Button>
       </Box>
 
       <Box display="flex" flexDirection="row">
-        <Box display="flex" flexDirection="column" justifyContent="left" margin="0px 30px 0px 0px">
-          <Typography
-            align="left"
-            variant="subtitle2"
-            >
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="left"
+          margin="0px 30px 0px 0px"
+        >
+          <Typography align="left" variant="subtitle2">
             {t("participants")}
           </Typography>
-        </Box>   
-        <Box display="flex" flexDirection="column" justifyContent="left" margin="0px 30px 0px 0px">
-        <Typography
-            align="left"
-            variant="subtitle2"
-            >
+        </Box>
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="left"
+          margin="0px 30px 0px 0px"
+        >
+          <Typography align="left" variant="subtitle2">
             {t("secret-place")}
           </Typography>
-        </Box>   
+        </Box>
       </Box>
       <Box display="flex" flexDirection="row">
         <Box display="flex" flexDirection="column" justifyContent="center">
-          
           <Box display="flex" flexDirection="row" alignItems="center">
             <Avatar>H</Avatar>
-            <Typography
-            align="center"
-            variant="subtitle1"
-            >
-            {t("title")}
+            <Typography align="center" variant="subtitle1">
+              {t("title")}
             </Typography>
           </Box>
           <Box display="flex" flexDirection="row" alignItems="center">
             <Avatar>H</Avatar>
-            <Typography
-            align="center"
-            variant="subtitle1"
-            >
-            {t("title")}
+            <Typography align="center" variant="subtitle1">
+              {t("title")}
             </Typography>
           </Box>
-          
         </Box>
         <Box display="flex" flexDirection="column" justifyContent="center">
           <Box display="flex" flexDirection="row">

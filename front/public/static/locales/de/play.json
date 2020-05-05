@@ -1,0 +1,17 @@
+{
+  "title": "Spielt",
+  "they-are-spies": "Sie sind auch Spione",
+  "spy-title": "Sie sind ein Spion",
+  "spy-description": "Sie müssen versuchen zu raten, was es der Standort ist, wo sich der Agenten befinden",
+  "spy-finish": "Standort auswählen",
+  "time-left": "übrige Zeit",
+  "suggested-questions": "Vorschlagene Fragen",
+  "get-one": "Erhalt eins",
+  "agent-title": "Sie sind ein Agent",
+  "agent-description": "Sie müssen versuchen zu raten, wer die Spione sind",
+  "agent-finish": "Schläge ein Spion vor",
+  "possible-places": "Mögliche Standorte",
+  "minutes": "Minuten",
+  "seconds": "Sekunden",
+  "chat": "Chat"
+}
