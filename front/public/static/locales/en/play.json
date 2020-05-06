@@ -1,0 +1,17 @@
+{
+  "title": "Play",
+  "they-are-spies": "They are also spies",
+  "spy-title": "You are a spy",
+  "spy-description": "You have to try to guess which is the place in which are the agents",
+  "spy-finish": "Select place",
+  "time-left": "Time left",
+  "suggested-questions": "Suggested questions",
+  "get-one": "Get one",
+  "agent-title": "You are an agent",
+  "agent-description": "You have to try to guess who are the spies",
+  "agent-finish": "Propose spy",
+  "possible-places": "Possible places",
+  "minutes": "minutes",
+  "seconds": "seconds",
+  "chat": "Chat"
+}

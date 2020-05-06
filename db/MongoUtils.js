@@ -279,7 +279,6 @@ exports.findOrCreateDocumentPromise = (
     )
   );
 };
-
 /**
  * @function listenForChanges
  * @alias module:MongoUtils.listenForChanges

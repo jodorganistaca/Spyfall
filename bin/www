@@ -41,6 +41,7 @@ MongoUtils.listenForChanges(
   matchesCollection,
   WebSocketUtils.notifyChanges
 );
+
 /**
  * Normalize a port into a number, string, or false.
  */
