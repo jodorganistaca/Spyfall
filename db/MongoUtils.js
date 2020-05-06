@@ -279,3 +279,30 @@ exports.findOrCreateDocumentPromise = (
     )
   );
 };
+
+/**
+ * @function findOrCreateDocumentPromise
+ * @alias module:MongoUtils.findOrCreateDocumentPromise
+ * @param {string} dbName Name of the database to query.
+ * @param {string} collectionName Name of the collection to query its documents.
+ * @param {Object} searchObject The object to find in the database.
+ * @param {Object} insertObject The object to create in the database if searchObject was not found.
+ * @throws {Error} if the collection name parameter is null, undefined or is not a string.
+ * @throws {Error} if the connection could not be established.
+ * @returns {Promise} A Promise that will return the object.
+ */
+exports.listenForChanges = (dbName, collectionName, callback) => {
+  client.connect().then((client) => {
+    const cursor = client
+      .db(dbName)
+      .collection(collectionName)
+      .watch({ fullDocument: "updateLookup" });
+
+    cursor.on("change", (data) => {
+      const _id = data.fullDocument._id;
+      this.getDocumentsPromise(dbName, collectionName).then((docs) =>
+        callback(_id, JSON.stringify(docs))
+      );
+    });
+  });
+};
