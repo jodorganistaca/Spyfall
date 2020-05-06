@@ -39,7 +39,9 @@ exports.setup = (server) => {
         newArray.push(newClient);
         clients[matchId] = newArray;
       }
-    } else clients[matchId].push(newClient);
+    } else {
+      clients[matchId].push(newClient);
+    }
   });
 };
 
@@ -49,5 +51,7 @@ exports.setup = (server) => {
  * Notify all users with a specific _id (matchId in this case) the changes on a document.
  */
 exports.notifyChanges = (_id, document) => {
-  clients[_id].forEach((client) => client.send(document));
+  if (clients[_id]) {
+    clients[_id].forEach((client) => client.send(document));
+  }
 };

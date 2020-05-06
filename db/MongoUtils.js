@@ -281,15 +281,12 @@ exports.findOrCreateDocumentPromise = (
 };
 
 /**
- * @function findOrCreateDocumentPromise
- * @alias module:MongoUtils.findOrCreateDocumentPromise
+ * @function listenForChanges
+ * @alias module:MongoUtils.listenForChanges
  * @param {string} dbName Name of the database to query.
- * @param {string} collectionName Name of the collection to query its documents.
- * @param {Object} searchObject The object to find in the database.
- * @param {Object} insertObject The object to create in the database if searchObject was not found.
- * @throws {Error} if the collection name parameter is null, undefined or is not a string.
- * @throws {Error} if the connection could not be established.
- * @returns {Promise} A Promise that will return the object.
+ * @param {string} collectionName Name of the collection to watch its documents.
+ * @param {Function} callback The function to be called with the _id of the modified document and the full document.
+ * @returns {Function} The callback received as parameter.
  */
 exports.listenForChanges = (dbName, collectionName, callback) => {
   client.connect().then((client) => {
@@ -300,8 +297,8 @@ exports.listenForChanges = (dbName, collectionName, callback) => {
 
     cursor.on("change", (data) => {
       const _id = data.fullDocument._id;
-      this.getDocumentsPromise(dbName, collectionName).then((docs) =>
-        callback(_id, JSON.stringify(docs))
+      this.findOnePromise(dbName, collectionName, _id).then((docs) =>
+        callback(_id, JSON.stringify(docs[0]))
       );
     });
   });
