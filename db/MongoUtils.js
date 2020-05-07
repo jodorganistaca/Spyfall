@@ -279,3 +279,26 @@ exports.findOrCreateDocumentPromise = (
     )
   );
 };
+/**
+ * @function listenForChanges
+ * @alias module:MongoUtils.listenForChanges
+ * @param {string} dbName Name of the database to query.
+ * @param {string} collectionName Name of the collection to watch its documents.
+ * @param {Function} callback The function to be called with the _id of the modified document and the full document.
+ * @returns {Function} The callback received as parameter.
+ */
+exports.listenForChanges = (dbName, collectionName, callback) => {
+  client.connect().then((client) => {
+    const cursor = client
+      .db(dbName)
+      .collection(collectionName)
+      .watch({ fullDocument: "updateLookup" });
+
+    cursor.on("change", (data) => {
+      const _id = data.fullDocument._id;
+      this.findOnePromise(dbName, collectionName, _id).then((docs) =>
+        callback(_id, JSON.stringify(docs[0]))
+      );
+    });
+  });
+};

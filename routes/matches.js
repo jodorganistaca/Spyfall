@@ -88,7 +88,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { maxRounds } = req.body;
+    const { maxRounds, player } = req.body;
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
