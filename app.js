@@ -24,14 +24,6 @@ const app = express();
 passportInit();
 
 app.use(
-  express_session({
-    secret: process.env.JWT_SECRET,
-    resave: true,
-    saveUninitialized: true,
-  })
-);
-
-app.use(
   cors({
     origin: "http://localhost:3000", // allow to server to accept request from different origin
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
