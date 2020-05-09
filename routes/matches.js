@@ -98,10 +98,12 @@ router.post(
       return res.status(500).json({ msg: "Parsing player's JSON error" });
     }
     const { maxRounds } = req.body;
+    const players = new Array();
+    players.push(player);
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
-      new Match([].push(player), maxRounds)
+      new Match(players, maxRounds)
     ).then((docs) => res.status(201).json(docs.ops[0]));
   }
 );
