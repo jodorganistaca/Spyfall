@@ -30,9 +30,8 @@ router.post(
     }
     const { name, image, role, location } = req.body;
     if (req.user) {
-      console.log(req.user);
-      const { googleId, name, avatar } = req.user;
-      const newUser = new User(googleId, name, avatar);
+      const { email, name, avatar } = req.user;
+      const newUser = new User(email, name, avatar);
       const newPlayer = new Player(newUser, role, location);
       return res.status(200).json(newPlayer);
     } else {
