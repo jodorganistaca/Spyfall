@@ -89,10 +89,12 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const { maxRounds, player } = req.body;
+    const players = new Array();
+    players.push(player);
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
-      new Match([].push(player), maxRounds)
+      new Match(players, maxRounds)
     ).then((docs) => res.status(201).json(docs.ops[0]));
   }
 );
