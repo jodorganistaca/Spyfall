@@ -9,7 +9,7 @@ export default function Copyright() {
         color="textSecondary"
         style={{ letterSpacing: 1.25, fontSize: "0.65rem" }}
       >
-        © Spyfall 2020 - All rigths reserved
+        © Spyfall 2020 - All rights reserved
       </Typography>
     </Box>
   );

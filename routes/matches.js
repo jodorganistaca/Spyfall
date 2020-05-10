@@ -85,26 +85,14 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    let player;
-    let cookie = req.cookies["Spyfall-Player"];
-    if (!cookie)
-      return res
-        .status(401)
-        .json({ msg: "Player is required in order to create a match" });
-
-    try {
-      player = JSON.parse(cookie);
-    } catch (error) {
-      return res.status(500).json({ msg: "Parsing player's JSON error" });
-    }
     const { maxRounds } = req.body;
-    const players = new Array();
-    players.push(player);
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
-      new Match(players, maxRounds)
-    ).then((docs) => res.status(201).json(docs.ops[0]));
+      new Match([], maxRounds)
+    ).then((docs) => {
+      return res.status(201).json(docs.ops[0]);
+    });
   }
 );
 

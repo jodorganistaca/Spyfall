@@ -67,7 +67,19 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<Add />}
-            onClick={() => Router.push("/waiting-room")}
+            onClick={async () => {
+              const res = await fetch("http://localhost:3001/matches", {
+                method: "POST",
+                body: JSON.stringify({ maxRounds: 1 }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                mode: "cors",
+                cache: "default",
+              });
+              alert(res.status);
+              return Router.push("/waiting-room");
+            }}
           >
             {t("create-match")}
           </Button>
@@ -109,10 +121,20 @@ const Home = function Home(props) {
         </Typography>
 
         <Box display="flex" justifyContent="center" marginBottom="120px">
-          <IconButton aria-label="Google">
+          <IconButton
+            aria-label="Google"
+            onClick={() =>
+              window.location.replace("http://localhost:3001/auth/google")
+            }
+          >
             <GoogleIcon className={styles.socialIcon} />
           </IconButton>
-          <IconButton aria-label="Facebook" onClick={() => append("mundo")}>
+          <IconButton
+            aria-label="Facebook"
+            onClick={() =>
+              window.location.replace("http://localhost:3001/auth/facebook")
+            }
+          >
             <FacebookIcon className={styles.socialIcon} />
           </IconButton>
         </Box>

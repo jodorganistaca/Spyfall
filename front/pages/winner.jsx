@@ -53,7 +53,7 @@ const Winner = function Winner({ t }) {
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center"> 
+      <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center" flexWrap="wrap"> 
         <Box className={styles.imageContainer}>
           <Image src="/assets/logo.png" aspectRatio={1.9} />
         </Box>
@@ -62,7 +62,7 @@ const Winner = function Winner({ t }) {
         </Box>
       </Box>
 
-      <Box display="flex" flexDirection="row">
+      <Box display="flex" flexDirection="row" flexWrap="wrap">
         <Button
           variant="contained"
           size="medium"
@@ -84,47 +84,42 @@ const Winner = function Winner({ t }) {
         </Button>
       </Box>
 
-      <Box display="flex" flexDirection="row">
+
+      <Box display="flex" flexDirection="row" width="100%" flexWrap="wrap">
         <Box
           display="flex"
           flexDirection="column"
           justifyContent="left"
-          margin="0px 30px 0px 0px"
+          marginLeft="20%"
         >
           <Typography align="left" variant="subtitle2">
             {t("participants")}
           </Typography>
+          <Box display="flex" flexDirection="row" alignItems="center" marginBottom="8%">
+            <Avatar>H</Avatar>
+            <Typography align="center" variant="subtitle1">
+              {t("title")}
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="row" alignItems="center">
+            <Avatar>H</Avatar>
+            <Typography align="center" variant="subtitle1">
+              {t("title")}
+            </Typography>
+          </Box>
         </Box>
         <Box
           display="flex"
           flexDirection="column"
           justifyContent="left"
-          margin="0px 30px 0px 0px"
+          marginLeft="10%"
         >
           <Typography align="left" variant="subtitle2">
             {t("secret-place")}
           </Typography>
-        </Box>
-      </Box>
-      <Box display="flex" flexDirection="row">
-        <Box display="flex" flexDirection="column" justifyContent="center">
-          <Box display="flex" flexDirection="row" alignItems="center">
-            <Avatar>H</Avatar>
-            <Typography align="center" variant="subtitle1">
-              {t("title")}
-            </Typography>
-          </Box>
-          <Box display="flex" flexDirection="row" alignItems="center">
-            <Avatar>H</Avatar>
-            <Typography align="center" variant="subtitle1">
-              {t("title")}
-            </Typography>
-          </Box>
-        </Box>
-        <Box display="flex" flexDirection="column" justifyContent="center">
           <Box display="flex" flexDirection="row">
             <Box className={styles.imageContainer}>
-              <Image src="/assets/logo.png" aspectRatio={1.9} />
+              <img src="/assets/spy.png" width="200px" />
             </Box>
           </Box>
         </Box>
