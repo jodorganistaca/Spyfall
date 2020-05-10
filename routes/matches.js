@@ -91,6 +91,7 @@ router.post(
       matchesCollection,
       new Match([], maxRounds)
     ).then((docs) => {
+      res.cookie("Spyfall-Match", JSON.stringify({ matchId: docs.ops[0]._id }));
       return res.status(201).json(docs.ops[0]);
     });
   }
@@ -133,6 +134,7 @@ router.put(
         }).then((docs) => {
           if (docs.ok === 1) {
             updatedMatch.players.push({ user, role, location });
+            res.cookie("Spyfall-Match", JSON.stringify({ matchId: _id }));
             return res.status(200).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
