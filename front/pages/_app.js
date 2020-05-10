@@ -7,6 +7,9 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 import "../styles/app.css";
 import { appWithTranslation } from "../plugins/i18n";
 import App from "next/app";
+import { Provider } from "react-redux";
+import store from "../store";
+import withRedux from "next-redux-wrapper";
 
 function SpyfallApp(props) {
   const { Component, pageProps } = props;
@@ -19,7 +22,7 @@ function SpyfallApp(props) {
   }, []);
 
   return (
-    <React.Fragment>
+    <Provider store={store}>
       <Head>
         <title>Spyfall</title>
         <link rel="icon" href="/icons/icons/favicon.ico" />
@@ -105,7 +108,7 @@ function SpyfallApp(props) {
         <CssBaseline />
         <Component {...pageProps} />
       </ThemeProvider>
-    </React.Fragment>
+    </Provider>
   );
 }
 
@@ -114,4 +117,4 @@ SpyfallApp.getInitialProps = async (appContext) => {
   return { ...appProps };
 };
 
-export default appWithTranslation(SpyfallApp);
+export default withRedux(() => store)(appWithTranslation(SpyfallApp));

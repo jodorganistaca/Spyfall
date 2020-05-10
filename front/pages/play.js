@@ -172,7 +172,7 @@ const Play = function ({
         size="medium"
         variant="contained"
         className={styles.button}
-        onClick={() => Router.push("votation")}
+        onClick={() => Router.push("/votation")}
       >
         {t(`${role}-finish`)}
       </Button>
