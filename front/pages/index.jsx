@@ -15,6 +15,7 @@ import GoogleIcon from "../public/assets/google.svg";
 import { withTranslation, Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import { appendToString } from "../store/actions/test";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -121,8 +122,18 @@ const Home = function Home(props) {
 };
 
 Home.getInitialProps = async ({ store }) => {
-  console.log(store.getState());
-  return { namespacesRequired: ["home"] };
+  console.log("Store ", store.getState());
+  let data = {};
+
+  try {
+    const response = await http.get("/");
+    console.log("Axios: ", response);
+    data = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+
+  return { namespacesRequired: ["home"], data: data };
 };
 
 const mapStateToProps = (state) => ({ helloWorld: state.test.test });
