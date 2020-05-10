@@ -8,30 +8,29 @@ import {
   Card,
   CardContent,
 } from "@material-ui/core";
+import { useState, useEffect } from "react";
+import moment from "moment/moment";
 import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
 
 import { Router } from "../plugins/i18n";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
     borderRadius: "87px",
-    margin: "0px 0px 32px 10px",
     width: 220,
     letterSpacing: 1.25,
-  },
-  socialIcon: {
-    borderRadius: "50%",
-    boxShadow:
-      "0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12)",
-  },
-  textDivider: {
-    position: "absolute",
-    margin: "auto",
-    backgroundColor: "#fff",
-    padding: "4px 10px 4px 10px",
-    top: "-13px",
+    padding: "10px 30px 10px 30px",
+    borderRadius: "87px",
+    color: "white",
+    marginTop: 50,
+    marginBottom: 50,
+    color: theme.palette.getContrastText(theme.palette.success.main),
+    backgroundColor: theme.palette.success.main,
+    "&:hover": {
+      backgroundColor: "#1B7D46",
+    },
   },
   card: {
     margin: "5px 5px 5px 5px",
@@ -39,9 +38,44 @@ const useStyles = makeStyles({
     height: 80,
     flex: "0 0 45%",
   },
-});
+}));
 
-const Votation = function Votation({ t }) {
+const Countdown = ({ finishTime, t }) => {
+  const getTimeLeft = () => {
+    const initTime = moment(new Date(finishTime));
+    const sub = initTime.subtract(moment(new Date()));
+    return sub.valueOf();
+  };
+
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft());
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  useEffect(() => {
+    const countdown = setInterval(() => {
+      if (timeLeft - 1000 > 0) setTimeLeft((prev) => prev - 1000);
+      if (timeLeft <= 10000) setIsFinishing(true);
+    }, 1000);
+
+    return () => clearInterval(countdown);
+  }, [finishTime, timeLeft]);
+
+  return (
+    <Typography
+      variant="h4"
+      color={isFinishing ? "error" : "textPrimary"}
+      align="center"
+    >
+      {moment(timeLeft).minutes()} {t("minutes")} {moment(timeLeft).seconds()}{" "}
+      {t("seconds")}
+    </Typography>
+  );
+};
+
+const Votation = function ({
+  t,
+  role = "spy",
+  finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
+}) {
   const styles = useStyles();
   const createTable = () => {
     let table = [];
@@ -49,7 +83,7 @@ const Votation = function Votation({ t }) {
       table.push(
         <Card className={styles.card}>
           <CardContent>
-            <Box display="flex" justifyContent="left" alignItems="center">
+            <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
               <Box margin="0px 10px 0px 10px">
                 <Avatar align="center">H</Avatar>
               </Box>
@@ -70,10 +104,13 @@ const Votation = function Votation({ t }) {
         <Typography
           align="left"
           variant="h4"
-          style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
+          style={{ marginBottom: 5, marginTop: 50, letterSpacing: 1.25 }}
         >
           {t("votation")}
         </Typography>
+      </Box>
+      <Box style={{ marginBottom: 20 }}>
+        <Countdown finishTime={finishTime} t={t} />
       </Box>
 
       <Box
@@ -85,7 +122,7 @@ const Votation = function Votation({ t }) {
       >
         {createTable()}
       </Box>
-      <Box display="flex" flexDirection="row" margin="3% 0px 0px 0px">
+      <Box display="flex" flexDirection="row">
         <Button
           variant="contained"
           size="medium"

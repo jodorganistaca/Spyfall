@@ -8,7 +8,13 @@ import {
   Card,
   CardContent,
   Button,
+  Table,
+  TableBody,
+  TableHead,
+  TableRow,
+  withStyles,
 } from "@material-ui/core";
+import MuiTableCell from "@material-ui/core/TableCell";
 import { withTranslation, Router } from "../plugins/i18n";
 
 const useStyles = makeStyles({
@@ -51,7 +57,7 @@ const PublishVotation = function PublishVotation({ t }) {
       table.push(
         <Card className={styles.card}>
           <CardContent className={styles.cardContent}>
-            <Typography align="center" variant="subtitle1">
+            <Typography align="center" variant="subtitle2">
               {t("votation")}
             </Typography>
             <Box display="flex" justifyContent="center" alignItems="center">
@@ -65,45 +71,15 @@ const PublishVotation = function PublishVotation({ t }) {
     }
     return table;
   };
-  const createPlayers = () => {
-    let table = [];
-    for (let i = 0; i < 3; i++) {
-      table.push(
-        <Box display="flex" flexDirection="column" justifyContent="center">
-          <Box display="flex" flexDirection="row">
-            <Box flexBasis="80%">
-              <Typography align="left" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </Box>
-            <Box flexBasis="20%">
-              <Typography align="left" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </Box>
-          </Box>
-          <Box display="flex" flexDirection="row" alignItems="center">
-            <Avatar>H</Avatar>
-            <Typography align="center" variant="subtitle1">
-              {t("title")}
-            </Typography>
-            <Typography align="center" variant="subtitle1">
-              {t("1")}
-            </Typography>
-          </Box>
-        </Box>
-      );
-    }
-    return table;
-  };
+  const TableCell = withStyles({
+    root: {
+      borderBottom: "none",
+    },
+  })(MuiTableCell);
   return (
     <Layout secondary={true}>
-      <Box display="flex" flexDirection="column" alignItems="left">
-        <Typography
-          align="left"
-          variant="h4"
-          style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
-        >
+      <Box display="flex" flexDirection="row" width="70%">
+        <Typography align="center" variant="subtitle1" margin="0px 20% 0px 20%">
           {t("votation")}
         </Typography>
       </Box>
@@ -123,22 +99,105 @@ const PublishVotation = function PublishVotation({ t }) {
         style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
       />
 
-      <Box display="flex" flexDirection="column" alignItems="left">
-        <Typography align="left" variant="h4">
+      <Box display="flex" flexDirection="row" width="70%">
+        <Typography align="left" variant="subtitle1">
           {t("results")}
         </Typography>
       </Box>
 
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="center"
-        margin="0px 10% 0px 10%"
-      >
-        {createPlayers()}
-      </Box>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <TableCell>
+              <Box display="flex">
+                <Avatar>H</Avatar>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
+                  {t("title")}
+                </Typography>
+              </Box>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("1")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Box display="flex">
+                <Avatar>H</Avatar>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
+                  {t("title")}
+                </Typography>
+              </Box>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("1")}
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Box display="flex">
+                <Avatar>H</Avatar>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
+                  {t("title")}
+                </Typography>
+              </Box>
+            </TableCell>
+            <TableCell>
+              <Typography align="center" variant="subtitle1">
+                {t("1")}
+              </Typography>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
-      <Button color="primary" onClick={() => Router.push("/finish")}>
+      <Button color="primary" onClick={() => Router.push("/winner")}>
         {t("continue")}
       </Button>
     </Layout>

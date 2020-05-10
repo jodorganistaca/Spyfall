@@ -79,31 +79,20 @@ router.post(
       "maxRounds",
       "Maximum number of rounds is required and must be a positive number"
     ).isInt({ gt: 0 }),
+    check("player", "The match must be created by an authenticated user.")
+      .not()
+      .isEmpty(),
   ],
   function (req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    let player;
-    let cookie = req.cookies["Spyfall-Player"];
-    if (!cookie)
-      return res
-        .status(401)
-        .json({ msg: "Player is required in order to create a match" });
-
-    try {
-      player = JSON.parse(cookie);
-    } catch (error) {
-      return res.status(500).json({ msg: "Parsing player's JSON error" });
-    }
-    const { maxRounds } = req.body;
-    const players = new Array();
-    players.push(player);
+    const { maxRounds, player } = req.body;
     db.createOneDocumentPromise(
       dbName,
       matchesCollection,
-      new Match(players, maxRounds)
+      new Match([].push(player), maxRounds)
     ).then((docs) => res.status(201).json(docs.ops[0]));
   }
 );

@@ -12,27 +12,32 @@ import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
 import { Router } from "../plugins/i18n";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
     borderRadius: "87px",
-    margin: "0px 0px 32px 10px",
     width: 220,
     letterSpacing: 1.25,
+    padding: "10px 30px 10px 30px",
+    borderRadius: "87px",
+    color: "white",
+    margin: "50px 10px 50px 10px",
+    color: theme.palette.getContrastText(theme.palette.error.main),
   },
-  socialIcon: {
-    borderRadius: "50%",
-    boxShadow:
-      "0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12)",
+  button1: {
+    width: "auto",
+    padding: "10px 30px 10px 30px",
+    borderRadius: "87px",
+    color: "white",
+    marginTop: 50,
+    marginBottom: 50,
+    color: theme.palette.getContrastText(theme.palette.success.main),
+    backgroundColor: theme.palette.success.main,
+    "&:hover": {
+      backgroundColor: "#1B7D46",
+    },
   },
-  textDivider: {
-    position: "absolute",
-    margin: "auto",
-    backgroundColor: "#fff",
-    padding: "4px 10px 4px 10px",
-    top: "-13px",
-  },
-});
+}));
 
 const Winner = function Winner({ t }) {
   const styles = useStyles();
@@ -48,12 +53,12 @@ const Winner = function Winner({ t }) {
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row">
+      <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center"> 
         <Box className={styles.imageContainer}>
           <Image src="/assets/logo.png" aspectRatio={1.9} />
         </Box>
         <Box className={styles.imageContainer}>
-          <Image src="/assets/spy.png" aspectRatio={1} />
+          <img src="/assets/spy.png" width="200px" />
         </Box>
       </Box>
 
@@ -61,8 +66,7 @@ const Winner = function Winner({ t }) {
         <Button
           variant="contained"
           size="medium"
-          color="success"
-          className={styles.button}
+          className={styles.button1}
           startIcon={<NavigationSharp />}
           onClick={() => Router.push("/waiting-room")}
         >
@@ -71,7 +75,7 @@ const Winner = function Winner({ t }) {
         <Button
           variant="contained"
           size="medium"
-          color="error"
+          color="primary"
           className={styles.button}
           startIcon={<NavigationSharp />}
           onClick={() => Router.push("/")}

@@ -10,6 +10,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.12",
     "@material-ui/icons": "^4.9.1",
+    "express": "^4.17.1",
     "material-ui-image": "^3.2.3",
     "moment": "^2.25.1",
     "moment-locales-webpack-plugin": "^1.2.0",

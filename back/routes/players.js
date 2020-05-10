@@ -29,28 +29,27 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const { name, image, role, location } = req.body;
-    let newUser;
-    let newPlayer;
     if (req.user) {
-      const { email, name, avatar } = req.user;
-      newUser = new User(email, name, avatar);
-      newPlayer = new Player(newUser, role, location);
+      console.log(req.user);
+      const { googleId, name, avatar } = req.user;
+      const newUser = new User(googleId, name, avatar);
+      const newPlayer = new Player(newUser, role, location);
+      return res.status(200).json(newPlayer);
     } else {
       if (!name) {
         return res
           .status(400)
           .json({ msg: "Name is required for anonymous users" });
       }
-      newUser = new User(
+      const newUser = new User(
         null,
         name,
-        "https://www.twago.es/img/2018/default/no-user.png",
+        image || "https://www.twago.es/img/2018/default/no-user.png",
         0
       );
-      newPlayer = new Player(newUser, role, location);
+      const newPlayer = new Player(newUser, role, location);
+      return res.status(200).json(newPlayer);
     }
-    res.cookie("Spyfall-Player", JSON.stringify(newPlayer));
-    return res.status(200).json(newPlayer);
   }
 );
 

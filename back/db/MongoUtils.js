@@ -282,7 +282,6 @@ exports.findOrCreateDocumentPromise = (
 /**
  * @function listenForChanges
  * @alias module:MongoUtils.listenForChanges
- * Returns atomic changes in the collection specified.
  * @param {string} dbName Name of the database to query.
  * @param {string} collectionName Name of the collection to watch its documents.
  * @param {Function} callback The function to be called with the _id of the modified document and the full document.
@@ -297,12 +296,9 @@ exports.listenForChanges = (dbName, collectionName, callback) => {
 
     cursor.on("change", (data) => {
       const _id = data.fullDocument._id;
-      this.findOnePromise(dbName, collectionName, _id).then((docs) => {
-        docs[0].updatedField = Object.getOwnPropertyNames(
-          data.updateDescription.updatedFields
-        )[0].split(".")[0];
-        return callback(_id, JSON.stringify(docs[0]));
-      });
+      this.findOnePromise(dbName, collectionName, _id).then((docs) =>
+        callback(_id, JSON.stringify(docs[0]))
+      );
     });
   });
 };
