@@ -8,11 +8,11 @@ import {
   Card,
   CardContent,
   Button,
-  Table, 
+  Table,
   TableBody,
   TableHead,
   TableRow,
-  withStyles
+  withStyles,
 } from "@material-ui/core";
 import MuiTableCell from "@material-ui/core/TableCell";
 import { withTranslation, Router } from "../plugins/i18n";
@@ -73,22 +73,13 @@ const PublishVotation = function PublishVotation({ t }) {
   };
   const TableCell = withStyles({
     root: {
-      borderBottom: "none"
-    }
+      borderBottom: "none",
+    },
   })(MuiTableCell);
   return (
     <Layout secondary={true}>
-      
-      <Box 
-        display="flex"
-        flexDirection="row"
-        width="70%"
-      >
-        <Typography
-          align="center"
-          variant="subtitle1"
-          margin="0px 20% 0px 20%"
-        >
+      <Box display="flex" flexDirection="row" width="70%">
+        <Typography align="center" variant="subtitle1" margin="0px 20% 0px 20%">
           {t("votation")}
         </Typography>
       </Box>
@@ -108,11 +99,7 @@ const PublishVotation = function PublishVotation({ t }) {
         style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
       />
 
-      <Box 
-        display="flex"
-        flexDirection="row"
-        width="70%"
-      >
+      <Box display="flex" flexDirection="row" width="70%">
         <Typography align="left" variant="subtitle1">
           {t("results")}
         </Typography>
@@ -158,7 +145,11 @@ const PublishVotation = function PublishVotation({ t }) {
             <TableCell>
               <Box display="flex">
                 <Avatar>H</Avatar>
-                <Typography align="center" variant="subtitle1" style={{ marginLeft: "10px" }}>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
                   {t("title")}
                 </Typography>
               </Box>
@@ -171,7 +162,11 @@ const PublishVotation = function PublishVotation({ t }) {
             <TableCell>
               <Box display="flex">
                 <Avatar>H</Avatar>
-                <Typography align="center" variant="subtitle1" style={{ marginLeft: "10px" }}>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
                   {t("title")}
                 </Typography>
               </Box>
@@ -184,7 +179,11 @@ const PublishVotation = function PublishVotation({ t }) {
             <TableCell>
               <Box display="flex">
                 <Avatar>H</Avatar>
-                <Typography align="center" variant="subtitle1" style={{ marginLeft: "10px" }}>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
                   {t("title")}
                 </Typography>
               </Box>
@@ -197,8 +196,6 @@ const PublishVotation = function PublishVotation({ t }) {
           </TableRow>
         </TableBody>
       </Table>
-
-      
 
       <Button color="primary" onClick={() => Router.push("/winner")}>
         {t("continue")}

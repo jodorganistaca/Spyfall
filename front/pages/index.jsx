@@ -13,6 +13,8 @@ import NextLink from "../components/NextLink";
 import FacebookIcon from "../public/assets/facebook.svg";
 import GoogleIcon from "../public/assets/google.svg";
 import { withTranslation, Router } from "../plugins/i18n";
+import { connect } from "react-redux";
+import { appendToString } from "../store/actions/test";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -36,8 +38,12 @@ const useStyles = makeStyles({
   },
 });
 
-const Home = function Home({ t }) {
+const Home = function Home(props) {
+  const { t, helloWorld, append } = props;
   const styles = useStyles();
+
+  console.log(props, helloWorld, append);
+
   return (
     <Layout justifyContent="space-between">
       <Box className={styles.imageContainer}>
@@ -103,6 +109,8 @@ const Home = function Home({ t }) {
         </Typography>
       </Box>
 
+      <Typography variant="h2">{helloWorld}</Typography>
+
       <Box>
         <Typography
           variant="subtitle1"
@@ -134,8 +142,15 @@ const Home = function Home({ t }) {
   );
 };
 
-Home.getInitialProps = async () => ({
-  namespacesRequired: ["home"],
-});
+Home.getInitialProps = async ({ store }) => {
+  console.log(store.getState());
+  return { namespacesRequired: ["home"] };
+};
 
-export default withTranslation("home")(Home);
+const mapStateToProps = (state) => ({ helloWorld: state.test.test });
+
+const mapDispatchToProps = { append: appendToString };
+
+export default withTranslation("home")(
+  connect(mapStateToProps, mapDispatchToProps)(Home)
+);
