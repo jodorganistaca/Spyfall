@@ -14,7 +14,7 @@ const passportInit = () => {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3001/auth/google/callback",
+        callbackURL: "http://localhost:3000",
       },
       function (accessToken, refreshToken, profile, cb) {
         let imageUrl = "https://www.twago.es/img/2018/default/no-user.png";
@@ -52,7 +52,7 @@ const passportInit = () => {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3001/auth/facebook/callback",
+        callbackURL: "http://localhost:3000",
         profileFields: [
           "id",
           "displayName",

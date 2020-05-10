@@ -63,6 +63,7 @@ const Message = ({ content, sender }) => (
 class ChatContainer extends Component {
   constructor(props) {
     super(props);
+    this.receiveMessages = this.receiveMessages.bind(this);
     this.state = {
       messages: [],
       messageToSend: undefined,
@@ -70,47 +71,69 @@ class ChatContainer extends Component {
     };
   }
 
+  getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(";");
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == " ") {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+
   componentWillMount() {
     // let id = this.props.navigation.getParam("id", 0);
     // this.setState({ id: id.toString() });
-    this.getMessages("id.toString()");
+    this.getMessages();
   }
-
-  getMessages(id) {
-    // chat.getMessages(id).onSnapshot((querySnapshot) => {
-    //   const list = [];
-    //   if (querySnapshot)
-    //     querySnapshot.forEach((doc) => {
-    //       const { content, sender, timestamp } = doc.data();
-    //       list.push({
-    //         id: doc.id,
-    //         content: content,
-    //         timestamp: timestamp,
-    //         sender: sender,
-    //       });
-    //     });
-    //   this.setState({ messages: list });
-    // });
-
+  receiveMessages(event) {
+    const player = JSON.parse(this.getCookie("Spyfall-Player"));
+    let messages = JSON.parse(event.data).chat;
+    messages.forEach((element) => {
+      if (element.player == player) element.sender = "sender";
+      else element.sender = "receiver";
+      element.content = element.message;
+    });
     this.setState({
-      messages: [
-        {
-          id: "asdasdas",
-          content: "Mock",
-          timestamp: new Date(),
-          sender: "sender",
-        },
-        {
-          id: "asdasdas",
-          content: "Mock",
-          timestamp: new Date(),
-          sender: "receiver",
-        },
-      ],
+      messages,
     });
   }
 
+  getMessages() {
+    const socket = new WebSocket(
+      "ws://localhost:3001?matchId=5eb74f4b66456236f0c95d5c"
+    );
+    socket.onmessage = this.receiveMessages;
+  }
+
   async sendMessage() {
+    try {
+      const res = await axios.get("/getProfile");
+
+      dispatch({
+        type: LOGIN_SUCCESS,
+        payload: res.data,
+      });
+
+      dispatch(loadUser());
+    } catch (error) {
+      console.log(error.response);
+      const errors = error.response.data.errors;
+
+      if (errors) {
+        errors.forEach((element) => {
+          dispatch(setAlert(element.msg, "danger"));
+        });
+      }
+      dispatch({ type: LOGIN_FAIL });
+    }
+
     // try {
     //   let response = await chat.sendMessage(
     //     this.state.id + "",
