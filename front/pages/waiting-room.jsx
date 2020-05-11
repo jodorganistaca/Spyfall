@@ -43,6 +43,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
       }
       if (!waiting) {
         Router.push("/choose-place");
+        socket.close();
       }
     };
   };
