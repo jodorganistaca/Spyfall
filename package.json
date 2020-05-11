@@ -7,6 +7,7 @@
     "start-dev": "nodemon ./bin/www",
     "test": "jest",
     "heroku-postbuild": "cd ./front && npm install && npm run build",
+    //Creo que es mejor hacer el build en este parte del codigo tambien, facilita la ejecucion en heroku
     "start": "cd ./front && npm install && npm start"
   },
   "dependencies": {
