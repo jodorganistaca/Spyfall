@@ -55,6 +55,7 @@ const PublishVotation = function PublishVotation({
 }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
+  const [votes, setVotes] = useState([]);
   const createTable = () => {
     let table = [];
   
@@ -77,44 +78,48 @@ const PublishVotation = function PublishVotation({
   };
   const createResults = () => {
     let r = [];
-    for(let i = 0; i < 3; i++){
-      r.push(
-        <Box display="flex" flexDirection="column" alignItems="left" flex="0 0 34%">
-          <Box display="flex" flexDirection="row">
-            <Box display="flex" flexDirection="column" marginLeft="5%">
-              <Typography align="left" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </Box>
-            <Box display="flex" flexDirection="column" marginLeft="48%">
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </Box>
-          </Box>
+    for(let i = 0; i < players.length; i++){
+      r.push(          
           <Box display="flex" flexDirection="row">
             <Box display="flex" flexDirection="column" marginLeft="5%">
               <Box display="flex">
-                <Avatar>H</Avatar>
+                <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}></Avatar>
                 <Typography
                   align="center"
                   variant="subtitle1"
                   style={{ marginLeft: "10px" }}
                 >
-                  {t("title")}
+                  {players[i].user.name}
                 </Typography>
               </Box>
             </Box>
             <Box display="flex" flexDirection="column" marginLeft="48%">
-              <Typography align="center" variant="subtitle1">
-                {t("1")}
-              </Typography>
+              {
+                players[i].votes === null ?
+                <Typography align="center" variant="subtitle1">
+                  {t("0")}
+                </Typography>
+                :
+                <Typography align="center" variant="subtitle1">
+                  {players[i].votes}
+                </Typography>
+              }
+              
             </Box>
           </Box>
-        </Box>
       );
     }
     return r;
+  }
+  const countVotes = () =>{
+    let max = 0;
+    for(let p of players){
+      if(p.votes !== undefined){
+        console.log(p.votes);
+      }
+      
+    }
+    //Router.push("/winner")
   }
   const getPlayers = async () => {
     if(match!==null){
@@ -124,9 +129,11 @@ const PublishVotation = function PublishVotation({
       if (p) {
         console.log(p);
         setPlayers(p);
+        
       }
     }
   };
+
   useEffect(() => {
     getPlayers();
   }, []);
@@ -159,11 +166,25 @@ const PublishVotation = function PublishVotation({
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" width="100%" justifyContent="center" flexWrap="wrap" justifyContent="space-between">
-        {createResults()}        
+      <Box display="flex" flexDirection="row" width="100%" justifyContent="center" flexWrap="wrap" justifyContent="center">
+        <Box display="flex" flexDirection="column" alignItems="left" flex="0 0 34%">
+        <Box display="flex" flexDirection="row">
+          <Box display="flex" flexDirection="column" marginLeft="5%">
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </Box>
+            <Box display="flex" flexDirection="column" marginLeft="48%">
+              <Typography align="center" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </Box>
+          </Box>
+          {createResults()}       
+        </Box> 
       </Box>
 
-      <Button color="primary" onClick={() => Router.push("/winner")}>
+      <Button color="primary" onClick={() => countVotes()}>
         {t("continue")}
       </Button>
     </Layout>

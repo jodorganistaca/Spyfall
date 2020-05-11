@@ -87,24 +87,13 @@ const Votation = function ({
   const styles = useStyles();
   const vote = async (p) => {
     try {
-      
-      const response = await http.get(`/matches/token/${state.matches.match._id}`,{
-        "votedPlayer": {
-          "user": {
-              "email": null,
-              "name": "jsbravoc",
-              "avatar": "https://www.twago.es/img/2018/default/no-user.png",
-              "score": 0
-          },
-          "role": "Spy",
-          "location": "Mario Laserna"}
+      console.log(p);
+      console.log(players[p]);
+      const res = await axios.post(`http://localhost:3001/matches/createVote/${match.token}`,{
+        "votedPlayer": players[p]
       });
-      const players = response.data["players"];
-      console.log(response);
-      return {
-        namespacesRequired: ["votation"],
-        players
-      }
+      console.log(res);
+      Router.push("/publish-votation");
     } catch (error) {
       console.error(error);
       return {
@@ -119,10 +108,10 @@ const Votation = function ({
       table.push(
         <Card className={styles.card}>
           <CardContent>
-            <Button onClick={vote(player[i])}>
+            <Button onClick={() => vote((i))} key={i}>
               <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
               <Box margin="0px 10px 0px 10px">
-                <Avatar align="center" alt="Travis Howard" src={`${players[i].user.avatar}`}></Avatar>
+                <Avatar align="center" alt="Travis Howard" src={`${players[i].avatar}`}></Avatar>
               </Box>
               <Typography align="center" variant="subtitle1" inputRef={myInput}>
                 {players[i].user.name}
