@@ -6,7 +6,7 @@ module.exports.Match = class {
    * @param {Array<Player>} players The players that belong to the match.
    * @param {Integer} maxRounds The maximum amount of rounds of the match.
    */
-  constructor(players, maxRounds) {
+  constructor(players, maxRounds, location) {
     this.players = players;
     this.maxRounds = maxRounds;
     this.token = uuidv1();
@@ -14,8 +14,9 @@ module.exports.Match = class {
     this.spiesScore = 0;
     this.round = 1;
     this.chat = [];
+    this.votes = [];
+    this.timer = undefined;
     this.pendingToAssign = [];
     this.waiting = true;
-    this.timer = new Timer(10000);
   }
 };

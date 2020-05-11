@@ -11,6 +11,7 @@ const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
 const { Vote } = require("../db/models/Vote");
 const _ = require("lodash");
+const locationsCollection = config.get("locationsCollection");
 
 /**
  * GET /matches
@@ -83,19 +84,97 @@ router.post(
     ).isInt({ gt: 0 }),
   ],
   function (req, res) {
-    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     const { maxRounds } = req.body;
-    db.createOneDocumentPromise(
-      dbName,
-      matchesCollection,
-      new Match([], maxRounds)
-    ).then((docs) => {
-      res.cookie("Spyfall-Match", JSON.stringify({ matchId: docs.ops[0]._id }));
-      return res.status(201).json(docs.ops[0]);
+
+    db.getRandomDocumentPromise(dbName, locationsCollection).then((doc) => {
+      const location = doc[0];
+      db.createOneDocumentPromise(
+        dbName,
+        matchesCollection,
+        new Match([], maxRounds, location)
+      )
+        .then((docs) => {
+          res.cookie(
+            "Spyfall-Match",
+            JSON.stringify({ matchId: docs.ops[0]._id })
+          );
+          return res.status(201).json(docs.ops[0]);
+        })
+        .catch(() => res.status(500).json({}));
+    });
+  }
+);
+
+/**
+ * PUT /matches/start/:token
+ * Start match.
+ * @param player Body parameter player. Must be consistent with Player Model.
+ * @access public
+ */
+router.put(
+  "/start/:token",
+  [
+    check("player", "User must be authenticated in order to start a match")
+      .not()
+      .isEmpty(),
+  ],
+  function (req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
+
+    const { player } = req.body;
+    const { user } = player;
+
+    if (!user) {
+      return res.status(400).json({ msg: "Bad Request" });
+    }
+
+    db.findOneObjectPromise(dbName, matchesCollection, {
+      token: req.params.token,
+    }).then((docs) => {
+      let updatedMatch;
+      if (docs && docs[0]) {
+        updatedMatch = docs[0];
+        const _id = docs[0]._id;
+
+        // Set spies
+        let spiesCount = 0;
+        updatedMatch.players = updatedMatch.players.map((player, idx) => {
+          let role = "Agent";
+          if (spiesCount > updatedMatch.players.length * 0.3) role = "Agent";
+          else if (
+            idx === updatedMatch.players.length - 1 &&
+            spiesCount === 0
+          ) {
+            role = "Spy";
+            spiesCount++;
+          } else {
+            role = Math.random() > 0.3 ? "Spy" : "Agent";
+            if (role === "Spy") spiesCount++;
+          }
+          return { ...player, role };
+        });
+
+        // Set timer
+        updatedMatch.timer = new Timer(10);
+
+        db.findAndUpdateOnePromise(
+          dbName,
+          matchesCollection,
+          _id,
+          updatedMatch
+        ).then((docs) => {
+          if (docs.ok === 1) {
+            res.cookie("Spyfall-Match", JSON.stringify({ matchId: _id }));
+            return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
+      } else return res.status(400).json({ msg: "Match not found" });
     });
   }
 );
@@ -160,16 +239,22 @@ router.put("/beginMatch/:id", function (req, res) {
 router.put(
   "/join/:token",
   [
-    check("user", "User must be authenticated in order to join a match")
+    check("player", "User must be authenticated in order to join a match")
       .not()
       .isEmpty(),
   ],
   function (req, res) {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
+
+    const { player } = req.body;
+    const { user } = player;
+
+    if (!user) {
+      return res.status(400).json({ msg: "Bad Request" });
     }
-    const { user } = req.body;
+
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {

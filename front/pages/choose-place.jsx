@@ -2,6 +2,9 @@ import { Router, withTranslation } from "../plugins/i18n";
 import { Box, makeStyles, Typography, Button } from "@material-ui/core";
 import Layout from "../components/Layout";
 import ImageList from "../components/ImageList";
+import http from "../plugins/axios";
+import { connect } from "react-redux";
+import { startMatch } from "../store/actions/matches";
 
 const useStyles = makeStyles((theme) => ({
   container: { justifyContent: "space-between" },
@@ -19,8 +22,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ChoosePlace = function ({ t, code = "666666" }) {
+const ChoosePlace = function ({ t, match, places, auth, startMatch }) {
   const styles = useStyles();
+  const code = match.token;
+  const user = auth.user.user;
+
+  const startGame = async (code, user) => {
+    try {
+      await startMatch(code, user);
+      Router.push("/play");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <Layout secondary>
       <Box display="flex" alignItems="flex-end" marginBottom="50px">
@@ -49,14 +64,14 @@ const ChoosePlace = function ({ t, code = "666666" }) {
           {t("title")}
         </Typography>
 
-        <ImageList cellHeight={160} />
+        <ImageList cellHeight={160} items={places} fieldTitle="name" />
       </Box>
 
       <Button
         className={styles.button}
         variant="contained"
         size="medium"
-        onClick={() => Router.push("/play")}
+        onClick={() => startGame(code, user)}
       >
         {t("start-game")}
       </Button>
@@ -64,8 +79,29 @@ const ChoosePlace = function ({ t, code = "666666" }) {
   );
 };
 
-ChoosePlace.getInitialProps = async () => ({
-  namespacesRequired: ["choose-place"],
+ChoosePlace.getInitialProps = async () => {
+  let places = [];
+  try {
+    const response = await http.get("/locations");
+    places = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+  return {
+    namespacesRequired: ["choose-place"],
+    places,
+  };
+};
+
+const mapStateToProps = (state) => ({
+  match: state.matches.match,
+  auth: state.auth,
 });
 
-export default withTranslation("choose-place")(ChoosePlace);
+const mapActionsToProps = {
+  startMatch,
+};
+
+export default withTranslation("choose-place")(
+  connect(mapStateToProps, mapActionsToProps)(ChoosePlace)
+);

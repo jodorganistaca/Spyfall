@@ -1,5 +1,4 @@
 import Layout from "../components/Layout";
-import Modal from "../components/Layout";
 import React, { useEffect, useState } from "react";
 import {
   Typography,
@@ -8,6 +7,7 @@ import {
   Button,
   IconButton,
   Divider,
+  TextField,
 } from "@material-ui/core";
 import PropTypes from "prop-types";
 import Image from "material-ui-image";
@@ -21,7 +21,12 @@ import { appendToString } from "../store/actions/test";
 import http from "../plugins/axios";
 import { createMatch, joinMatch } from "../store/actions/matches";
 import store from "../store";
-const useStyles = makeStyles({
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
+import Http from "../plugins/axios";
+
+const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
     borderRadius: "87px",
@@ -41,46 +46,39 @@ const useStyles = makeStyles({
     padding: "4px 10px 4px 10px",
     top: "-13px",
   },
-});
+  modal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "10px",
+  },
+  paper: {
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    borderRadius: "10px",
+    borderWidth: "0px",
+    borderColor: "transparent",
+    flexDirection: "column",
+  },
+}));
 
 const Home = function Home(props) {
-  const openJoinModal = async () => {
-    const nombre = prompt("Nombre del usuario?");
-    const user = {
-      email: null,
-      name: nombre,
-      avatar: "https://www.twago.es/img/2018/default/no-user.png",
-      score: 0,
-    };
-    const token = prompt("Tóken de la partida?");
-    await joinMatch(user, token);
-  };
-
-  const userLoggedJoin = async (user) => {
-    const token = prompt("Tóken de la partida?");
-    await joinMatch(user, token);
-  };
-
-  const [openModal, setOpenModal] = useState(false);
-
-  const handleOpenModal = async () => {
-    //setOpenModal(true);
-    const nombre = prompt("Username");
-    const user = {
-      email: null,
-      name: nombre,
-      avatar: "https://www.twago.es/img/2018/default/no-user.png",
-      score: 0,
-    };
-    await createMatch(user);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
-  const { t, helloWorld, append, auth, createMatch, joinMatch } = props;
+  const { t, helloWorld, auth, createMatch, joinMatch } = props;
   const styles = useStyles();
+
+  const handleCodeEnter = async (code) => {
+    if (auth && auth.user && auth.user.user)
+      try {
+        await joinMatch(code, auth.user.user);
+        Router.push("/waiting-room");
+      } catch (error) {
+        console.error(error);
+      }
+  };
+
+  const [open, setOpen] = useState(false);
+  const [matchCode, setMatchCode] = useState(undefined);
 
   return (
     <Layout justifyContent="space-between">
@@ -121,11 +119,7 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<PlayArrow />}
-            onClick={
-              auth.user
-                ? async () => userLoggedJoin(auth.user.user)
-                : async () => openJoinModal()
-            }
+            onClick={() => setOpen(true)}
           >
             {t("join-match")}
           </Button>
@@ -179,25 +173,48 @@ const Home = function Home(props) {
           </Box>
         </>
       )}
+
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        className={styles.modal}
+        open={open}
+        onClose={() => setOpen(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{ timeout: 500 }}
+      >
+        <Fade in={open}>
+          <div className={styles.paper}>
+            <Typography variant="h5" style={{ marginBottom: 30 }}>
+              {t("modal-title")}
+            </Typography>
+            <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
+              <TextField
+                id="outlined-basic"
+                label="Código"
+                variant="outlined"
+                value={matchCode}
+                onChange={(event) => setMatchCode(event.target.value)}
+              />
+            </form>
+            <Button
+              className={styles.button}
+              color="primary"
+              variant="contained"
+              onClick={() => handleCodeEnter(matchCode)}
+            >
+              {t("join-match")}
+            </Button>
+          </div>
+        </Fade>
+      </Modal>
     </Layout>
   );
 };
 
-const test = async () => {
-  try {
-    const response = await http.get(
-      "https://stackoverflow.com/questions/2936931/rewrite-document-location-without-loading"
-    );
-    data = response.data;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 Home.getInitialProps = async ({ store }) => {
-  let data = {};
-
-  return { namespacesRequired: ["home"], data: data };
+  return { namespacesRequired: ["home"] };
 };
 
 Home.propTypes = {
@@ -205,7 +222,7 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth, match : state.match });
+const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
 
 const mapDispatchToProps = {
   append: appendToString,

@@ -5,7 +5,7 @@ import AvatarList from "../components/AvatarList";
 import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { http } from "../plugins/axios";
+import http from "../plugins/axios";
 import { beginMatch } from "../store/actions/matches";
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -56,10 +56,12 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
     setPlayers(res.data.pendingToAssign);
     console.log("Players ->", players);
   };
+
   useEffect(() => {
     loadInitialPlayers(match._id);
     listenMatch(match._id);
   }, []);
+
   return (
     <Layout secondary>
       <Box
@@ -90,7 +92,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
 
         <AvatarList items={players} />
 
-        {isOwner && (
+        {(true || isOwner) && (
           <Button
             className={styles.button}
             variant="contained"
@@ -109,11 +111,12 @@ WaitingRoom.getInitialProps = async () => ({
   namespacesRequired: ["waiting-room"],
 });
 
-WaitingRoom.propTypes = {
-  match: PropTypes.object.isRequired,
-  isOwner: PropTypes.bool.isRequired,
-  beginMatch: PropTypes.func.isRequired,
-};
+// WaitingRoom.propTypes = {
+//   match: PropTypes.object.isRequired,
+//   isOwner: PropTypes.bool.isRequired,
+//   beginMatch: PropTypes.func.isRequired,
+// };
+
 const mapStateToProps = (state) => ({
   match: state.matches.match,
   isOwner: state.matches.isOwner,
