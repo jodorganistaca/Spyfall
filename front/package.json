@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
+    "start": "node server.js",
     "build": "next build",
-    "start": "next start -p 3002"
+    "dev": "next start -p 3002"
   },
   "dependencies": {
     "@material-ui/core": "^4.9.12",
