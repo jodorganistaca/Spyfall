@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"npm start\" \"cd ./front npm run start\"",
+    "start-wrap": "node ./bin/www",
     "start-dev": "nodemon ./bin/www",
     "test": "jest",
-    "heroku-postbuild": "cd ./front && npm install && npm run build"
+    "heroku-postbuild": "cd ./front && npm install && npm run build",
+    "start": "concurrently \"npm run start-wrap\" \"cd ./front && npm install && npm start\""
   },
   "dependencies": {
     "@shelf/jest-mongodb": "^1.1.5",
