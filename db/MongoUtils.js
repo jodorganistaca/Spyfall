@@ -91,6 +91,32 @@ exports.getDocumentsPromise = (dbName, collectionName) => {
 };
 
 /**
+ * @function getRandomDocumentPromise
+ * @alias module:MongoUtils.getRandomDocumentPromise
+ * @param {string} dbName Name of the database to query.
+ * @param {string} collectionName Name of the collection to query its documents.
+ * @param {string} size Number of documents required
+ * @throws {Error} if uri param is null, undefined or is not a string.
+ * @throws {Error} if the connection could not be established.
+ * @returns {Promise} A Promise that will return a random document of the collection.
+ */
+exports.getRandomDocumentPromise = (dbName, collectionName, size = 1) => {
+  if (!dbName || !(dbName instanceof String))
+    new Error("Database name cannot be: " + dbName);
+
+  if (!collectionName || !(collectionName instanceof String))
+    new Error("Collection name cannot be: " + collectionName);
+
+  return client.connect().then((client) =>
+    client
+      .db(dbName)
+      .collection(collectionName)
+      .aggregate([{ $sample: { size } }])
+      .toArray()
+  );
+};
+
+/**
  * @function findAndDeleteOnePromise
  * @alias module:MongoUtils.findAndDeleteOnePromise
  * @param {string} dbName Name of the database to query.
