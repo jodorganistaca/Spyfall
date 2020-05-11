@@ -56,7 +56,7 @@ cd front && npm run dev
   MONGO_URI = <MONGO_URI of the MongoDB Atlas database.>
   FACEBOOK_CLIENT_ID=<FACEBOOK_CLIENT_ID>
   FACEBOOK_CLIENT_SECRET=<FACEBOOK_CLIENT_SECRET>
-  
+``` 
 
 
 * Also, for personalized collections naming, change default.json in config: 
