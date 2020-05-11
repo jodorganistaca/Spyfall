@@ -33,7 +33,9 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const listenMatch = (matchId) => {
-    const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
+    const socket = new WebSocket(
+      `ws://https://spyfall-backend.herokuapp.com?matchId=${matchId}`
+    );
     socket.onmessage = (event) => {
       let players = JSON.parse(event.data).pendingToAssign;
       let waiting = JSON.parse(event.data).waiting;

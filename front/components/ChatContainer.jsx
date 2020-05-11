@@ -107,7 +107,7 @@ class ChatContainer extends Component {
 
   getMessages() {
     const socket = new WebSocket(
-      "ws://localhost:3001?matchId=5eb74f4b66456236f0c95d5c"
+      "ws://https://spyfall-backend.herokuapp.com?matchId=5eb74f4b66456236f0c95d5c"
     );
     socket.onmessage = this.receiveMessages;
   }
