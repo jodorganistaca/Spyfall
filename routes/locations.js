@@ -12,6 +12,7 @@ const { Location } = require("../db/models/Location");
  * Returns all locations in the database.
  * @access public
  */
+/**En index.js tambien tienen un metodo que se activa en la raiz seria bueno poner una ruta diferente para evitar confusiones*/
 router.get("/", function (req, res) {
   db.getDocumentsPromise(dbName, locationsCollection).then((docs) =>
     res.json(docs)
