@@ -205,7 +205,7 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth });
+const mapStateToProps = (state) => ({ auth: state.auth, match : state.match });
 
 const mapDispatchToProps = {
   append: appendToString,
