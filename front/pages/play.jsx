@@ -19,6 +19,7 @@ import Chat from "../components/Chat";
 
 import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -82,10 +83,9 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({ t, match }) {
-  const role = "spy";
-
+const Play = function ({ t, role = "spy", places, matches }) {
   const styles = useStyles();
+  const match = matches.match;
   return (
     <Layout secondary>
       <Grid container justify="center" alignItems="center">
@@ -102,7 +102,7 @@ const Play = function ({ t, match }) {
                 {t("they-are-spies")}
               </Typography>
               <AvatarList
-                items={match.players}
+                items={match.players.filter((player) => player.role === "Spy")}
                 noCounter
                 orientation="vertical"
               />
@@ -149,7 +149,12 @@ const Play = function ({ t, match }) {
 
       <Grid container>
         <Grid item xs>
-          <ImageList maxWidth="100%" maxHeight="600px" horizontal />
+          <ImageList
+            items={places}
+            maxWidth="100%"
+            maxHeight="600px"
+            horizontal
+          />
         </Grid>
       </Grid>
 
@@ -165,11 +170,22 @@ const Play = function ({ t, match }) {
   );
 };
 
-Play.getInitialProps = async () => ({
-  namespacesRequired: ["play"],
-});
+Play.getInitialProps = async () => {
+  let places = [];
+  try {
+    const response = await http.get("/locations");
+    console.log(response);
+    places = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+  return {
+    namespacesRequired: ["play"],
+    places,
+  };
+};
 
-const mapStateToProps = (state) => ({ match: state.matches.match });
+const mapStateToProps = (state) => ({ matches: state.matches });
 
 export default withTranslation("play")(
   connect(mapStateToProps, () => ({}))(Play)

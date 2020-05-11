@@ -1,4 +1,9 @@
-import { CREATE_MATCH_SUCCESS, CREATE_MATCH_FAIL } from "../actions/types";
+import {
+  CREATE_MATCH_SUCCESS,
+  CREATE_MATCH_FAIL,
+  JOIN_MATCH_SUCCESSFUL,
+  START_MATCH_SUCCESSFUL,
+} from "../actions/types";
 
 const initialState = {
   match: null,
@@ -19,6 +24,16 @@ export default function (state = initialState, action) {
       return {
         ...state,
         match: null,
+      };
+    case JOIN_MATCH_SUCCESSFUL:
+      return {
+        ...state,
+        match: payload,
+      };
+    case START_MATCH_SUCCESSFUL:
+      return {
+        ...state,
+        match: payload,
       };
     default:
       return state;

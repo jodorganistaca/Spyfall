@@ -34,7 +34,7 @@ function WaitingRoom({ t, match }) {
     const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
     socket.onmessage = (event) => {
       let players = JSON.parse(event.data).players;
-      alert(JSON.parse(event.data));
+
       if (players) {
         console.log(players);
         players.forEach((element) => {

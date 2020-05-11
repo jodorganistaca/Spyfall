@@ -2,8 +2,9 @@ import { Router, withTranslation } from "../plugins/i18n";
 import { Box, makeStyles, Typography, Button } from "@material-ui/core";
 import Layout from "../components/Layout";
 import ImageList from "../components/ImageList";
-import { http } from "../plugins/axios";
+import http from "../plugins/axios";
 import { connect } from "react-redux";
+import { startMatch } from "../store/actions/matches";
 
 const useStyles = makeStyles((theme) => ({
   container: { justifyContent: "space-between" },
@@ -21,9 +22,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ChoosePlace = function ({ t, match, places }) {
+const ChoosePlace = function ({ t, match, places, auth, startMatch }) {
   const styles = useStyles();
   const code = match.token;
+  const user = auth.user.user;
+
+  const startGame = async (code, user) => {
+    try {
+      await startMatch(code, user);
+      Router.push("/play");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <Layout secondary>
@@ -60,7 +71,7 @@ const ChoosePlace = function ({ t, match, places }) {
         className={styles.button}
         variant="contained"
         size="medium"
-        onClick={() => Router.push("/play")}
+        onClick={() => startGame(code, user)}
       >
         {t("start-game")}
       </Button>
@@ -82,8 +93,15 @@ ChoosePlace.getInitialProps = async () => {
   };
 };
 
-const mapStateToProps = (state) => ({ match: state.matches.match });
+const mapStateToProps = (state) => ({
+  match: state.matches.match,
+  auth: state.auth,
+});
+
+const mapActionsToProps = {
+  startMatch,
+};
 
 export default withTranslation("choose-place")(
-  connect(mapStateToProps, () => ({}))(ChoosePlace)
+  connect(mapStateToProps, mapActionsToProps)(ChoosePlace)
 );

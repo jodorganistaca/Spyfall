@@ -3,13 +3,8 @@ import store from "../store";
 import { finishProgress, startProgress } from "../store/actions/app";
 
 const Http = axios.create({
-  baseURL: process.env.BACK_URL,
-  timeout: 5000,
-});
-
-export const http = axios.create({
   baseURL: "http://localhost:3001",
-  timeout: 5000,
+  timeout: 3000,
 });
 
 Http.interceptors.request.use(

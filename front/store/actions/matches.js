@@ -1,7 +1,12 @@
-import { http } from "../../plugins/axios";
+import http from "../../plugins/axios";
 import { Router } from "../../plugins/i18n";
-import { setAlert } from "./alert";
-import { CREATE_MATCH_SUCCESS, CREATE_MATCH_FAIL } from "./types";
+
+import {
+  CREATE_MATCH_SUCCESS,
+  CREATE_MATCH_FAIL,
+  JOIN_MATCH_SUCCESSFUL,
+  START_MATCH_SUCCESSFUL,
+} from "./types";
 
 export const createMatch = () => async (dispatch) => {
   try {
@@ -17,5 +22,30 @@ export const createMatch = () => async (dispatch) => {
     return dispatch({
       type: CREATE_MATCH_FAIL,
     });
+  }
+};
+
+export const joinMatch = (code, user) => async (dispatch) => {
+  try {
+    const response = await http.put(`/matches/join/${code}`, {
+      player: { user },
+    });
+    console.log(response);
+    return dispatch({ type: JOIN_MATCH_SUCCESSFUL, payload: response.data });
+  } catch (error) {
+    console.error(error);
+    return Promise.reject(error);
+  }
+};
+
+export const startMatch = (code, user) => async (dispatch) => {
+  try {
+    const response = await http.put(`/matches/start/${code}`, {
+      player: { user },
+    });
+    return dispatch({ type: START_MATCH_SUCCESSFUL, payload: response.data });
+  } catch (error) {
+    console.error(error);
+    return Promise.reject(error);
   }
 };

@@ -68,7 +68,7 @@ const AvatarList = function ({
             wrap="nowrap"
             spacing={2}
           >
-            <UserAvatar name={item.name} pic={item.pic} />
+            <UserAvatar name={item.user.name} pic={item.user.avatar} />
           </Grid>
         ))}
       </Grid>
