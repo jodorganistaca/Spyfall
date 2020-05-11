@@ -18,6 +18,7 @@ import CustomTooltip from "../components/CustomTooltip";
 import Chat from "../components/Chat";
 
 import { Router } from "../plugins/i18n";
+import { http } from "../plugins/axios";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -83,6 +84,7 @@ const Play = function ({
   t,
   role = "spy",
   finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
+  places,
 }) {
   const styles = useStyles();
   return (
@@ -164,7 +166,12 @@ const Play = function ({
 
       <Grid container>
         <Grid item xs>
-          <ImageList maxWidth="100%" maxHeight="600px" horizontal />
+          <ImageList
+            items={places}
+            maxWidth="100%"
+            maxHeight="600px"
+            horizontal
+          />
         </Grid>
       </Grid>
 
@@ -180,8 +187,19 @@ const Play = function ({
   );
 };
 
-Play.getInitialProps = async () => ({
-  namespacesRequired: ["play"],
-});
+Play.getInitialProps = async () => {
+  let places = [];
+  try {
+    const response = await http.get("/locations");
+    console.log(response);
+    places = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+  return {
+    namespacesRequired: ["play"],
+    places,
+  };
+};
 
 export default withTranslation("play")(Play);
