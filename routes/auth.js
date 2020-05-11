@@ -16,7 +16,7 @@ router.get(
   "/facebook/callback",
   passport.authenticate("facebook", { failureRedirect: "/login" }),
   function (req, res) {
-    res.redirect("/");
+    res.redirect("http://localhost:3000");
   }
 );
 
@@ -24,19 +24,20 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   function (req, res) {
-    res.redirect("/");
+    res.redirect("http://localhost:3000");
   }
 );
 
-router.get("/login/success", (req, res) => {
+router.get("/getProfile", (req, res) => {
+  console.log(req.user);
   if (req.user) {
-    res.json({
+    return res.json({
       success: true,
       message: "user has successfully authenticated",
       user: req.user,
       cookies: req.cookies,
     });
-  }
+  } else return res.status(401).json({ msg: "User not logged in" });
 });
 
 module.exports = router;

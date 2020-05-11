@@ -1,8 +1,10 @@
 import Layout from "../components/Layout";
+import React, { useState, useEffect } from "react";
 import { Typography, Button, makeStyles, Box } from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
 import { Router, withTranslation } from "../plugins/i18n";
-
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 const useStyles = makeStyles((theme) => ({
   button: {
     width: 160,
@@ -25,10 +27,28 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function WaitingRoom({ t, code = "666666" }) {
+function WaitingRoom({ t, match }) {
   const styles = useStyles();
-
-  return (
+  const [players, setPlayers] = useState([]);
+  const listenMatch = (matchId) => {
+    const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
+    socket.onmessage = (event) => {
+      let players = JSON.parse(event.data).players;
+      alert(JSON.parse(event.data));
+      if (players) {
+        console.log(players);
+        players.forEach((element) => {
+          element.name = element.user.name;
+          element.pic = element.user.avatar;
+        });
+        setPlayers(players);
+      }
+    };
+  };
+  useEffect(() => {
+    listenMatch(match._id);
+  }, []);
+  return match ? (
     <Layout secondary>
       <Box
         display="flex"
@@ -43,7 +63,7 @@ function WaitingRoom({ t, code = "666666" }) {
             {t("match-code")}
           </Typography>
           <Typography align="center" variant="h3" color="primary">
-            {code}
+            {match.token}
           </Typography>
         </Box>
 
@@ -56,60 +76,7 @@ function WaitingRoom({ t, code = "666666" }) {
           {t("waiting")}
         </Typography>
 
-        <AvatarList
-          items={[
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-            {
-              name: "test1",
-              pic:
-                "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-            },
-          ]}
-        />
+        <AvatarList items={players} />
 
         <Button
           className={styles.button}
@@ -121,6 +88,8 @@ function WaitingRoom({ t, code = "666666" }) {
         </Button>
       </Box>
     </Layout>
+  ) : (
+    <>Router.push("/")</>
   );
 }
 
@@ -128,4 +97,11 @@ WaitingRoom.getInitialProps = async () => ({
   namespacesRequired: ["waiting-room"],
 });
 
-export default withTranslation("waiting-room")(WaitingRoom);
+WaitingRoom.propTypes = {
+  match: PropTypes.object,
+};
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("waiting-room")(
+  connect(mapStateToProps, null)(WaitingRoom)
+);

@@ -2,7 +2,12 @@ import { Container, Paper, Box } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import Copyright from "./Copyright";
 import AppBar from "./AppBar";
-
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { withTranslation, Router } from "../plugins/i18n";
+import React, { useEffect } from "react";
+import { loadUser } from "../store/actions/auth";
+import store from "../store";
 const reactStyles = makeStyles({
   paper: {
     margin: "10px",
@@ -17,10 +22,12 @@ const reactStyles = makeStyles({
   container: {},
 });
 
-export default function Layout(props) {
+export function Layout(props) {
   const styles = reactStyles();
-
-  const { children, secondary = false } = props;
+  useEffect(() => {
+    store.dispatch(loadUser());
+  }, []);
+  const { children, auth, secondary = false } = props;
 
   return (
     <Box height="100%">
@@ -38,7 +45,7 @@ export default function Layout(props) {
       >
         <Container className={styles.container}>
           <Paper elevation={3} className={styles.paper}>
-            <AppBar />
+            <AppBar auth={auth} />
             <Box
               display="flex"
               flexDirection="column"
@@ -56,3 +63,11 @@ export default function Layout(props) {
     </Box>
   );
 }
+Layout.propTypes = {
+  auth: PropTypes.object,
+};
+const mapStateToProps = (state) => ({ auth: state.auth });
+
+export default withTranslation("layout")(
+  connect(mapStateToProps, null)(Layout)
+);

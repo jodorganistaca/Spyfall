@@ -1,4 +1,5 @@
 import Layout from "../components/Layout";
+import React, { useEffect } from "react";
 import {
   Typography,
   Box,
@@ -7,6 +8,7 @@ import {
   IconButton,
   Divider,
 } from "@material-ui/core";
+import PropTypes from "prop-types";
 import Image from "material-ui-image";
 import { Add, PlayArrow } from "@material-ui/icons";
 import NextLink from "../components/NextLink";
@@ -16,7 +18,8 @@ import { withTranslation, Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import { appendToString } from "../store/actions/test";
 import http from "../plugins/axios";
-
+import { createMatch } from "../store/actions/matches";
+import store from "../store";
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
@@ -40,7 +43,7 @@ const useStyles = makeStyles({
 });
 
 const Home = function Home(props) {
-  const { t, helloWorld, append } = props;
+  const { t, helloWorld, append, auth, createMatch } = props;
   const styles = useStyles();
 
   return (
@@ -65,19 +68,7 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<Add />}
-            onClick={async () => {
-              const res = await fetch("http://localhost:3001/matches", {
-                method: "POST",
-                body: JSON.stringify({ maxRounds: 1 }),
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                mode: "cors",
-                cache: "default",
-              });
-              alert(res.status);
-              return Router.push("/waiting-room");
-            }}
+            onClick={async () => createMatch()}
           >
             {t("create-match")}
           </Button>
@@ -95,47 +86,52 @@ const Home = function Home(props) {
 
         <NextLink href="/how-to-play">{t("how-to-play")}</NextLink>
       </Box>
-
-      <Box
-        display="flex"
-        justifyContent="center"
-        position="relative"
-        width="60%"
-        margin="30px 0px 30px 0px"
-      >
-        <Divider variant="fullWidth" style={{ height: 1, width: "100%" }} />
-        <Typography variant="caption" className={styles.textDivider}>
-          {t("or")}
-        </Typography>
-      </Box>
-
-      <Typography variant="h2">{helloWorld}</Typography>
-
-      <Box>
-        <Typography
-          variant="subtitle1"
-          style={{ marginBottom: 20, letterSpacing: 1.25 }}
-        >
-          {t("login-title")}
-        </Typography>
-
-        <Box display="flex" justifyContent="center" marginBottom="120px">
-          <IconButton
-            aria-label="Google"
-            onClick={() => location.assign("http://localhost:3001/auth/google")}
+      {!auth.user && (
+        <>
+          <Box
+            display="flex"
+            justifyContent="center"
+            position="relative"
+            width="60%"
+            margin="30px 0px 30px 0px"
           >
-            <GoogleIcon className={styles.socialIcon} />
-          </IconButton>
-          <IconButton
-            aria-label="Facebook"
-            onClick={() =>
-              location.assign("http://localhost:3001/auth/facebook")
-            }
-          >
-            <FacebookIcon className={styles.socialIcon} />
-          </IconButton>
-        </Box>
-      </Box>
+            <Divider variant="fullWidth" style={{ height: 1, width: "100%" }} />
+            <Typography variant="caption" className={styles.textDivider}>
+              {t("or")}
+            </Typography>
+          </Box>
+
+          <Typography variant="h2">{helloWorld}</Typography>
+
+          <Box>
+            <Typography
+              variant="subtitle1"
+              style={{ marginBottom: 20, letterSpacing: 1.25 }}
+            >
+              {t("login-title")}
+            </Typography>
+
+            <Box display="flex" justifyContent="center" marginBottom="120px">
+              <IconButton
+                aria-label="Google"
+                onClick={() =>
+                  location.assign("http://localhost:3001/auth/google")
+                }
+              >
+                <GoogleIcon className={styles.socialIcon} />
+              </IconButton>
+              <IconButton
+                aria-label="Facebook"
+                onClick={() =>
+                  location.assign("http://localhost:3001/auth/facebook")
+                }
+              >
+                <FacebookIcon className={styles.socialIcon} />
+              </IconButton>
+            </Box>
+          </Box>
+        </>
+      )}
     </Layout>
   );
 };
@@ -157,9 +153,16 @@ Home.getInitialProps = async ({ store }) => {
   return { namespacesRequired: ["home"], data: data };
 };
 
-const mapStateToProps = (state) => ({ helloWorld: state.test.test });
+Home.propTypes = {
+  auth: PropTypes.object,
+  createMatch: PropTypes.func.isRequired,
+};
+const mapStateToProps = (state) => ({ auth: state.auth });
 
-const mapDispatchToProps = { append: appendToString };
+const mapDispatchToProps = {
+  append: appendToString,
+  createMatch,
+};
 
 export default withTranslation("home")(
   connect(mapStateToProps, mapDispatchToProps)(Home)

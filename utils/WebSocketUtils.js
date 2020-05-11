@@ -30,6 +30,7 @@ let clients = {};
  */
 exports.setup = (server) => {
   const ws = new WebSocket.Server({ server });
+  console.log("New Connection!");
   ws.on("connection", (newClient, connection) => {
     const client_url = connection.url;
     const { matchId } = url.parse(client_url, true).query;
@@ -42,6 +43,7 @@ exports.setup = (server) => {
     } else {
       clients[matchId].push(newClient);
     }
+    console.log("Added new", clients);
   });
 };
 
@@ -51,6 +53,7 @@ exports.setup = (server) => {
  * Notify all users with a specific _id (matchId in this case) the changes on a document.
  */
 exports.notifyChanges = (_id, document) => {
+  console.log("Notifying!");
   if (clients[_id]) {
     clients[_id].forEach((client) => client.send(document));
   }
