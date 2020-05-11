@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "nodemon ./bin/www"
+    "start-dev": "nodemon ./bin/www",
+    "test": "jest",
+    "heroku-postbuild": "cd ./front && npm install && npm run build"
   },
   "dependencies": {
+    "@shelf/jest-mongodb": "^1.1.5",
     "bcrypt": "^4.0.1",
     "config": "^3.3.1",
     "cookie-parser": "~1.4.4",
@@ -23,15 +26,28 @@
     "passport": "^0.4.1",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
+    "sequelize": "^5.21.8",
     "uuid": "^7.0.3",
     "ws": "^7.2.5"
   },
   "devDependencies": {
+    "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-react": "^7.19.0",
+    "jest": "^26.0.1",
     "nodemon": "^2.0.3",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "supertest": "^4.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "modulePathIgnorePatterns": [
+      "/front/"
+    ]
   }
 }
