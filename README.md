@@ -7,7 +7,7 @@ Web page to play Spyfall.
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
 
 ## Demo
-![](https://i.imgur.com/O2i23my.png)
+![Demo](/assets/demo/demo.gif)
 
 ### Prerequisites
 
