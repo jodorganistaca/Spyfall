@@ -18,6 +18,7 @@ import CustomTooltip from "../components/CustomTooltip";
 import Chat from "../components/Chat";
 
 import { Router } from "../plugins/i18n";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -52,6 +53,8 @@ const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
     const initTime = moment(new Date(finishTime));
     const sub = initTime.subtract(moment(new Date()));
+
+    console.log(finishTime, initTime.hours(), initTime.minutes());
     return sub.valueOf();
   };
 
@@ -79,11 +82,9 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({
-  t,
-  role = "spy",
-  finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
-}) {
+const Play = function ({ t, match }) {
+  const role = "spy";
+
   const styles = useStyles();
   return (
     <Layout secondary>
@@ -101,23 +102,7 @@ const Play = function ({
                 {t("they-are-spies")}
               </Typography>
               <AvatarList
-                items={[
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                ]}
+                items={match.players}
                 noCounter
                 orientation="vertical"
               />
@@ -142,7 +127,7 @@ const Play = function ({
                 aria-label={t("suggested-questions")}
                 style={{ fontSize: "0.83rem" }}
               >
-                <IconButton color="primary" variant="contained" style={{}}>
+                <IconButton color="primary" variant="contained">
                   <Help style={{ width: 30, height: 30 }} />
                 </IconButton>
               </CustomTooltip>
@@ -159,7 +144,7 @@ const Play = function ({
         <Typography align="center" variant="subtitle1">
           {t(`time-left`)}
         </Typography>
-        <Countdown finishTime={finishTime} t={t} />
+        <Countdown finishTime={match.timer.ends} t={t} />
       </Box>
 
       <Grid container>
@@ -184,4 +169,8 @@ Play.getInitialProps = async () => ({
   namespacesRequired: ["play"],
 });
 
-export default withTranslation("play")(Play);
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("play")(
+  connect(mapStateToProps, () => ({}))(Play)
+);

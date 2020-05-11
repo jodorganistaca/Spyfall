@@ -2,6 +2,8 @@ import { Router, withTranslation } from "../plugins/i18n";
 import { Box, makeStyles, Typography, Button } from "@material-ui/core";
 import Layout from "../components/Layout";
 import ImageList from "../components/ImageList";
+import { http } from "../plugins/axios";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   container: { justifyContent: "space-between" },
@@ -19,8 +21,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ChoosePlace = function ({ t, code = "666666" }) {
+const ChoosePlace = function ({ t, match, places }) {
   const styles = useStyles();
+  const code = match.token;
+
   return (
     <Layout secondary>
       <Box display="flex" alignItems="flex-end" marginBottom="50px">
@@ -49,7 +53,7 @@ const ChoosePlace = function ({ t, code = "666666" }) {
           {t("title")}
         </Typography>
 
-        <ImageList cellHeight={160} />
+        <ImageList cellHeight={160} items={places} fieldTitle="name" />
       </Box>
 
       <Button
@@ -64,8 +68,22 @@ const ChoosePlace = function ({ t, code = "666666" }) {
   );
 };
 
-ChoosePlace.getInitialProps = async () => ({
-  namespacesRequired: ["choose-place"],
-});
+ChoosePlace.getInitialProps = async () => {
+  let places = [];
+  try {
+    const response = await http.get("/locations");
+    places = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+  return {
+    namespacesRequired: ["choose-place"],
+    places,
+  };
+};
 
-export default withTranslation("choose-place")(ChoosePlace);
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("choose-place")(
+  connect(mapStateToProps, () => ({}))(ChoosePlace)
+);

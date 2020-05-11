@@ -52,7 +52,7 @@ const AppBar = function ({ hidden = false, t, auth }) {
           anchorEl={anchor}
         >
           <MenuItem>{t("how-to-play")}</MenuItem>
-          <MenuItem>{t("logout")}</MenuItem>
+          {auth && auth.user && <MenuItem>{t("logout")}</MenuItem>}
         </Menu>
       </Box>
     </Box>

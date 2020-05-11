@@ -15,6 +15,6 @@ module.exports.Match = class {
     this.round = 1;
     this.chat = [];
     this.votes = [];
-    this.timer = new Timer(10000);
+    this.timer = new Timer(10);
   }
 };
