@@ -18,7 +18,7 @@ import CustomTooltip from "../components/CustomTooltip";
 import Chat from "../components/Chat";
 
 import { Router } from "../plugins/i18n";
-import { http } from "../plugins/axios";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles((theme) => ({
   button: {

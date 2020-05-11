@@ -56,7 +56,7 @@ const ChoosePlace = function ({ t, code = "666666" }) {
         className={styles.button}
         variant="contained"
         size="medium"
-        onClick={() => Router.push("/play")}
+        onClick={() => startGame(code)}
       >
         {t("start-game")}
       </Button>
