@@ -6,7 +6,7 @@
     "start": "concurrently \"npm start\" \"cd ./front npm run start\"",
     "start-dev": "nodemon ./bin/www",
     "test": "jest",
-    "heroku-postbuild": "cd ./front && npm run build"
+    "heroku-postbuild": "cd ./front && npm install && npm run build"
   },
   "dependencies": {
     "@shelf/jest-mongodb": "^1.1.5",
