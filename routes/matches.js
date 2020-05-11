@@ -179,6 +179,33 @@ router.put(
 );
 
 /**
+ * PUT /matches/beginMatch/:token
+ * Sets match's waiting status to false
+ * @access public
+ */
+
+//TODO: Assign players
+router.put("/beginMatch/:id", function (req, res) {
+  db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) => {
+    let updatedMatch;
+    if (docs && docs[0]) {
+      updatedMatch = docs[0];
+      updatedMatch.waiting = false;
+      db.findAndUpdateOnePromise(
+        dbName,
+        matchesCollection,
+        req.params.id,
+        updatedMatch
+      ).then((docs) => {
+        if (docs.ok === 1) {
+          return res.status(200).json(updatedMatch);
+        } else return res.status(500).json({ msg: "Server error" });
+      });
+    } else return res.status(400).json({ msg: "Match not found" });
+  });
+});
+
+/**
  * PUT /matches/join/:token
  * Adds a user to the match.
  * @param player Body parameter player. Must be consistent with Player Model.
@@ -210,14 +237,16 @@ router.put(
       if (docs && docs[0]) {
         updatedMatch = docs[0];
         const _id = docs[0]._id;
-
+        if (docs[0].pendingToAssign && docs[0].pendingToAssign.length === 12) {
+          return res.status(404).json({ msg: "Match is already full" });
+        }
         db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
           $push: {
-            players: { user },
+            pendingToAssign: user,
           },
         }).then((docs) => {
           if (docs.ok === 1) {
-            updatedMatch.players.push({ user });
+            updatedMatch.pendingToAssign.push(user);
             res.cookie("Spyfall-Match", JSON.stringify({ matchId: _id }));
             return res.status(200).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
@@ -370,39 +399,46 @@ router.post(
  */
 router.post(
   "/createVote/:token",
-  [
-    check("votingPlayer", "The user owner of the vote is required.")
-      .not()
-      .isEmpty(),
-    check("votedPlayer", "The voted user is required.").not().isEmpty(),
-    check("isSpy", "The vote is required and must be boolean.").isBoolean(),
-  ],
+  [check("votedPlayer", "The voted user is required.").not().isEmpty()],
   function (req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { votingPlayer, votedPlayer, isSpy } = req.body;
-    const newVote = new Vote(votingPlayer, votedPlayer, isSpy);
+    const { votedPlayer } = req.body;
+    const initialPlayer = {
+      user: {
+        email: null,
+        name: "jsbravoc",
+        avatar: "https://www.twago.es/img/2018/default/no-user.png",
+        score: 0,
+      },
+      role: "Spy",
+      location: "Mario Laserna",
+      votes: 0,
+    };
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
       let updatedMatch;
       if (docs && docs[0]) {
         updatedMatch = docs[0];
+        //TODO: Borrar
+        if (updatedMatch.players.length == 0)
+          docs[0].players.push(initialPlayer);
         const _id = docs[0]._id;
-        const isVoted = docs[0].votes.filter((e) => {
-          return _.isEqual(e.player, votedPlayer);
-        });
-        const tempVotingPlayer = { player: votingPlayer };
-        let theVote = { player: votingPlayer, votes: [tempVotingPlayer] };
-        if (isVoted && isVoted[0]) {
-          isVoted[0].votes.push(votingPlayer);
-          theVote = isVoted;
-          updatedMatch.votes = docs[0].votes.filter(
-            (e) => !_.isEqual(e.player, votedPlayer)
-          );
-          updatedMatch.votes.push(theVote);
+        let found = false;
+        for (let i = 0; i < updatedMatch.players.length; i++) {
+          let actualWithVotes = updatedMatch.players[i];
+          let actualWithoutVotes = Object.assign({}, actualWithVotes);
+          delete actualWithoutVotes.votes;
+          if (_.isEqual(actualWithoutVotes, votedPlayer)) {
+            actualWithVotes.votes += 1;
+            found = true;
+            break;
+          }
+        }
+        if (found) {
           db.findAndUpdateOnePromise(
             dbName,
             matchesCollection,
@@ -413,18 +449,7 @@ router.post(
               return res.status(201).json(updatedMatch);
             } else return res.status(500).json({ msg: "Server error" });
           });
-        } else {
-          db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
-            $push: {
-              votes: theVote,
-            },
-          }).then((docs) => {
-            if (docs.ok === 1) {
-              updatedMatch.votes.push(theVote);
-              return res.status(201).json(updatedMatch);
-            } else return res.status(500).json({ msg: "Server error" });
-          });
-        }
+        } else return res.status(400).json({ msg: "Voted user not found" });
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }

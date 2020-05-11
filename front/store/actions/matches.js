@@ -1,16 +1,37 @@
 import http from "../../plugins/axios";
 import { Router } from "../../plugins/i18n";
-
+import { setAlert } from "./alert";
 import {
   CREATE_MATCH_SUCCESS,
   CREATE_MATCH_FAIL,
   JOIN_MATCH_SUCCESSFUL,
   START_MATCH_SUCCESSFUL,
+  BEGIN_MATCH_SUCCESS,
+  BEGIN_MATCH_FAIL,
+  JOIN_MATCH_SUCCESS,
+  JOIN_MATCH_FAIL,
 } from "./types";
 
-export const createMatch = () => async (dispatch) => {
+const getCookie = (cname) => {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+};
+
+export const createMatch = (user) => async (dispatch) => {
   try {
     const res = await http.post("/matches", { maxRounds: 5 });
+    await http.put(`/matches/join/${res.data.token}`, { user });
 
     dispatch({
       type: CREATE_MATCH_SUCCESS,
@@ -47,5 +68,25 @@ export const startMatch = (code, user) => async (dispatch) => {
   } catch (error) {
     console.error(error);
     return Promise.reject(error);
+  }
+};
+
+export const beginMatch = (matchId) => async (dispatch) => {
+  try {
+    const res = await http.put(`/matches/beginMatch/${matchId}`, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    dispatch({
+      type: BEGIN_MATCH_SUCCESS,
+      payload: res.data,
+    });
+    return Router.push("/choose-place");
+  } catch (error) {
+    return dispatch({
+      type: BEGIN_MATCH_FAIL,
+    });
   }
 };

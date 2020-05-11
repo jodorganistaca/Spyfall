@@ -10,7 +10,7 @@ import {
   LOGOUT,
 } from "./types";
 
-import { Router, Route } from "react-router-dom";
+import { Router } from "../../plugins/i18n";
 
 export const loadUser = () => async (dispatch) => {
   try {
@@ -31,4 +31,5 @@ export const loadUser = () => async (dispatch) => {
 //Logout /Clear Profile
 export const logout = () => (dispatch) => {
   dispatch({ type: LOGOUT });
+  Router.push("/");
 };

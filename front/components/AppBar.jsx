@@ -10,6 +10,8 @@ import { withTranslation } from "../plugins/i18n";
 import { ExpandMore, ExpandLess } from "@material-ui/icons";
 import { useState } from "react";
 import SpyFallLogo from "../public/assets/logo.svg";
+import { logout } from "../store/actions/auth";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   bar: {
@@ -19,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AppBar = function ({ hidden = false, t, auth }) {
+const AppBar = function ({ hidden = false, t, auth, logout }) {
   const styles = useStyles();
   const [anchor, setAnchor] = useState(null);
 
@@ -52,7 +54,9 @@ const AppBar = function ({ hidden = false, t, auth }) {
           anchorEl={anchor}
         >
           <MenuItem>{t("how-to-play")}</MenuItem>
-          {auth && auth.user && <MenuItem>{t("logout")}</MenuItem>}
+          {auth && auth.user && (
+            <MenuItem onClick={() => logout()}>{t("logout")}</MenuItem>
+          )}
         </Menu>
       </Box>
     </Box>
@@ -63,4 +67,4 @@ AppBar.getInitialProps = async () => ({
   namespacesRequired: ["app-bar"],
 });
 
-export default withTranslation("app-bar")(AppBar);
+export default withTranslation("app-bar")(connect(null, { logout })(AppBar));

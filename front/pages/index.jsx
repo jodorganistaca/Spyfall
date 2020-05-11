@@ -82,6 +82,9 @@ const Home = function Home(props) {
 
   return (
     <Layout justifyContent="space-between">
+      {
+        // <Modal openModal={openModal} handleCloseModal={handleCloseModal} />
+      }
       <Box className={styles.imageContainer}>
         <Image src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
@@ -102,7 +105,11 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<Add />}
-            onClick={async () => createMatch()}
+            onClick={
+              auth.user
+                ? async () => createMatch(auth.user.user)
+                : async () => handleOpenModal()
+            }
           >
             {t("create-match")}
           </Button>
@@ -213,9 +220,9 @@ Home.getInitialProps = async ({ store }) => {
 Home.propTypes = {
   auth: PropTypes.object,
   createMatch: PropTypes.func.isRequired,
+  joinMatch: PropTypes.func.isRequired,
 };
-
-const mapStateToProps = (state) => ({ auth: state.auth });
+const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
 
 const mapDispatchToProps = {
   append: appendToString,

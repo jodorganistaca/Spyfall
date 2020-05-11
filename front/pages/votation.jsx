@@ -16,6 +16,9 @@ import { withTranslation } from "../plugins/i18n";
 
 import { Router } from "../plugins/i18n";
 import http from "../plugins/axios";
+import axios from "axios";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -77,17 +80,46 @@ const Votation = function ({
   t,
   role = "spy",
   finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
-  players
+  match
 }) {
   const myInput = useRef();
+  const [players, setPlayers] = useState([]);
   const styles = useStyles();
+  const vote = async (p) => {
+    try {
+      
+      const response = await http.get(`/matches/token/${state.matches.match._id}`,{
+        "votedPlayer": {
+          "user": {
+              "email": null,
+              "name": "jsbravoc",
+              "avatar": "https://www.twago.es/img/2018/default/no-user.png",
+              "score": 0
+          },
+          "role": "Spy",
+          "location": "Mario Laserna"}
+      });
+      const players = response.data["players"];
+      console.log(response);
+      return {
+        namespacesRequired: ["votation"],
+        players
+      }
+    } catch (error) {
+      console.error(error);
+      return {
+        namespacesRequired: ["votation"],
+        players: []
+      }
+    } 
+  }
   const createTable = () => {
     let table = [];
     for (let i = 0; i < players.length; i++) {
       table.push(
         <Card className={styles.card}>
           <CardContent>
-            <Button>
+            <Button onClick={vote(player[i])}>
               <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
               <Box margin="0px 10px 0px 10px">
                 <Avatar align="center" alt="Travis Howard" src={`${players[i].user.avatar}`}></Avatar>
@@ -103,8 +135,20 @@ const Votation = function ({
     }
     return table;
   };
-
-  useEffect(() => myInput.current && myInput.current.focus());
+  const getPlayers = async () => {
+    if(match!==null){
+      const response = await axios.get(`http://localhost:3001/matches/token/${match.token}`);
+      console.log("res ", response)
+      const p = response.data["players"];
+      if (p) {
+        console.log(p);
+        setPlayers(p);
+      }
+    }
+  };
+  useEffect(() => {
+    getPlayers();
+  }, []);
   return (
     <Layout secondary={true}>
       <Box display="flex" flexDirection="column" alignItems="left">
@@ -112,7 +156,7 @@ const Votation = function ({
           align="left"
           variant="h4"
           style={{ marginBottom: 5, marginTop: 50, letterSpacing: 1.25 }}
-          onClick={()=>console.log(players)}
+          onClick={()=>console.log(players, "\n match " , match)}
         >
           {t("votation")}
         </Typography>
@@ -148,8 +192,9 @@ const Votation = function ({
 
 Votation.getInitialProps = async () => {
   try {
-    const response = await http.get("/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f");
+    const response = await http.get(`/matches/token/${state.matches.match._id}`);
     const players = response.data["players"];
+    console.log(response);
     return {
       namespacesRequired: ["votation"],
       players
@@ -163,4 +208,12 @@ Votation.getInitialProps = async () => {
   }  
 };
 
-export default withTranslation("votation")(Votation);
+Votation.propTypes = {
+  match: PropTypes.object,
+};
+
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("votation")(
+  connect(mapStateToProps,null)(Votation)
+);

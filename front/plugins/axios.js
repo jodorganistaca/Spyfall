@@ -4,7 +4,7 @@ import { finishProgress, startProgress } from "../store/actions/app";
 
 const Http = axios.create({
   baseURL: "http://localhost:3001",
-  timeout: 3000,
+  timeout: 5000,
 });
 
 Http.interceptors.request.use(

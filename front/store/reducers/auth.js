@@ -34,6 +34,7 @@ export default function (state = initialState, action) {
       deleteCookie("Spyfall-Match");
       return {
         ...state,
+        user: null,
         token: null,
         isAuthenticated: false,
         loading: false,
