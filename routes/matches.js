@@ -5,6 +5,7 @@ const db = require("../db/MongoUtils");
 const { check, validationResult } = require("express-validator");
 const dbName = config.get("dbName");
 const matchesCollection = config.get("matchesCollection");
+const locationsCollection = config.get("locationsCollection");
 const { Match } = require("../db/models/Match");
 const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
@@ -112,15 +113,39 @@ router.put("/beginMatch/:id", function (req, res) {
     if (docs && docs[0]) {
       updatedMatch = docs[0];
       updatedMatch.waiting = false;
-      db.findAndUpdateOnePromise(
-        dbName,
-        matchesCollection,
-        req.params.id,
-        updatedMatch
-      ).then((docs) => {
-        if (docs.ok === 1) {
-          return res.status(200).json(updatedMatch);
-        } else return res.status(500).json({ msg: "Server error" });
+      //Select the spy
+      const spy =
+        updatedMatch.pendingToAssign[
+          Math.floor(Math.random() * updatedMatch.pendingToAssign.length)
+        ];
+      const indexSpy = updatedMatch.pendingToAssign.indexOf(spy);
+      updatedMatch.pendingToAssign.splice(indexSpy, 1);
+      db.getDocumentsPromise(dbName, locationsCollection).then((locations) => {
+        const location =
+          locations[Math.floor(Math.random() * locations.length)];
+        updatedMatch.pendingToAssign.forEach((element) => {
+          let tempPlayer = {};
+          tempPlayer.user = element;
+          tempPlayer.location = location;
+          tempPlayer.role = "Non spy";
+          updatedMatch.players.push(tempPlayer);
+        });
+        let tempSpy = {};
+        tempSpy.user = spy;
+        tempSpy.location = "None";
+        tempSpy.role = "Spy";
+        updatedMatch.pendingToAssign = [];
+        updatedMatch.players.push(tempSpy);
+        db.findAndUpdateOnePromise(
+          dbName,
+          matchesCollection,
+          req.params.id,
+          updatedMatch
+        ).then((docs) => {
+          if (docs.ok === 1) {
+            return res.status(200).json(updatedMatch);
+          } else return res.status(500).json({ msg: "Server error" });
+        });
       });
     } else return res.status(400).json({ msg: "Match not found" });
   });
@@ -321,26 +346,12 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const { votedPlayer } = req.body;
-    const initialPlayer = {
-      user: {
-        email: null,
-        name: "jsbravoc",
-        avatar: "https://www.twago.es/img/2018/default/no-user.png",
-        score: 0,
-      },
-      role: "Spy",
-      location: "Mario Laserna",
-      votes: 0,
-    };
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
       let updatedMatch;
       if (docs && docs[0]) {
         updatedMatch = docs[0];
-        //TODO: Borrar
-        if (updatedMatch.players.length == 0)
-          docs[0].players.push(initialPlayer);
         const _id = docs[0]._id;
         let found = false;
         for (let i = 0; i < updatedMatch.players.length; i++) {
