@@ -8,14 +8,9 @@ import {
   Card,
   CardContent,
   Button,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-  withStyles,
 } from "@material-ui/core";
-import MuiTableCell from "@material-ui/core/TableCell";
 import { withTranslation, Router } from "../plugins/i18n";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -49,20 +44,27 @@ const useStyles = makeStyles({
   },
 });
 
-const PublishVotation = function PublishVotation({ t }) {
+const PublishVotation = function PublishVotation({ 
+  t,
+  data
+}) {
   const styles = useStyles();
   const createTable = () => {
     let table = [];
-    for (let i = 0; i < 12; i++) {
+    let players = [];
+    if(data!=undefined){
+      players=data["players"];
+    }
+  
+    for (let i = 0; i < players.length; i++) {
       table.push(
         <Card className={styles.card}>
           <CardContent className={styles.cardContent}>
             <Typography align="center" variant="subtitle2">
-              {t("votation")}
+              {players[i].user.name}
             </Typography>
             <Box display="flex" justifyContent="center" alignItems="center">
-              <Avatar align="center" margin="auto">
-                H
+              <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}>
               </Avatar>
             </Box>
           </CardContent>
@@ -71,11 +73,48 @@ const PublishVotation = function PublishVotation({ t }) {
     }
     return table;
   };
-  const TableCell = withStyles({
-    root: {
-      borderBottom: "none",
-    },
-  })(MuiTableCell);
+  const createResults = () => {
+    let r = [];
+    for(let i = 0; i < 3; i++){
+      r.push(
+        <Box display="flex" flexDirection="column" alignItems="left" flex="0 0 34%">
+          <Box display="flex" flexDirection="row">
+            <Box display="flex" flexDirection="column" marginLeft="5%">
+              <Typography align="left" variant="subtitle1">
+                {t("player")}
+              </Typography>
+            </Box>
+            <Box display="flex" flexDirection="column" marginLeft="48%">
+              <Typography align="center" variant="subtitle1">
+                {t("votes")}
+              </Typography>
+            </Box>
+          </Box>
+          <Box display="flex" flexDirection="row">
+            <Box display="flex" flexDirection="column" marginLeft="5%">
+              <Box display="flex">
+                <Avatar>H</Avatar>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{ marginLeft: "10px" }}
+                >
+                  {t("title")}
+                </Typography>
+              </Box>
+            </Box>
+            <Box display="flex" flexDirection="column" marginLeft="48%">
+              <Typography align="center" variant="subtitle1">
+                {t("1")}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
+    return r;
+  }
+  
   return (
     <Layout secondary={true}>
       <Box display="flex" flexDirection="row" width="70%">
@@ -105,97 +144,9 @@ const PublishVotation = function PublishVotation({ t }) {
         </Typography>
       </Box>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>
-              <Typography align="left" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography align="left" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography align="left" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            <TableCell>
-              <Box display="flex">
-                <Avatar>H</Avatar>
-                <Typography
-                  align="center"
-                  variant="subtitle1"
-                  style={{ marginLeft: "10px" }}
-                >
-                  {t("title")}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("1")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Box display="flex">
-                <Avatar>H</Avatar>
-                <Typography
-                  align="center"
-                  variant="subtitle1"
-                  style={{ marginLeft: "10px" }}
-                >
-                  {t("title")}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("1")}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Box display="flex">
-                <Avatar>H</Avatar>
-                <Typography
-                  align="center"
-                  variant="subtitle1"
-                  style={{ marginLeft: "10px" }}
-                >
-                  {t("title")}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell>
-              <Typography align="center" variant="subtitle1">
-                {t("1")}
-              </Typography>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <Box display="flex" flexDirection="row" width="100%" justifyContent="center" flexWrap="wrap" justifyContent="space-between">
+        {createResults()}        
+      </Box>
 
       <Button color="primary" onClick={() => Router.push("/winner")}>
         {t("continue")}
@@ -204,8 +155,21 @@ const PublishVotation = function PublishVotation({ t }) {
   );
 };
 
-PublishVotation.getInitialProps = async () => ({
-  namespacesRequired: ["publish-votation"],
-});
+PublishVotation.getInitialProps = async () => {
+  try {
+    const response = await http.get("/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f");
+    const data = response.data;
+    return {
+      namespacesRequired: ["publish-votation"],
+      data
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      namespacesRequired: ["publish-votation"],
+      players: []
+    }
+  }  
+};
 
 export default withTranslation("publish-votation")(PublishVotation);

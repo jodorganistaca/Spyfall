@@ -1,6 +1,7 @@
 import Layout from "../components/Layout";
 import {
   Typography,
+  TextField,
   Box,
   makeStyles,
   Button,
@@ -8,12 +9,13 @@ import {
   Card,
   CardContent,
 } from "@material-ui/core";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import moment from "moment/moment";
 import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
 
 import { Router } from "../plugins/i18n";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -34,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     margin: "5px 5px 5px 5px",
-    width: 150,
+    width: 250,
     height: 80,
     flex: "0 0 45%",
   },
@@ -75,29 +77,34 @@ const Votation = function ({
   t,
   role = "spy",
   finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
+  players
 }) {
+  const myInput = useRef();
   const styles = useStyles();
   const createTable = () => {
     let table = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < players.length; i++) {
       table.push(
         <Card className={styles.card}>
           <CardContent>
-            <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
+            <Button>
+              <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
               <Box margin="0px 10px 0px 10px">
-                <Avatar align="center">H</Avatar>
+                <Avatar align="center" alt="Travis Howard" src={`${players[i].user.avatar}`}></Avatar>
               </Box>
-
-              <Typography align="center" variant="subtitle1">
-                {t("votation")}
+              <Typography align="center" variant="subtitle1" inputRef={myInput}>
+                {players[i].user.name}
               </Typography>
             </Box>
+            </Button>
           </CardContent>
         </Card>
       );
     }
     return table;
   };
+
+  useEffect(() => myInput.current && myInput.current.focus());
   return (
     <Layout secondary={true}>
       <Box display="flex" flexDirection="column" alignItems="left">
@@ -105,6 +112,7 @@ const Votation = function ({
           align="left"
           variant="h4"
           style={{ marginBottom: 5, marginTop: 50, letterSpacing: 1.25 }}
+          onClick={()=>console.log(players)}
         >
           {t("votation")}
         </Typography>
@@ -138,8 +146,21 @@ const Votation = function ({
   );
 };
 
-Votation.getInitialProps = async () => ({
-  namespacesRequired: ["votation"],
-});
+Votation.getInitialProps = async () => {
+  try {
+    const response = await http.get("/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f");
+    const players = response.data["players"];
+    return {
+      namespacesRequired: ["votation"],
+      players
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      namespacesRequired: ["votation"],
+      players: []
+    }
+  }  
+};
 
 export default withTranslation("votation")(Votation);
