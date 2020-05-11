@@ -9,6 +9,7 @@ const { Match } = require("../db/models/Match");
 const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
 const { Vote } = require("../db/models/Vote");
+const _ = require("lodash");
 
 /**
  * GET /matches
@@ -81,6 +82,7 @@ router.post(
     ).isInt({ gt: 0 }),
   ],
   function (req, res) {
+    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -307,16 +309,40 @@ router.post(
       if (docs && docs[0]) {
         updatedMatch = docs[0];
         const _id = docs[0]._id;
-        db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
-          $push: {
-            votes: newVote,
-          },
-        }).then((docs) => {
-          if (docs.ok === 1) {
-            updatedMatch.votes.push(newVote);
-            return res.status(201).json(updatedMatch);
-          } else return res.status(500).json({ msg: "Server error" });
+        const isVoted = docs[0].votes.filter((e) => {
+          return _.isEqual(e.player, votedPlayer);
         });
+        const tempVotingPlayer = { player: votingPlayer };
+        let theVote = { player: votingPlayer, votes: [tempVotingPlayer] };
+        if (isVoted && isVoted[0]) {
+          isVoted[0].votes.push(votingPlayer);
+          theVote = isVoted;
+          updatedMatch.votes = docs[0].votes.filter(
+            (e) => !_.isEqual(e.player, votedPlayer)
+          );
+          updatedMatch.votes.push(theVote);
+          db.findAndUpdateOnePromise(
+            dbName,
+            matchesCollection,
+            _id,
+            updatedMatch
+          ).then((docs) => {
+            if (docs.ok === 1) {
+              return res.status(201).json(updatedMatch);
+            } else return res.status(500).json({ msg: "Server error" });
+          });
+        } else {
+          db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
+            $push: {
+              votes: theVote,
+            },
+          }).then((docs) => {
+            if (docs.ok === 1) {
+              updatedMatch.votes.push(theVote);
+              return res.status(201).json(updatedMatch);
+            } else return res.status(500).json({ msg: "Server error" });
+          });
+        }
       } else return res.status(400).json({ msg: "Match not found" });
     });
   }

@@ -22,6 +22,13 @@ const cors = require("cors");
 const app = express();
 
 passportInit();
+app.use(
+  express_session({
+    secret: "process.env.JWT_SECRET",
+    resave: true,
+    saveUninitialized: true,
+  })
+);
 
 app.use(
   cors({
@@ -34,12 +41,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-//Use method override
-app.use(methodOverride("_method"));
-
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 

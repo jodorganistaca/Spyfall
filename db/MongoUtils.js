@@ -289,22 +289,26 @@ exports.findOrCreateDocumentPromise = (
  * @returns {Function} The callback received as parameter.
  */
 exports.listenForChanges = (dbName, collectionName, callback) => {
-  client.connect().then((client) => {
-    const cursor = client
-      .db(dbName)
-      .collection(collectionName)
-      .watch({ fullDocument: "updateLookup" });
+  try {
+    client.connect().then((client) => {
+      const cursor = client
+        .db(dbName)
+        .collection(collectionName)
+        .watch({ fullDocument: "updateLookup" });
 
-    cursor.on("change", (data) => {
-      const _id = data.fullDocument._id;
-      this.findOnePromise(dbName, collectionName, _id).then((docs) => {
-        if (data && data.updateDescription) {
-          docs[0].updatedField = Object.getOwnPropertyNames(
-            data.updateDescription.updatedFields
-          )[0].split(".")[0];
-          return callback(_id, JSON.stringify(docs[0]));
-        }
+      cursor.on("change", (data) => {
+        const _id = data.fullDocument._id;
+        this.findOnePromise(dbName, collectionName, _id).then((docs) => {
+          if (data && data.updateDescription) {
+            docs[0].updatedField = Object.getOwnPropertyNames(
+              data.updateDescription.updatedFields
+            )[0].split(".")[0];
+            return callback(_id, JSON.stringify(docs[0]));
+          }
+        });
       });
     });
-  });
+  } catch (error) {
+    console.error(error);
+  }
 };

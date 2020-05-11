@@ -14,9 +14,10 @@ const passportInit = () => {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3000",
+        callbackURL: "http://localhost:3001/auth/google/callback",
       },
       function (accessToken, refreshToken, profile, cb) {
+        console.log("Begiin Google Login");
         let imageUrl = "https://www.twago.es/img/2018/default/no-user.png";
         if (profile.photos && profile.photos.length) {
           imageUrl = profile.photos[0].value;
@@ -31,17 +32,14 @@ const passportInit = () => {
           (key) =>
             potentialOldUser[key] === undefined && delete potentialOldUser[key]
         );
-        return db
-          .findOrCreateDocumentPromise(
-            dbName,
-            usersCollection,
-            potentialOldUser,
-            new User(profile.emails[0].value, profile.displayName, imageUrl, 0)
-          )
-          .then((user) => {
-            console.log(user.value);
-            return cb(null, user.value);
-          });
+        db.findOrCreateDocumentPromise(
+          dbName,
+          usersCollection,
+          potentialOldUser,
+          new User(profile.emails[0].value, profile.displayName, imageUrl, 0)
+        ).then((user) => {
+          cb(null, user.value);
+        });
       }
     )
   );
@@ -52,7 +50,7 @@ const passportInit = () => {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3000",
+        callbackURL: "http://localhost:3001/auth/facebook/callback",
         profileFields: [
           "id",
           "displayName",
@@ -77,17 +75,12 @@ const passportInit = () => {
           (key) =>
             potentialOldUser[key] === undefined && delete potentialOldUser[key]
         );
-        return db
-          .findOrCreateDocumentPromise(
-            dbName,
-            usersCollection,
-            potentialOldUser,
-            new User(profile.emails[0].value, profile.displayName, imageUrl, 0)
-          )
-          .then((user) => {
-            console.log(user.value);
-            return cb(null, user.value);
-          });
+        db.findOrCreateDocumentPromise(
+          dbName,
+          usersCollection,
+          potentialOldUser,
+          new User(profile.emails[0].value, profile.displayName, imageUrl, 0)
+        ).then((user) => cb(null, user.value));
       }
     )
   );

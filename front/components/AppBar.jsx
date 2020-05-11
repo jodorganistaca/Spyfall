@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AppBar = function ({ hidden = false, t }) {
+const AppBar = function ({ hidden = false, t, auth }) {
   const styles = useStyles();
   const [anchor, setAnchor] = useState(null);
 
@@ -30,7 +30,11 @@ const AppBar = function ({ hidden = false, t }) {
       <SpyFallLogo style={{ width: 130, height: 60 }} />
 
       <Box display="flex" justifyContent="center" alignItems="center">
-        <Avatar></Avatar>
+        {auth && auth.user ? (
+          <Avatar alt="User photo" src={auth.user.user.avatar}></Avatar>
+        ) : (
+          <Avatar></Avatar>
+        )}
 
         <IconButton
           aria-controls="simple-menu"
