@@ -1,5 +1,6 @@
 import Layout from "../components/Layout";
-import React, { useEffect } from "react";
+import Modal from "../components/Layout";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Box,
@@ -18,7 +19,7 @@ import { withTranslation, Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import { appendToString } from "../store/actions/test";
 import http from "../plugins/axios";
-import { createMatch } from "../store/actions/matches";
+import { createMatch, joinMatch } from "../store/actions/matches";
 import store from "../store";
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -43,11 +44,41 @@ const useStyles = makeStyles({
 });
 
 const Home = function Home(props) {
-  const { t, helloWorld, append, auth, createMatch } = props;
+  const openJoinModal = async () => {
+    const nombre = prompt("Nombre del usuario?");
+    const user = {
+      email: null,
+      name: nombre,
+      avatar: "https://www.twago.es/img/2018/default/no-user.png",
+      score: 0,
+    };
+    const token = prompt("Tóken de la partida?");
+    await joinMatch(user, token);
+  };
+
+  const userLoggedJoin = async (user) => {
+    const token = prompt("Tóken de la partida?");
+    await joinMatch(user, token);
+  };
+
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  const { t, helloWorld, append, auth, createMatch, joinMatch } = props;
   const styles = useStyles();
 
   return (
     <Layout justifyContent="space-between">
+      {
+        // <Modal openModal={openModal} handleCloseModal={handleCloseModal} />
+      }
       <Box className={styles.imageContainer}>
         <Image src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
@@ -68,7 +99,11 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<Add />}
-            onClick={async () => createMatch()}
+            onClick={
+              auth.user
+                ? async () => createMatch(auth.user.user)
+                : async () => handleOpenModal()
+            }
           >
             {t("create-match")}
           </Button>
@@ -78,6 +113,11 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<PlayArrow />}
+            onClick={
+              auth.user
+                ? async () => userLoggedJoin(auth.user.user)
+                : async () => openJoinModal()
+            }
           >
             {t("join-match")}
           </Button>
@@ -153,12 +193,14 @@ Home.getInitialProps = async ({ store }) => {
 Home.propTypes = {
   auth: PropTypes.object,
   createMatch: PropTypes.func.isRequired,
+  joinMatch: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({ auth: state.auth });
 
 const mapDispatchToProps = {
   append: appendToString,
   createMatch,
+  joinMatch,
 };
 
 export default withTranslation("home")(

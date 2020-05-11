@@ -100,6 +100,31 @@ router.post(
 );
 
 /**
+ * PUT /matches/beginMatch/:token
+ * Sets match's waiting status to false
+ * @access public
+ */
+router.put("/beginMatch/:id", function (req, res) {
+  db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) => {
+    let updatedMatch;
+    if (docs && docs[0]) {
+      updatedMatch = docs[0];
+      updatedMatch.waiting = false;
+      db.findAndUpdateOnePromise(
+        dbName,
+        matchesCollection,
+        req.params.id,
+        updatedMatch
+      ).then((docs) => {
+        if (docs.ok === 1) {
+          return res.status(200).json(updatedMatch);
+        } else return res.status(500).json({ msg: "Server error" });
+      });
+    } else return res.status(400).json({ msg: "Match not found" });
+  });
+});
+
+/**
  * PUT /matches/join/:token
  * Adds a user to the match.
  * @param player Body parameter player. Must be consistent with Player Model.
@@ -108,7 +133,7 @@ router.post(
 router.put(
   "/join/:token",
   [
-    check("player", "User must be authenticated in order to join a match")
+    check("user", "User must be authenticated in order to join a match")
       .not()
       .isEmpty(),
   ],
@@ -117,11 +142,7 @@ router.put(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { player } = req.body;
-    const { user, role, location } = player;
-    if (!user || !role || !location) {
-      return res.status(400).json({ msg: "Bad Request" });
-    }
+    const { user } = req.body;
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
@@ -129,13 +150,16 @@ router.put(
       if (docs && docs[0]) {
         updatedMatch = docs[0];
         const _id = docs[0]._id;
+        if (docs[0].pendingToAssign && docs[0].pendingToAssign.length === 12) {
+          return res.status(404).json({ msg: "Match is already full" });
+        }
         db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
           $push: {
-            players: { user, role, location },
+            pendingToAssign: user,
           },
         }).then((docs) => {
           if (docs.ok === 1) {
-            updatedMatch.players.push({ user, role, location });
+            updatedMatch.pendingToAssign.push(user);
             res.cookie("Spyfall-Match", JSON.stringify({ matchId: _id }));
             return res.status(200).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });

@@ -2,9 +2,11 @@ import Layout from "../components/Layout";
 import React, { useState, useEffect } from "react";
 import { Typography, Button, makeStyles, Box } from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
-import { Router, withTranslation } from "../plugins/i18n";
+import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { http } from "../plugins/axios";
+import { beginMatch } from "../store/actions/matches";
 const useStyles = makeStyles((theme) => ({
   button: {
     width: 160,
@@ -27,28 +29,37 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function WaitingRoom({ t, match }) {
+function WaitingRoom({ t, match, isOwner, beginMatch }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const listenMatch = (matchId) => {
     const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
     socket.onmessage = (event) => {
-      let players = JSON.parse(event.data).players;
-      alert(JSON.parse(event.data));
+      let players = JSON.parse(event.data).pendingToAssign;
+      let waiting = JSON.parse(event.data).waiting;
       if (players) {
-        console.log(players);
-        players.forEach((element) => {
-          element.name = element.user.name;
-          element.pic = element.user.avatar;
-        });
+        console.log("Players", players);
         setPlayers(players);
+      }
+      if (!waiting) {
+        Router.push("/choose-place");
       }
     };
   };
+  if (!match) {
+    return <Redirect to="/" />;
+  }
+
+  const loadInitialPlayers = async (matchId) => {
+    const res = await http.get(`/matches/${matchId}`);
+    setPlayers(res.data.pendingToAssign);
+    console.log("Players ->", players);
+  };
   useEffect(() => {
+    loadInitialPlayers(match._id);
     listenMatch(match._id);
   }, []);
-  return match ? (
+  return (
     <Layout secondary>
       <Box
         display="flex"
@@ -78,18 +89,18 @@ function WaitingRoom({ t, match }) {
 
         <AvatarList items={players} />
 
-        <Button
-          className={styles.button}
-          variant="contained"
-          size="medium"
-          onClick={() => Router.push("/choose-place")}
-        >
-          {t("next")}
-        </Button>
+        {isOwner && (
+          <Button
+            className={styles.button}
+            variant="contained"
+            size="medium"
+            onClick={() => beginMatch(match._id)}
+          >
+            {t("next")}
+          </Button>
+        )}
       </Box>
     </Layout>
-  ) : (
-    <>Router.push("/")</>
   );
 }
 
@@ -98,10 +109,15 @@ WaitingRoom.getInitialProps = async () => ({
 });
 
 WaitingRoom.propTypes = {
-  match: PropTypes.object,
+  match: PropTypes.object.isRequired,
+  isOwner: PropTypes.bool.isRequired,
+  beginMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ match: state.matches.match });
+const mapStateToProps = (state) => ({
+  match: state.matches.match,
+  isOwner: state.matches.isOwner,
+});
 
 export default withTranslation("waiting-room")(
-  connect(mapStateToProps, null)(WaitingRoom)
+  connect(mapStateToProps, { beginMatch })(WaitingRoom)
 );
