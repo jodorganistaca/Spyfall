@@ -23,42 +23,54 @@ All the listed prerrequisites must be installed in order to use the application.
 
 * Clone repository using git
 
-```
+```bash
 git clone https://github.com/jodorganistaca/Spyfall.git
 ```
 
 * Install dependencies from package.json
-```
+```bash
 yarn install
 ```
 
 * Install dependencies from package.json in front (react)
-```
+```bash
 cd front && npm install
 ```
 
 ### Running the application
 * Run the application in back
-```
+```bash
 yarn start
 ```
 * Run the application in front
 
-```
+```bash
 cd front && npm run dev
 ```
 
-* The application uses Google OAuth 2.0 and Facebook OAuth and therefore is required, inside a file named .env in root directory of the project,:
+* The application uses Google OAuth 2.0 and Facebook OAuth and therefore is required, inside a file named .env in root directory of the project:
 
-```
+```env
   GOOGLE_CLIENT_ID = <GOOGLE_CLIENT_ID>
   GOOGLE_CLIENT_SECRET = <GOOGLE_CLIENT_SECRET>
   MONGO_URI = <MONGO_URI of the MongoDB Atlas database.>
   FACEBOOK_CLIENT_ID=<FACEBOOK_CLIENT_ID>
   FACEBOOK_CLIENT_SECRET=<FACEBOOK_CLIENT_SECRET>
   
-```
 
+
+* Also, for personalized collections naming, change default.json in config: 
+
+```json 
+    
+{
+  "dbName": "dbName",
+  "usersCollection": "usersCollection",
+  "matchesCollection": "matchesCollection",
+  "questionsCollection": "questionsCollection",
+  "locationsCollection": "locationsCollection"
+}
+```
 
 ## Built With
 
