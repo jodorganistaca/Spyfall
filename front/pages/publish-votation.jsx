@@ -48,17 +48,13 @@ const useStyles = makeStyles({
   },
 });
 
-const PublishVotation = function PublishVotation({ 
-  t,
-  data,
-  match
-}) {
+const PublishVotation = function PublishVotation({ t, data, match }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const [votes, setVotes] = useState([]);
   const createTable = () => {
     let table = [];
-  
+
     for (let i = 0; i < players.length; i++) {
       table.push(
         <Card className={styles.card}>
@@ -67,8 +63,11 @@ const PublishVotation = function PublishVotation({
               {players[i].user.name}
             </Typography>
             <Box display="flex" justifyContent="center" alignItems="center">
-              <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}>
-              </Avatar>
+              <Avatar
+                align="center"
+                margin="auto"
+                src={`${players[i].user.avatar}`}
+              ></Avatar>
             </Box>
           </CardContent>
         </Card>
@@ -78,67 +77,70 @@ const PublishVotation = function PublishVotation({
   };
   const createResults = () => {
     let r = [];
-    for(let i = 0; i < players.length; i++){
-      r.push(          
-          <Box display="flex" flexDirection="row">
-            <Box display="flex" flexDirection="column" marginLeft="5%">
-              <Box display="flex">
-                <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}></Avatar>
-                <Typography
-                  align="center"
-                  variant="subtitle1"
-                  style={{ marginLeft: "10px" }}
-                >
-                  {players[i].user.name}
-                </Typography>
-              </Box>
-            </Box>
-            <Box display="flex" flexDirection="column" marginLeft="48%">
-              {
-                players[i].votes === null ?
-                <Typography align="center" variant="subtitle1">
-                  {t("0")}
-                </Typography>
-                :
-                <Typography align="center" variant="subtitle1">
-                  {players[i].votes}
-                </Typography>
-              }
-              
+    for (let i = 0; i < players.length; i++) {
+      r.push(
+        <Box display="flex" flexDirection="row">
+          <Box display="flex" flexDirection="column" marginLeft="5%">
+            <Box display="flex">
+              <Avatar
+                align="center"
+                margin="auto"
+                src={`${players[i].user.avatar}`}
+              ></Avatar>
+              <Typography
+                align="center"
+                variant="subtitle1"
+                style={{ marginLeft: "10px" }}
+              >
+                {players[i].user.name}
+              </Typography>
             </Box>
           </Box>
+          <Box display="flex" flexDirection="column" marginLeft="48%">
+            {players[i].votes === null ? (
+              <Typography align="center" variant="subtitle1">
+                {t("0")}
+              </Typography>
+            ) : (
+              <Typography align="center" variant="subtitle1">
+                {players[i].votes}
+              </Typography>
+            )}
+          </Box>
+        </Box>
       );
     }
     return r;
-  }
-  const countVotes = () =>{
+  };
+  const countVotes = () => {
     let max = 0;
     let player;
-    for(let p of players){
-      if(p.votes !== undefined){
+    for (let p of players) {
+      if (p.votes !== undefined) {
         console.log(p.votes);
-        if(p.votes > max){
+        if (p.votes > max) {
           max = p.votes;
           player = p;
         }
       }
     }
-    if(player.role === "Spy"){
+    if (player.role === "Spy") {
       console.log(player);
       return Router.push("/winner");
-    }else{
-      return Router.push("/winner")
+    } else {
+      return Router.push("/winner");
     }
-  }
+  };
   const getPlayers = async () => {
-    if(match!==null){
-      const response = await axios.get(`http://localhost:3001/matches/token/${match.token}`);
-      console.log("res ", response)
+    if (match !== null) {
+      const response = await axios.get(
+        `https://spyfall-backend.herokuapp.com/matches/token/${match.token}`
+      );
+      console.log("res ", response);
       const p = response.data["players"];
       if (p) {
         console.log(p);
         setPlayers(p);
-        
       }
     }
   };
@@ -175,10 +177,22 @@ const PublishVotation = function PublishVotation({
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" width="100%" justifyContent="center" flexWrap="wrap" justifyContent="center">
-        <Box display="flex" flexDirection="column" alignItems="left" flex="0 0 34%">
-        <Box display="flex" flexDirection="row">
-          <Box display="flex" flexDirection="column" marginLeft="5%">
+      <Box
+        display="flex"
+        flexDirection="row"
+        width="100%"
+        justifyContent="center"
+        flexWrap="wrap"
+        justifyContent="center"
+      >
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="left"
+          flex="0 0 34%"
+        >
+          <Box display="flex" flexDirection="row">
+            <Box display="flex" flexDirection="column" marginLeft="5%">
               <Typography align="left" variant="subtitle1">
                 {t("player")}
               </Typography>
@@ -189,8 +203,8 @@ const PublishVotation = function PublishVotation({
               </Typography>
             </Box>
           </Box>
-          {createResults()}       
-        </Box> 
+          {createResults()}
+        </Box>
       </Box>
 
       <Button color="primary" onClick={() => countVotes()}>
@@ -202,19 +216,21 @@ const PublishVotation = function PublishVotation({
 
 PublishVotation.getInitialProps = async () => {
   try {
-    const response = await http.get("/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f");
+    const response = await http.get(
+      "/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f"
+    );
     const data = response.data;
     return {
       namespacesRequired: ["publish-votation"],
-      data
-    }
+      data,
+    };
   } catch (error) {
     console.error(error);
     return {
       namespacesRequired: ["publish-votation"],
-      players: []
-    }
-  }  
+      players: [],
+    };
+  }
 };
 
 PublishVotation.propTypes = {
@@ -224,5 +240,5 @@ PublishVotation.propTypes = {
 const mapStateToProps = (state) => ({ match: state.matches.match });
 
 export default withTranslation("publish-votation")(
-  connect(mapStateToProps,null)(PublishVotation)
+  connect(mapStateToProps, null)(PublishVotation)
 );

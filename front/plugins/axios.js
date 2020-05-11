@@ -8,7 +8,7 @@ const Http = axios.create({
 });
 
 export const http = axios.create({
-  baseURL: "http://localhost:3001",
+  baseURL: "https://spyfall-backend.herokuapp.com",
   timeout: 5000,
 });
 

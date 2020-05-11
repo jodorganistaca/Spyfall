@@ -162,7 +162,9 @@ const Home = function Home(props) {
               <IconButton
                 aria-label="Google"
                 onClick={() =>
-                  location.assign("http://localhost:3001/auth/google")
+                  location.assign(
+                    "https://spyfall-backend.herokuapp.com/auth/google"
+                  )
                 }
               >
                 <GoogleIcon className={styles.socialIcon} />
@@ -170,7 +172,9 @@ const Home = function Home(props) {
               <IconButton
                 aria-label="Facebook"
                 onClick={() =>
-                  location.assign("http://localhost:3001/auth/facebook")
+                  location.assign(
+                    "https://spyfall-backend.herokuapp.com/auth/facebook"
+                  )
                 }
               >
                 <FacebookIcon className={styles.socialIcon} />
@@ -205,7 +209,7 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth, match : state.match });
+const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
 
 const mapDispatchToProps = {
   append: appendToString,

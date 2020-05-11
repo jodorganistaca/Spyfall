@@ -90,7 +90,7 @@ const Votation = function ({
       console.log(p);
       console.log(players[p]);
       const res = await axios.post(
-        `http://localhost:3001/matches/createVote/${match.token}`,
+        `https://spyfall-backend.herokuapp.com/matches/createVote/${match.token}`,
         {
           votedPlayer: players[p],
         }
@@ -140,7 +140,7 @@ const Votation = function ({
   const getPlayers = async () => {
     if (match !== null) {
       const response = await axios.get(
-        `http://localhost:3001/matches/token/${match.token}`
+        `https://spyfall-backend.herokuapp.com/matches/token/${match.token}`
       );
       console.log("res ", response);
       const p = response.data["players"];
