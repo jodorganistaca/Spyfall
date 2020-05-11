@@ -1,0 +1,7 @@
+{
+  "dbName": "dbName",
+  "usersCollection": "usersCollection",
+  "matchesCollection": "matchesCollection",
+  "questionsCollection": "questionsCollection",
+  "locationsCollection": "locationsCollection"
+}
