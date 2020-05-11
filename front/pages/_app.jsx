@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import Head from "next/head";
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -10,6 +10,7 @@ import App from "next/app";
 import { Provider } from "react-redux";
 import store from "../store";
 import withRedux from "next-redux-wrapper";
+import LoadingBar from "../components/LoadingBar";
 
 function SpyfallApp(props) {
   const { Component, pageProps } = props;
@@ -106,6 +107,7 @@ function SpyfallApp(props) {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <LoadingBar />
         <Component {...pageProps} />
       </ThemeProvider>
     </Provider>

@@ -43,8 +43,6 @@ const Home = function Home(props) {
   const { t, helloWorld, append } = props;
   const styles = useStyles();
 
-  console.log(props, helloWorld, append);
-
   return (
     <Layout justifyContent="space-between">
       <Box className={styles.imageContainer}>
@@ -89,6 +87,7 @@ const Home = function Home(props) {
             color="secondary"
             className={styles.button}
             startIcon={<PlayArrow />}
+            onClick={() => test()}
           >
             {t("join-match")}
           </Button>
@@ -123,16 +122,14 @@ const Home = function Home(props) {
         <Box display="flex" justifyContent="center" marginBottom="120px">
           <IconButton
             aria-label="Google"
-            onClick={() =>
-              window.location.replace("http://localhost:3001/auth/google")
-            }
+            onClick={() => location.assign("http://localhost:3001/auth/google")}
           >
             <GoogleIcon className={styles.socialIcon} />
           </IconButton>
           <IconButton
             aria-label="Facebook"
             onClick={() =>
-              window.location.replace("http://localhost:3001/auth/facebook")
+              location.assign("http://localhost:3001/auth/facebook")
             }
           >
             <FacebookIcon className={styles.socialIcon} />
@@ -143,17 +140,19 @@ const Home = function Home(props) {
   );
 };
 
-Home.getInitialProps = async ({ store }) => {
-  console.log("Store ", store.getState());
-  let data = {};
-
+const test = async () => {
   try {
-    const response = await http.get("/");
-    console.log("Axios: ", response);
+    const response = await http.get(
+      "https://stackoverflow.com/questions/2936931/rewrite-document-location-without-loading"
+    );
     data = response.data;
   } catch (error) {
     console.error(error);
   }
+};
+
+Home.getInitialProps = async ({ store }) => {
+  let data = {};
 
   return { namespacesRequired: ["home"], data: data };
 };
