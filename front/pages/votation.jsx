@@ -97,7 +97,6 @@ const Votation = function ({
               </Typography>
             </Box>
             </Button>
-            
           </CardContent>
         </Card>
       );
