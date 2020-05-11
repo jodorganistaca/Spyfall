@@ -80,7 +80,7 @@ const Votation = function ({
   t,
   role = "spy",
   finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
-  match
+  match,
 }) {
   const myInput = useRef();
   const [players, setPlayers] = useState([]);
@@ -89,34 +89,47 @@ const Votation = function ({
     try {
       console.log(p);
       console.log(players[p]);
-      const res = await axios.post(`http://localhost:3001/matches/createVote/${match.token}`,{
-        "votedPlayer": players[p]
-      });
+      const res = await axios.post(
+        `http://localhost:3001/matches/createVote/${match.token}`,
+        {
+          votedPlayer: players[p],
+        }
+      );
       console.log(res);
-      Router.push("/publish-votation");
+      return Router.push("/publish-votation");
     } catch (error) {
+      return Router.push("/publish-votation");
       console.error(error);
-      return {
-        namespacesRequired: ["votation"],
-        players: []
-      }
-    } 
-  }
+    }
+  };
   const createTable = () => {
     let table = [];
     for (let i = 0; i < players.length; i++) {
       table.push(
         <Card className={styles.card}>
           <CardContent>
-            <Button onClick={() => vote((i))} key={i}>
-              <Box display="flex" justifyContent="left" alignItems="center" flexWrap="wrap">
-              <Box margin="0px 10px 0px 10px">
-                <Avatar align="center" alt="Travis Howard" src={`${players[i].avatar}`}></Avatar>
+            <Button onClick={() => vote(i)} key={i}>
+              <Box
+                display="flex"
+                justifyContent="left"
+                alignItems="center"
+                flexWrap="wrap"
+              >
+                <Box margin="0px 10px 0px 10px">
+                  <Avatar
+                    align="center"
+                    alt="Travis Howard"
+                    src={`${players[i].avatar}`}
+                  ></Avatar>
+                </Box>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  inputRef={myInput}
+                >
+                  {players[i].user.name}
+                </Typography>
               </Box>
-              <Typography align="center" variant="subtitle1" inputRef={myInput}>
-                {players[i].user.name}
-              </Typography>
-            </Box>
             </Button>
           </CardContent>
         </Card>
@@ -125,9 +138,11 @@ const Votation = function ({
     return table;
   };
   const getPlayers = async () => {
-    if(match!==null){
-      const response = await axios.get(`http://localhost:3001/matches/token/${match.token}`);
-      console.log("res ", response)
+    if (match !== null) {
+      const response = await axios.get(
+        `http://localhost:3001/matches/token/${match.token}`
+      );
+      console.log("res ", response);
       const p = response.data["players"];
       if (p) {
         console.log(p);
@@ -145,7 +160,7 @@ const Votation = function ({
           align="left"
           variant="h4"
           style={{ marginBottom: 5, marginTop: 50, letterSpacing: 1.25 }}
-          onClick={()=>console.log(players, "\n match " , match)}
+          onClick={() => console.log(players, "\n match ", match)}
         >
           {t("votation")}
         </Typography>
@@ -181,20 +196,22 @@ const Votation = function ({
 
 Votation.getInitialProps = async () => {
   try {
-    const response = await http.get(`/matches/token/${state.matches.match._id}`);
+    const response = await http.get(
+      `/matches/token/${state.matches.match._id}`
+    );
     const players = response.data["players"];
     console.log(response);
     return {
       namespacesRequired: ["votation"],
-      players
-    }
+      players,
+    };
   } catch (error) {
     console.error(error);
     return {
       namespacesRequired: ["votation"],
-      players: []
-    }
-  }  
+      players: [],
+    };
+  }
 };
 
 Votation.propTypes = {
@@ -204,5 +221,5 @@ Votation.propTypes = {
 const mapStateToProps = (state) => ({ match: state.matches.match });
 
 export default withTranslation("votation")(
-  connect(mapStateToProps,null)(Votation)
+  connect(mapStateToProps, null)(Votation)
 );
