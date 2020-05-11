@@ -359,7 +359,9 @@ router.post(
           let actualWithoutVotes = Object.assign({}, actualWithVotes);
           delete actualWithoutVotes.votes;
           if (_.isEqual(actualWithoutVotes, votedPlayer)) {
-            actualWithVotes.votes += 1;
+            if (actualWithVotes.votes) actualWithVotes.votes += 1;
+            else actualWithVotes.votes = 1;
+
             found = true;
             break;
           }
