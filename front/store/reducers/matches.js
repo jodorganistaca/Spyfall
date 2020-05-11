@@ -2,6 +2,10 @@ import {
   CREATE_MATCH_SUCCESS,
   CREATE_MATCH_FAIL,
   JOIN_MATCH_SUCCESSFUL,
+  BEGIN_MATCH_SUCCESS,
+  BEGIN_MATCH_FAIL,
+  JOIN_MATCH_SUCCESS,
+  JOIN_MATCH_FAIL,
 } from "../actions/types";
 
 const initialState = {
@@ -18,8 +22,10 @@ export default function (state = initialState, action) {
         isAuthenticated: true,
         loading: false,
         match: payload,
+        isOwner: true,
       };
     case CREATE_MATCH_FAIL:
+    case JOIN_MATCH_FAIL:
       return {
         ...state,
         match: null,
@@ -28,6 +34,19 @@ export default function (state = initialState, action) {
       return {
         ...state,
         match: payload,
+      };
+    case BEGIN_MATCH_SUCCESS:
+    case JOIN_MATCH_SUCCESS:
+      return {
+        ...state,
+        matchBegun: true,
+        match: payload,
+      };
+    case BEGIN_MATCH_FAIL:
+      return {
+        ...state,
+        matchBegun: false,
+        match: null,
       };
     default:
       return state;

@@ -32,9 +32,7 @@ const UserAvatar = ({ pic, name }) => {
     <Paper elevation={1} className={styles.root}>
       <ListItem>
         <ListItemAvatar>
-          <Avatar>
-            <Image src={pic} />
-          </Avatar>
+          <Avatar src={pic} />
         </ListItemAvatar>
         <ListItemText primary={name} />
       </ListItem>
@@ -68,7 +66,7 @@ const AvatarList = function ({
             wrap="nowrap"
             spacing={2}
           >
-            <UserAvatar name={item.name} pic={item.pic} />
+            <UserAvatar name={item.name} pic={item.avatar} />
           </Grid>
         ))}
       </Grid>

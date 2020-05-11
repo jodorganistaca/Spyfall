@@ -16,6 +16,7 @@ module.exports.Match = class {
     this.chat = [];
     this.votes = [];
     this.timer = undefined;
-    this.location = location;
+    this.pendingToAssign = [];
+    this.waiting = true;
   }
 };

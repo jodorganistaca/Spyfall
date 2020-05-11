@@ -9,8 +9,12 @@ import {
   CardContent,
   Button,
 } from "@material-ui/core";
+import { useState, useEffect, useRef } from "react";
 import { withTranslation, Router } from "../plugins/i18n";
 import http from "../plugins/axios";
+import axios from "axios";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 const useStyles = makeStyles({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -46,15 +50,13 @@ const useStyles = makeStyles({
 
 const PublishVotation = function PublishVotation({ 
   t,
-  data
+  data,
+  match
 }) {
   const styles = useStyles();
+  const [players, setPlayers] = useState([]);
   const createTable = () => {
     let table = [];
-    let players = [];
-    if(data!=undefined){
-      players=data["players"];
-    }
   
     for (let i = 0; i < players.length; i++) {
       table.push(
@@ -114,7 +116,20 @@ const PublishVotation = function PublishVotation({
     }
     return r;
   }
-  
+  const getPlayers = async () => {
+    if(match!==null){
+      const response = await axios.get(`http://localhost:3001/matches/token/${match.token}`);
+      console.log("res ", response)
+      const p = response.data["players"];
+      if (p) {
+        console.log(p);
+        setPlayers(p);
+      }
+    }
+  };
+  useEffect(() => {
+    getPlayers();
+  }, []);
   return (
     <Layout secondary={true}>
       <Box display="flex" flexDirection="row" width="70%">
@@ -172,4 +187,12 @@ PublishVotation.getInitialProps = async () => {
   }  
 };
 
-export default withTranslation("publish-votation")(PublishVotation);
+PublishVotation.propTypes = {
+  match: PropTypes.object,
+};
+
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("publish-votation")(
+  connect(mapStateToProps,null)(PublishVotation)
+);
