@@ -113,13 +113,22 @@ const PublishVotation = function PublishVotation({
   }
   const countVotes = () =>{
     let max = 0;
+    let player;
     for(let p of players){
       if(p.votes !== undefined){
         console.log(p.votes);
+        if(p.votes > max){
+          max = p.votes;
+          player = p;
+        }
       }
-      
     }
-    //Router.push("/winner")
+    if(player.role === "Spy"){
+      console.log(player);
+      return Router.push("/winner");
+    }else{
+      return Router.push("/winner")
+    }
   }
   const getPlayers = async () => {
     if(match!==null){
