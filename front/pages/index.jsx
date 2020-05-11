@@ -63,8 +63,16 @@ const Home = function Home(props) {
 
   const [openModal, setOpenModal] = useState(false);
 
-  const handleOpenModal = () => {
-    setOpenModal(true);
+  const handleOpenModal = async () => {
+    //setOpenModal(true);
+    const nombre = prompt("Username");
+    const user = {
+      email: null,
+      name: nombre,
+      avatar: "https://www.twago.es/img/2018/default/no-user.png",
+      score: 0,
+    };
+    await createMatch(user);
   };
 
   const handleCloseModal = () => {

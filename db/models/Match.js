@@ -14,7 +14,6 @@ module.exports.Match = class {
     this.spiesScore = 0;
     this.round = 1;
     this.chat = [];
-    this.votes = [];
     this.pendingToAssign = [];
     this.waiting = true;
     this.timer = new Timer(10000);
