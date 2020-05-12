@@ -45,6 +45,7 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+//Seria bueno que cambiaran el public por la carpeta estatica del front para que despliegue en heroku
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
