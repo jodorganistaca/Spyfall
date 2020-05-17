@@ -77,8 +77,41 @@ const Home = function Home(props) {
       }
   };
 
+
+  const handleGuestName = async (name) => {
+    try {
+      const user = {
+        email: null,
+        name: name,
+        avatar: "https://www.twago.es/img/2018/default/no-user.png",
+        score: 0,
+      };
+      await createMatch(user);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const userLoggedJoin = async (user) => {
+    const token = prompt("Tóken de la partida?");
+    await joinMatch(user, token);
+  };
+
+  const openJoinModal = async (name, code) => {
+    const user = {
+      email: null,
+      name: name,
+      avatar: "https://www.twago.es/img/2018/default/no-user.png",
+      score: 0,
+    };
+    console.log(name, code);
+    await joinMatch(user, code);
+  };
+
   const [open, setOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [matchCode, setMatchCode] = useState(undefined);
+  const [guestName, setGuestName] = useState(undefined);
 
   return (
     <Layout justifyContent="space-between">
@@ -108,7 +141,7 @@ const Home = function Home(props) {
             onClick={
               auth.user
                 ? async () => createMatch(auth.user.user)
-                : async () => handleOpenModal()
+                : async () => setOpenModal(true)
             }
           >
             {t("create-match")}
@@ -178,6 +211,42 @@ const Home = function Home(props) {
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         className={styles.modal}
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{ timeout: 500 }}
+      >
+        <Fade in={openModal}>
+          <div className={styles.paper}>
+            <Typography variant="h5" style={{ marginBottom: 30 }}>
+              {t("modal-create-title")}
+            </Typography>
+            <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
+              <TextField
+                id="outlined-basic"
+                label="Nombre"
+                variant="outlined"
+                value={guestName}
+                onChange={(event) => setGuestName(event.target.value)}
+              />
+            </form>
+            <Button
+              className={styles.button}
+              color="primary"
+              variant="contained"
+              onClick={() => handleGuestName(guestName)}
+            >
+              {t("create-match")}
+            </Button>
+          </div>
+        </Fade>
+      </Modal>
+
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        className={styles.modal}
         open={open}
         onClose={() => setOpen(false)}
         closeAfterTransition
@@ -186,12 +255,32 @@ const Home = function Home(props) {
       >
         <Fade in={open}>
           <div className={styles.paper}>
+            {
+              auth.user
+                ?
+                <div/>
+                : 
+                <div>
+                  <Typography variant="h5" style={{ marginBottom: 30 }}>
+                    {t("modal-create-title")}
+                  </Typography>
+                  <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
+                    <TextField
+                      id="outlined-basic-2"
+                      label="Nombre"
+                      variant="outlined"
+                      value={guestName}
+                      onChange={(event) => setGuestName(event.target.value)}
+                    />
+                  </form>
+                </div>
+            }
             <Typography variant="h5" style={{ marginBottom: 30 }}>
               {t("modal-title")}
             </Typography>
             <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
               <TextField
-                id="outlined-basic"
+                id="outlined-basic-3"
                 label="Código"
                 variant="outlined"
                 value={matchCode}
@@ -202,13 +291,18 @@ const Home = function Home(props) {
               className={styles.button}
               color="primary"
               variant="contained"
-              onClick={() => handleCodeEnter(matchCode)}
+              onClick={() => 
+                auth.user
+                ? async () => userLoggedJoin(auth.user.user, matchCode)
+                : async () => openJoinModal(guestName, matchCode)
+              }
             >
               {t("join-match")}
             </Button>
           </div>
         </Fade>
       </Modal>
+      
     </Layout>
   );
 };

@@ -1,8 +1,6 @@
 import {
   CREATE_MATCH_SUCCESS,
   CREATE_MATCH_FAIL,
-  JOIN_MATCH_SUCCESSFUL,
-  START_MATCH_SUCCESSFUL,
   BEGIN_MATCH_SUCCESS,
   BEGIN_MATCH_FAIL,
   JOIN_MATCH_SUCCESS,
@@ -30,16 +28,6 @@ export default function (state = initialState, action) {
       return {
         ...state,
         match: null,
-      };
-    case JOIN_MATCH_SUCCESSFUL:
-      return {
-        ...state,
-        match: payload,
-      };
-    case START_MATCH_SUCCESSFUL:
-      return {
-        ...state,
-        match: payload,
       };
     case BEGIN_MATCH_SUCCESS:
     case JOIN_MATCH_SUCCESS:

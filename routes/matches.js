@@ -11,7 +11,6 @@ const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
 const { Vote } = require("../db/models/Vote");
 const _ = require("lodash");
-const locationsCollection = config.get("locationsCollection");
 
 /**
  * GET /matches
@@ -239,22 +238,16 @@ router.put("/beginMatch/:id", function (req, res) {
 router.put(
   "/join/:token",
   [
-    check("player", "User must be authenticated in order to join a match")
+    check("user", "User must be authenticated in order to join a match")
       .not()
       .isEmpty(),
   ],
   function (req, res) {
     const errors = validationResult(req);
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
-
-    const { player } = req.body;
-    const { user } = player;
-
-    if (!user) {
-      return res.status(400).json({ msg: "Bad Request" });
     }
-
+    const { user } = req.body;
     db.findOneObjectPromise(dbName, matchesCollection, {
       token: req.params.token,
     }).then((docs) => {
