@@ -268,6 +268,7 @@ const chatWithinMatch = (token, message, user) => {
   }
 };
 
+//TODO: WS de acabar partida/puntaje/localizaciones
 const createVote = (token, votedUser, ws) => {
   if (token) {
     if (!clients[token]) {
@@ -287,6 +288,7 @@ const createVote = (token, votedUser, ws) => {
           if (_.isEqual(actualClient.player.user, votedUser)) {
             if (actualClient.player.votes) actualClient.player.votes += 1;
             else actualClient.player.votes = 1;
+            //TODO: Add points if user is spy.
             found = true;
             break;
           }
