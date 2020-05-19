@@ -22,6 +22,9 @@ const CHAT = "CHAT";
 const JOIN_MATCH = "JOIN_MATCH";
 const CREATE_TIMER = "CREATE_TIMER";
 const CREATE_VOTE = "CREATE_VOTE";
+const SPY_ROLE = "SPY";
+const NOT_SPY_ROLE = "NOT_SPY";
+const ERROR = "ERROR";
 const { Match } = require("../db/models/Match");
 const { User } = require("../db/models/User");
 const { Player } = require("../db/models/Player");
@@ -74,9 +77,16 @@ exports.setup = (server, session) => {
             if (!user) {
               const { name } = msg;
               if (!name) {
-                throw new Error("Error: Name is required to join a match");
+                throw new Error("Error: Username is required to join a match");
               }
-              user = new User(null, name);
+              const regexp = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+              if (regexp.test(name)) {
+                throw new Error(
+                  "Error: Username can't have special characters (including spaces)!"
+                );
+              }
+              const fakeEmail = `${name}@nouser.com`;
+              user = new User(fakeEmail, name);
             }
             const { maxRounds } = msg;
             createMatch(maxRounds, user, ws);
@@ -87,7 +97,8 @@ exports.setup = (server, session) => {
               if (!name) {
                 throw new Error("Error: Name is required to join a match");
               }
-              user = new User(null, name);
+              const fakeEmail = `${name}@nouser.com`;
+              user = new User(fakeEmail, name);
             }
             joinMatch(token, user, ws);
             break;
@@ -96,16 +107,16 @@ exports.setup = (server, session) => {
             beginMatch(token, minimumSpies);
             break;
           case CHAT:
-            const { message, player } = msg;
-            chatWithinMatch(token, message, player);
+            const { message, chattingUser } = msg;
+            chatWithinMatch(token, message, chattingUser);
             break;
           case CREATE_TIMER:
             const { duration } = msg;
             createTimer(token, duration);
             break;
           case CREATE_VOTE:
-            const { votedUser } = msg;
-            createVote(token, votedUser, ws);
+            const { idVote } = msg;
+            createVote(token, idVote, ws);
             break;
           default:
             ws.send({
@@ -136,7 +147,15 @@ const createMatch = (maxRounds, user, client) => {
       continue;
     } else exists = false;
   }
-  new Match([{ client, user }], maxRounds, tempToken).then((newMatch) => {
+  let newClient = {
+    [user.email]: { client: client._socket.remoteAddress, user },
+  };
+  new Match(
+    newClient,
+    { [client._socket.remoteAddress]: { ws: client, email: user.email } },
+    maxRounds,
+    tempToken
+  ).then((newMatch) => {
     clients[newMatch.token] = newMatch;
     console.log("La partida", clients[newMatch.token]);
     client.send(JSON.stringify({ "Match token": newMatch.token }));
@@ -169,70 +188,100 @@ const beginMatch = (token, minimumSpies = 1) => {
         throw new Error(
           "The minimum number of spies must be lower than the quantity of players"
         );
-      let spies = [];
+      let spies = {};
       let users = [];
-      while (spies.length < minimumSpies) {
-        let spy =
-          clients[token].connectedClients[
-            Math.floor(Math.random() * clients[token].connectedClients.length)
-          ];
-        //TODO: Set default location of spy using collection
-        spy.player = new Player(spy.user, "Spy", "Any");
-
-        if (spies.includes(spy)) continue;
-        else {
-          users.push(spy.user);
-          delete spy.user;
-          spies.push(spy);
+      let clientsIps = Object.keys(clients[token].connectedClients);
+      let newIds = [];
+      for (let i = 0; i < clientsIps.length; i++) {
+        let exists = true;
+        while (exists) {
+          let tempId = Math.floor(100000 + Math.random() * 900000);
+          if (newIds.includes(tempId)) {
+            continue;
+          } else {
+            newIds.push(tempId);
+            exists = false;
+          }
         }
       }
+      while (Object.keys(spies).length < minimumSpies) {
+        let tmpEmail = clientsIps[(clientsIps.length * Math.random()) << 0];
+        let spy = clients[token].connectedClients[tmpEmail];
+        //TODO: Set default location of spy using collection
+        spy.user.id = newIds.pop();
+        spy.player = new Player(spy.user, "Spy", "Any");
 
-      let notSpies = clients[token].connectedClients.filter(
-        (el) => !spies.includes(el)
-      );
-
+        if (spies[tmpEmail]) continue;
+        else {
+          console.log("spy.user", spy.user);
+          const theSpy = Object.assign({}, spy.user);
+          delete theSpy.email;
+          users.push(theSpy);
+          delete spy.user;
+          spies[tmpEmail] = spy;
+        }
+      }
+      let notSpies = Object.assign({}, clients[token].connectedClients);
+      for (const [email, obj] of Object.entries(spies)) {
+        delete notSpies[email];
+        //delete obj.player.user.email;
+        spies[spies[email].player.user.id] = obj;
+        delete spies[email];
+      }
+      console.log("updatedSpies", spies);
       let roles = clients[token].location.roles;
       shuffle(roles);
-      notSpies.forEach((e) => {
-        e.player = new Player(e.user, roles.pop(), {
+      for (const [email, obj] of Object.entries(notSpies)) {
+        obj.user.id = newIds.pop();
+        obj.player = new Player(obj.user, roles.pop(), {
           name: clients[token].location.name,
           image: clients[token].location.image,
         });
-        users.push(e.user);
-        delete e.user;
-      });
-      clients[token].spies.players = spies;
-      clients[token].notSpies.players = notSpies;
+        const tempUser = Object.assign({}, obj.user);
+        delete tempUser.email;
+        users.push(tempUser);
+        delete obj.user;
+        notSpies[notSpies[email].player.user.id] = obj;
+        delete notSpies[email];
+      }
+      clients[token].spies = spies;
+      clients[token].notSpies = notSpies;
       clients[token].waiting = false;
-      clients[token].spies.players.forEach((obj) =>
-        obj.client.send(
+      for (const [email, obj] of Object.entries(spies)) {
+        clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
+        const copy = Object.assign({}, obj.player);
+        delete copy.user.email;
+        clients[token].clientsDictionary[obj.client].ws.send(
           JSON.stringify({
             msg: "Match has started",
-            player: obj.player,
+            player: copy,
             users,
+            locations: clients[token].allLocations,
           })
-        )
-      );
-      clients[token].notSpies.players.forEach((obj) =>
-        obj.client.send(
+        );
+      }
+
+      for (const [email, obj] of Object.entries(notSpies)) {
+        clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
+        const copy = Object.assign({}, obj.player);
+        delete copy.user.email;
+        clients[token].clientsDictionary[obj.client].ws.send(
           JSON.stringify({
             msg: "Match has started",
-            player: obj.player,
+            player: copy,
             users,
           })
-        )
-      );
+        );
+      }
       return;
     }
   }
 };
 
 const joinMatch = (token, user, client) => {
-  if (token) {
+  if (token && user && client) {
     if (!clients[token]) {
-      let newArray = [];
-      newArray.push({ client, user });
-      clients[token].connectedClients = newArray;
+      throw new Error(`Match with token ${token} doesn't exist`);
     } else {
       if (
         (clients[token].spies.players &&
@@ -244,151 +293,154 @@ const joinMatch = (token, user, client) => {
       else {
         if (clients[token].connectedClients.length == 12)
           throw new Error("Match room already full");
-        for (let a = 0; a < clients[token].connectedClients.length; a++) {
-          if (_.isEqual(clients[token].connectedClients[a].user, user))
-            throw new Error(
-              "User already exists in the match, try changing your name"
-            );
+        if (clients[token].connectedClients[user.email])
+          throw new Error(
+            "User already exists in the match, try changing your username or play anonymously"
+          );
+        if (clients[token].clientsDictionary[client._socket.remoteAddress]) {
+          client.send("User connection already exists. It will be deleted");
+          let tempEmail =
+            clients[token].clientsDictionary[client._socket.remoteAddress]
+              .email;
+          delete clients[token].clientsDictionary[client._socket.remoteAddress];
+          delete clients[token].connectedClients[tempEmail];
+          return joinMatch(token, user, client);
         }
-        clients[token].connectedClients.push({ client, user });
+        clients[token].connectedClients[user.email] = {
+          client: client._socket.remoteAddress,
+          user,
+        };
+        clients[token].clientsDictionary[client._socket.remoteAddress] = {
+          ws: client,
+          email: user.email,
+        };
       }
     }
     client.send(
       JSON.stringify({ msg: "Connected to match. New status -> Waiting" })
     );
     let waitingUsers = [];
-    clients[token].connectedClients.forEach((obj) =>
-      waitingUsers.push(obj.user)
+
+    for (const [email, { client, user }] of Object.entries(
+      clients[token].connectedClients
+    )) {
+      const userCopy = Object.assign({}, user);
+      delete userCopy.email;
+      waitingUsers.push(userCopy);
+    }
+    for (const [ip, { ws, email }] of Object.entries(
+      clients[token].clientsDictionary
+    )) {
+      ws.send(JSON.stringify({ msg: "User joined", waitingUsers }));
+    }
+  } else
+    throw new Error(
+      `Not all parameters defined for joinMatch(token = ${token}, user = ${user}, client = ${client})`
     );
-    clients[token].connectedClients.forEach((obj) => {
-      obj.client.send(JSON.stringify({ waitingUsers }));
-    });
-  }
 };
 
 const chatWithinMatch = (token, message, user) => {
-  if (token) {
+  if (token && message && user) {
     if (!clients[token]) {
       throw new Error("Match not found");
     } else {
-      if (
-        !clients[token].spies.players ||
-        clients[token].spies.players.length == 0 ||
-        !clients[token].notSpies.players ||
-        clients[token].notSpies.players.length == 0
-      )
+      if (!clients[token].spies || !clients[token].notSpies)
         throw new Error(
           "Match has not begun. Therefore chatting is prohibited"
         );
       else {
+        console.log("user", user);
+        const newMessage = new Message(user, message);
+        console.log("newMessage", newMessage);
         clients[token].chat.push(new Message(user, message));
         const chat = clients[token].chat;
-        clients[token].connectedClients.forEach((obj) =>
-          obj.client.send(JSON.stringify({ chat }))
-        );
+        this.notifyChanges(token, { msg: "New message", chat });
       }
     }
-  }
+  } else
+    throw new Error(
+      `Not all parameters defined for chatWithinMatch(token = ${token}, message = ${message}, chattingUser = ${user})`
+    );
 };
 
 //TODO: WS de acabar partida/puntaje/localizaciones
-const createVote = (token, votedUser, ws) => {
-  if (token) {
+const createVote = (token, idVote, ws) => {
+  if (token && idVote && ws) {
     if (!clients[token]) {
       throw new Error("Match not found");
     } else {
-      if (
-        !clients[token].spies.players ||
-        clients[token].spies.players.length == 0 ||
-        !clients[token].notSpies.players ||
-        clients[token].notSpies.players.length == 0
-      )
+      if (!clients[token].clientsDictionary[ws._socket.remoteAddress].id) {
+        throw new Error("Voting user not found in match");
+      }
+      if (!clients[token].spies || !clients[token].notSpies)
         throw new Error("Match has not begun. Therefore voting is prohibited");
-      else {
-        if (
-          clients[token].usersWhoVoted &&
-          clients[token].usersWhoVoted.includes(ws)
-        ) {
-          throw new Error("User already voted in this round");
-        }
-        let found = false;
-        let lookupRegistered = false;
-        if (votedUser["email"]) lookupRegistered = true;
-        console.log("lookup", lookupRegistered);
-        console.log("looking for", votedUser);
-        for (
-          let i = 0;
-          i < clients[token].spies.players.length && !found;
-          i++
-        ) {
-          actualClient = clients[token].spies.players[i];
-          console.log("actual spy", actualClient.player.user);
-          if (lookupRegistered) {
-            if (
-              actualClient.player.user.email === votedUser.email &&
-              actualClient.player.user.name === votedUser.name
-            )
-              found = true;
-          } else {
-            if (actualClient.player.user.name === votedUser.name) found = true;
-          }
-          if (found) {
-            if (actualClient.player.votes) actualClient.player.votes += 1;
-            else actualClient.player.votes = 1;
-            console.log(actualClient.player);
-            let foundUser = false;
-            for (
-              let a = 0;
-              a < clients[token].notSpies.players.length && !foundUser;
-              a++
-            ) {
-              let winningUser = clients[token].notSpies.players[a];
-              if (
-                ws._socket.remoteAddress ===
-                winningUser.client._socket.remoteAddress
-              ) {
-                if (
-                  !winningUser.player.user.score ||
-                  isNaN(winningUser.player.user.score)
-                )
-                  winningUser.player.user.score = 1;
-                else winningUser.player.user.score += 1;
-                foundUser = true;
-              }
+      let idVotingUser =
+        clients[token].clientsDictionary[ws._socket.remoteAddress].id;
+      if (
+        clients[token].usersWhoVoted &&
+        clients[token].usersWhoVoted.includes(idVotingUser)
+      ) {
+        throw new Error("User already voted in this round");
+      }
+      let role = clients[token].spies[idVotingUser]
+        ? SPY_ROLE
+        : clients[token].notSpies[idVotingUser]
+        ? NOT_SPY_ROLE
+        : ERROR;
+      switch (role) {
+        //Spies vote for locations
+        case SPY_ROLE:
+          let find = false;
+          if (clients[token].allLocations[idVote]) {
+            clients[token].allLocations[idVote].votes += 1;
+            if (clients[token].location._id === idVote) {
+              clients[token].spies[idVotingUser].player.user.score += 1;
+              clients[token].score.spies += 1;
             }
-            break;
+            find = true;
           }
-        }
-        for (
-          let i = 0;
-          i < clients[token].notSpies.players.length && !found;
-          i++
-        ) {
-          actualClient = clients[token].notSpies.players[i];
-          if (lookupRegistered) {
-            if (
-              actualClient.player.user.email === votedUser.email &&
-              actualClient.player.user.name === votedUser.name
-            )
-              found = true;
-          } else {
-            if (actualClient.player.user.name === votedUser.name) found = true;
+          console.log("Match status", clients[token]);
+          return find
+            ? ws.send(JSON.stringify({ msg: "Vote registered" }))
+            : ws.send(JSON.stringify({ msg: "Voted location not found" }));
+        //Not spies vote for players
+        case NOT_SPY_ROLE:
+          let found = false;
+          if (clients[token].spies[idVote]) {
+            found = true;
+            clients[token].spies[idVote].player.votes += 1;
+            clients[token].score.notSpies += 1;
+            if (!clients[token].notSpies[idVotingUser])
+              throw new Error("Spies are not allowed to vote on players");
+            if (clients[token].notSpies[idVotingUser].player.user.score)
+              clients[token].notSpies[idVotingUser].player.user.score += 1;
+            else clients[token].notSpies[idVotingUser].player.user.score = 1;
           }
-        }
-        if (found) {
-          if (clients[token].usersWhoVoted)
-            clients[token].usersWhoVoted.push(ws);
-          else {
-            clients[token].usersWhoVoted = [ws];
+          if (clients[token].notSpies[idVote] && !found) {
+            found = true;
+            clients[token].notSpies[idVote].player.votes += 1;
           }
-        }
 
-        return found
-          ? ws.send(JSON.stringify({ msg: "Vote registered" }))
-          : ws.send(JSON.stringify({ msg: "Voted user not found" }));
+          if (found) {
+            if (clients[token].usersWhoVoted)
+              clients[token].usersWhoVoted.push(idVotingUser);
+            else {
+              clients[token].usersWhoVoted = [idVotingUser];
+            }
+          }
+          console.log("Match status", clients[token]);
+          return found
+            ? ws.send(JSON.stringify({ msg: "Vote registered" }))
+            : ws.send(JSON.stringify({ msg: "Voted user not found" }));
+
+        default:
+          throw new Error("Player's role not defined");
       }
     }
-  }
+  } else
+    throw new Error(
+      `Not all parameters defined for createVote(token = ${token}, idVote = ${idVote}, ws = ${ws})`
+    );
 };
 
 const createTimer = (token, duration) => {
@@ -396,21 +448,16 @@ const createTimer = (token, duration) => {
     if (!clients[token]) {
       throw new Error("Match not found");
     } else {
-      if (
-        !clients[token].spies.players ||
-        clients[token].spies.players.length == 0 ||
-        !clients[token].notSpies.players ||
-        clients[token].notSpies.players.length == 0
-      )
+      if (!clients[token].spies || !clients[token].notSpies)
         throw new Error(
           "Match has not begun. Therefore creating a timer is prohibited"
         );
       else {
         clients[token].timer = new Timer(duration);
         const timer = clients[token].timer;
-        clients[token].connectedClients.forEach((obj) =>
-          obj.client.send(JSON.stringify({ timer }))
-        );
+
+        //TODO: Cron task
+        this.notifyChanges(token, { msg: "Timer started", timer });
       }
     }
   }
@@ -441,21 +488,9 @@ const shuffle = (array) => {
  * @alias module:WebSocket.notifyChanges
  * Notify all users with a specific _id (matchId in this case) the changes on a document.
  */
-exports.notifyChanges = (_id, document) => {
-  if (clients[_id]) {
-    if (!clients[_id].spies && clients[_id].notSpies)
-      return clients[_id].forEach((client) =>
-        client.send(JSON.stringify(document))
-      );
-    else {
-      clients[_id].spies.forEach((client) =>
-        client.send(JSON.stringify(document))
-      );
-      return clients[_id].notSpies.forEach((client) =>
-        client.send(JSON.stringify(document))
-      );
-    }
-  }
+exports.notifyChanges = (token, document) => {
+  this.notifyChangesRoleWise(token, document, "spies");
+  this.notifyChangesRoleWise(token, document, "notSpies");
 };
 
 /**
@@ -463,8 +498,13 @@ exports.notifyChanges = (_id, document) => {
  * @alias module:WebSocket.notifyChangesRoleWise
  * Notify role-wise users with a specific _id (matchId in this case) the changes on a document.
  */
-exports.notifyChangesRoleWise = (_id, document, role) => {
-  if (clients[_id] && clients[_id][role]) {
-    clients[_id][role].forEach((client) => client.send(document));
+exports.notifyChangesRoleWise = (token, document, role) => {
+  if (clients[token]) {
+    for (const [email, obj] of Object.entries(clients[token][role])) {
+      clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
+      clients[token].clientsDictionary[obj.client].ws.send(
+        JSON.stringify(document)
+      );
+    }
   }
 };
