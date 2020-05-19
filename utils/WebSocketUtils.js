@@ -55,8 +55,17 @@ exports.setup = (server, session) => {
       user = connection.session.passport.user;
     ws.send(JSON.stringify({ msg: "Connected" }));
     ws.on("message", (m) => {
-      const msg = JSON.parse(m);
-      console.log(msg);
+      let msg = "";
+      try {
+        msg = JSON.parse(m);
+      } catch (error) {
+        ws.send(
+          JSON.stringify({
+            msg: "Error: JSON not parsable msg: " + msg,
+          })
+        );
+      }
+
       //Decrypt method and token
       const { method, token } = msg;
       try {
@@ -65,11 +74,7 @@ exports.setup = (server, session) => {
             if (!user) {
               const { name } = msg;
               if (!name) {
-                ws.send(
-                  JSON.stringify({
-                    msg: "Error: Name is required to join a match",
-                  })
-                );
+                throw new Error("Error: Name is required to join a match");
               }
               user = new User(null, name);
             }
@@ -80,11 +85,7 @@ exports.setup = (server, session) => {
             if (!user) {
               const { name } = msg;
               if (!name) {
-                ws.send(
-                  JSON.stringify({
-                    msg: "Error: Name is required to join a match",
-                  })
-                );
+                throw new Error("Error: Name is required to join a match");
               }
               user = new User(null, name);
             }
@@ -135,11 +136,11 @@ const createMatch = (maxRounds, user, client) => {
       continue;
     } else exists = false;
   }
-  newMatch = new Match([{ client, user }], maxRounds, tempToken);
-  clients[newMatch.token] = newMatch;
-  console.log("Los clientes", clients);
-  console.log("La partida", clients[newMatch.token]);
-  client.send(JSON.stringify({ "Match token": newMatch.token }));
+  new Match([{ client, user }], maxRounds, tempToken).then((newMatch) => {
+    clients[newMatch.token] = newMatch;
+    console.log("La partida", clients[newMatch.token]);
+    client.send(JSON.stringify({ "Match token": newMatch.token }));
+  });
 };
 
 /**
@@ -162,6 +163,12 @@ const beginMatch = (token, minimumSpies = 1) => {
     ) {
       throw new Error("Players already have roles");
     } else {
+      if (clients[token].connectedClients.length == 1)
+        throw new Error("A match must consist of a minimum of two players");
+      if (minimumSpies >= clients[token].connectedClients.length)
+        throw new Error(
+          "The minimum number of spies must be lower than the quantity of players"
+        );
       let spies = [];
       let users = [];
       while (spies.length < minimumSpies) {
@@ -183,13 +190,17 @@ const beginMatch = (token, minimumSpies = 1) => {
       let notSpies = clients[token].connectedClients.filter(
         (el) => !spies.includes(el)
       );
-      //TODO: Set random role and location
+
+      let roles = clients[token].location.roles;
+      shuffle(roles);
       notSpies.forEach((e) => {
-        e.player = new Player(e.user, "Random role", "Random location");
+        e.player = new Player(e.user, roles.pop(), {
+          name: clients[token].location.name,
+          image: clients[token].location.image,
+        });
         users.push(e.user);
         delete e.user;
       });
-
       clients[token].spies.players = spies;
       clients[token].notSpies.players = notSpies;
       clients[token].waiting = false;
@@ -203,7 +214,6 @@ const beginMatch = (token, minimumSpies = 1) => {
         )
       );
       clients[token].notSpies.players.forEach((obj) =>
-        //TODO: Set random location with client.user
         obj.client.send(
           JSON.stringify({
             msg: "Match has started",
@@ -212,8 +222,6 @@ const beginMatch = (token, minimumSpies = 1) => {
           })
         )
       );
-      console.log(clients[token].spies);
-      console.log(clients[token].notSpies);
       return;
     }
   }
@@ -233,11 +241,28 @@ const joinMatch = (token, user, client) => {
           clients[token].notSpies.players.length > 0)
       )
         throw new Error("Match has already begun. Players already assigned");
-      else clients[token].connectedClients.push({ client, user });
+      else {
+        if (clients[token].connectedClients.length == 12)
+          throw new Error("Match room already full");
+        for (let a = 0; a < clients[token].connectedClients.length; a++) {
+          if (_.isEqual(clients[token].connectedClients[a].user, user))
+            throw new Error(
+              "User already exists in the match, try changing your name"
+            );
+        }
+        clients[token].connectedClients.push({ client, user });
+      }
     }
     client.send(
       JSON.stringify({ msg: "Connected to match. New status -> Waiting" })
     );
+    let waitingUsers = [];
+    clients[token].connectedClients.forEach((obj) =>
+      waitingUsers.push(obj.user)
+    );
+    clients[token].connectedClients.forEach((obj) => {
+      obj.client.send(JSON.stringify({ waitingUsers }));
+    });
   }
 };
 
@@ -258,8 +283,6 @@ const chatWithinMatch = (token, message, user) => {
       else {
         clients[token].chat.push(new Message(user, message));
         const chat = clients[token].chat;
-        console.log("Empezaré a chatear");
-        console.log(clients[token].connectedClients.length);
         clients[token].connectedClients.forEach((obj) =>
           obj.client.send(JSON.stringify({ chat }))
         );
@@ -282,14 +305,57 @@ const createVote = (token, votedUser, ws) => {
       )
         throw new Error("Match has not begun. Therefore voting is prohibited");
       else {
+        if (
+          clients[token].usersWhoVoted &&
+          clients[token].usersWhoVoted.includes(ws)
+        ) {
+          throw new Error("User already voted in this round");
+        }
         let found = false;
-        for (let i = 0; i < clients[token].spies.players.length; i++) {
+        let lookupRegistered = false;
+        if (votedUser["email"]) lookupRegistered = true;
+        console.log("lookup", lookupRegistered);
+        console.log("looking for", votedUser);
+        for (
+          let i = 0;
+          i < clients[token].spies.players.length && !found;
+          i++
+        ) {
           actualClient = clients[token].spies.players[i];
-          if (_.isEqual(actualClient.player.user, votedUser)) {
+          console.log("actual spy", actualClient.player.user);
+          if (lookupRegistered) {
+            if (
+              actualClient.player.user.email === votedUser.email &&
+              actualClient.player.user.name === votedUser.name
+            )
+              found = true;
+          } else {
+            if (actualClient.player.user.name === votedUser.name) found = true;
+          }
+          if (found) {
             if (actualClient.player.votes) actualClient.player.votes += 1;
             else actualClient.player.votes = 1;
-            //TODO: Add points if user is spy.
-            found = true;
+            console.log(actualClient.player);
+            let foundUser = false;
+            for (
+              let a = 0;
+              a < clients[token].notSpies.players.length && !foundUser;
+              a++
+            ) {
+              let winningUser = clients[token].notSpies.players[a];
+              if (
+                ws._socket.remoteAddress ===
+                winningUser.client._socket.remoteAddress
+              ) {
+                if (
+                  !winningUser.player.user.score ||
+                  isNaN(winningUser.player.user.score)
+                )
+                  winningUser.player.user.score = 1;
+                else winningUser.player.user.score += 1;
+                foundUser = true;
+              }
+            }
             break;
           }
         }
@@ -299,11 +365,21 @@ const createVote = (token, votedUser, ws) => {
           i++
         ) {
           actualClient = clients[token].notSpies.players[i];
-          if (_.isEqual(actualClient.player.user, votedUser)) {
-            if (actualClient.player.votes) actualClient.player.votes += 1;
-            else actualClient.player.votes = 1;
-            found = true;
-            break;
+          if (lookupRegistered) {
+            if (
+              actualClient.player.user.email === votedUser.email &&
+              actualClient.player.user.name === votedUser.name
+            )
+              found = true;
+          } else {
+            if (actualClient.player.user.name === votedUser.name) found = true;
+          }
+        }
+        if (found) {
+          if (clients[token].usersWhoVoted)
+            clients[token].usersWhoVoted.push(ws);
+          else {
+            clients[token].usersWhoVoted = [ws];
           }
         }
 
@@ -339,6 +415,27 @@ const createTimer = (token, duration) => {
     }
   }
 };
+
+const shuffle = (array) => {
+  let currentIndex = array.length,
+    temporaryValue,
+    randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+};
+
 /**
  * @function notifyChanges
  * @alias module:WebSocket.notifyChanges
