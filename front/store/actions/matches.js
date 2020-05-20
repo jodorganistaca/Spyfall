@@ -1,4 +1,5 @@
 import { http } from "../../plugins/axios";
+import wss from "../../plugins/ws";
 import { Router } from "../../plugins/i18n";
 import { setAlert } from "./alert";
 import {
@@ -30,13 +31,7 @@ const getCookie = (cname) => {
 
 export const createMatch = (user) => async (dispatch) => {
   try {
-    const res = await http.post("/matches", {
-      withCredentials: true,
-      maxRounds: 5,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
     await http.put(`/matches/join/${res.data.token}`, {
       user,
       headers: {

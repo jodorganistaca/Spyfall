@@ -6,10 +6,14 @@ module.exports.User = class {
    * @param {URL} avatar Avatar/image of the user.
    * @param {Integer} score Global score of the user.
    */
-  constructor(email, name, avatar, score) {
+  constructor(
+    email,
+    name,
+    avatar = "https://www.twago.es/img/2018/default/no-user.png"
+  ) {
     this.email = email;
     this.name = name;
     this.avatar = avatar;
-    this.score = score;
+    this.score = 0;
   }
 };

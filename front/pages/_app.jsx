@@ -11,11 +11,26 @@ import { Provider } from "react-redux";
 import store from "../store";
 import withRedux from "next-redux-wrapper";
 import LoadingBar from "../components/LoadingBar";
+//import WebSocket from "ws";
+
+//const wss = new WebSocket("ws://localhost:3001");
 
 function SpyfallApp(props) {
   const { Component, pageProps } = props;
 
+  /*const setupWs = () => {
+    
+    wss.onopen = () =>{
+      console.log("WS client connected");
+    }
+    
+    wss.onmessage = (msg) => {
+      console.log("WS got message", msg);
+    }
+  }*/
+
   React.useEffect(() => {
+    //setupWs();
     const jssStyles = document.querySelector("#jss-server-side");
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles);

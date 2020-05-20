@@ -21,14 +21,15 @@ const passport = require("passport");
 const cors = require("cors");
 const app = express();
 
+const sessionParser = express_session({
+  secret: "process.env.JWT_SECRET",
+  resave: true,
+  saveUninitialized: true,
+  duration: 365 * 24 * 60 * 60 * 1000,
+});
+
 passportInit();
-app.use(
-  express_session({
-    secret: "process.env.JWT_SECRET",
-    resave: true,
-    saveUninitialized: true,
-  })
-);
+app.use(sessionParser);
 
 app.use(
   cors({
@@ -55,4 +56,4 @@ app.use("/players", playerRouter);
 app.use("/questions", questionRouter);
 app.use("/locations", locationRouter);
 
-module.exports = app;
+module.exports = { app, sessionParser };

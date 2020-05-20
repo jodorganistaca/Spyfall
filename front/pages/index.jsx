@@ -77,7 +77,6 @@ const Home = function Home(props) {
       }
   };
 
-
   const handleGuestName = async (name) => {
     try {
       const user = {
@@ -86,7 +85,11 @@ const Home = function Home(props) {
         avatar: "https://www.twago.es/img/2018/default/no-user.png",
         score: 0,
       };
-      await createMatch(user);
+      console.log(name);
+      const res = await wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
+      console.log(res);
+      //await wss.send(JSON.stringify({method: "JOIN_MATCH", "token": 123, "name": "hola"}));
+      //await createMatch(user);
     } catch (error) {
       console.error(error);
     }
@@ -112,6 +115,11 @@ const Home = function Home(props) {
   const [openModal, setOpenModal] = useState(false);
   const [matchCode, setMatchCode] = useState(undefined);
   const [guestName, setGuestName] = useState(undefined);
+
+  useEffect(() =>{
+    var HOST = location.origin.replace(/^http/, 'ws')
+    var ws = new WebSocket(HOST); 
+  },[])
 
   return (
     <Layout justifyContent="space-between">
@@ -207,6 +215,7 @@ const Home = function Home(props) {
         </>
       )}
 
+      {/* Modal for Create a Match */}
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
