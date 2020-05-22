@@ -1,5 +1,5 @@
 import Layout from "../components/Layout";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Typography,
   Box,
@@ -86,7 +86,9 @@ const Home = function Home(props) {
         score: 0,
       };
       console.log(name);
-      const res = await wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
+      ws.current.send(
+        JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name })
+      );
       console.log(res);
       //await wss.send(JSON.stringify({method: "JOIN_MATCH", "token": 123, "name": "hola"}));
       //await createMatch(user);
@@ -115,12 +117,22 @@ const Home = function Home(props) {
   const [openModal, setOpenModal] = useState(false);
   const [matchCode, setMatchCode] = useState(undefined);
   const [guestName, setGuestName] = useState(undefined);
+  const ws = useRef(null);
 
-  useEffect(() =>{
-    var HOST = location.origin.replace(/^http/, 'ws')
-    var ws = new WebSocket(HOST); 
-  },[])
-
+  useEffect(() => {
+    let HOST = "ws://localhost:3001";
+    ws.current = new WebSocket(HOST);
+    ws.current.onopen = () => console.log("ws opened");
+    ws.current.onclose = () => console.log("ws closed");
+    ws.current.onmessage = (e) => {
+      const response = JSON.parse(e.data);
+      if (response["Match token"]) {
+        const token = response["Match token"];
+        console.log("Match", token);
+        //Router
+      }
+    };
+  }, []);
   return (
     <Layout justifyContent="space-between">
       {
@@ -264,26 +276,28 @@ const Home = function Home(props) {
       >
         <Fade in={open}>
           <div className={styles.paper}>
-            {
-              auth.user
-                ?
-                <div/>
-                : 
-                <div>
-                  <Typography variant="h5" style={{ marginBottom: 30 }}>
-                    {t("modal-create-title")}
-                  </Typography>
-                  <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
-                    <TextField
-                      id="outlined-basic-2"
-                      label="Nombre"
-                      variant="outlined"
-                      value={guestName}
-                      onChange={(event) => setGuestName(event.target.value)}
-                    />
-                  </form>
-                </div>
-            }
+            {auth.user ? (
+              <div />
+            ) : (
+              <div>
+                <Typography variant="h5" style={{ marginBottom: 30 }}>
+                  {t("modal-create-title")}
+                </Typography>
+                <form
+                  noValidate
+                  autoComplete="off"
+                  style={{ marginBottom: 30 }}
+                >
+                  <TextField
+                    id="outlined-basic-2"
+                    label="Nombre"
+                    variant="outlined"
+                    value={guestName}
+                    onChange={(event) => setGuestName(event.target.value)}
+                  />
+                </form>
+              </div>
+            )}
             <Typography variant="h5" style={{ marginBottom: 30 }}>
               {t("modal-title")}
             </Typography>
@@ -300,10 +314,10 @@ const Home = function Home(props) {
               className={styles.button}
               color="primary"
               variant="contained"
-              onClick={() => 
+              onClick={() =>
                 auth.user
-                ? async () => userLoggedJoin(auth.user.user, matchCode)
-                : async () => openJoinModal(guestName, matchCode)
+                  ? async () => userLoggedJoin(auth.user.user, matchCode)
+                  : async () => openJoinModal(guestName, matchCode)
               }
             >
               {t("join-match")}
@@ -311,7 +325,6 @@ const Home = function Home(props) {
           </div>
         </Fade>
       </Modal>
-      
     </Layout>
   );
 };
