@@ -56,7 +56,6 @@ exports.setup = (server, session) => {
     let user;
     if (connection.session && connection.session.passport)
       user = connection.session.passport.user;
-    ws.send(JSON.stringify({ msg: "Connected" }));
     ws.on("message", (m) => {
       let msg = "";
       try {
