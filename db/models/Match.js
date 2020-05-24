@@ -40,6 +40,7 @@ module.exports.Match = class {
       this.allLocations = tempLocations;
       this.location = docs[1];
       this.timer = new Timer(10000);
+      this.ended = false;
       return this;
     });
   }

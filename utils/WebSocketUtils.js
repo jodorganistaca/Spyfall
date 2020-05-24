@@ -30,6 +30,10 @@ const { User } = require("../db/models/User");
 const { Player } = require("../db/models/Player");
 const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
+const db = require("../db/MongoUtils");
+const config = require("config");
+const dbName = config.get("dbName");
+const usersCollection = config.get("usersCollection");
 const _ = require("lodash");
 
 /**
@@ -52,10 +56,13 @@ exports.setup = (server, session) => {
       });
     },
   });
-  wss.on("connection", (ws, connection) => {
+  wss.on("connection", async (ws, connection) => {
     let user;
-    if (connection.session && connection.session.passport)
+    if (connection.session && connection.session.passport) {
       user = connection.session.passport.user;
+      user = await db.findOnePromise(dbName, usersCollection, user._id);
+      user = user[0];
+    }
     ws.on("message", (m) => {
       let msg = "";
       try {
@@ -63,7 +70,7 @@ exports.setup = (server, session) => {
       } catch (error) {
         ws.send(
           JSON.stringify({
-            msg: "Error: JSON not parsable msg: " + msg,
+            error: "Error: Not JSON parsable msg: " + msg,
           })
         );
       }
@@ -118,13 +125,11 @@ exports.setup = (server, session) => {
             createVote(token, idVote, ws);
             break;
           default:
-            ws.send({
-              msg: "Method not found: " + method,
-            });
+            throw new Error(`Method: ${method} not defined`);
             break;
         }
       } catch (error) {
-        ws.send(JSON.stringify(error.message));
+        ws.send(JSON.stringify({ method, error: error.message }));
       }
     });
     ws.send(JSON.stringify({ msg: "Connected!" }));
@@ -156,127 +161,193 @@ const createMatch = (maxRounds, user, client) => {
     tempToken
   ).then((newMatch) => {
     clients[newMatch.token] = newMatch;
-    console.log("La partida", clients[newMatch.token]);
-    client.send(JSON.stringify({ "Match token": newMatch.token }));
+    let waitingUsers = [];
+    for (const [email, { client, user }] of Object.entries(
+      clients[newMatch.token].connectedClients
+    )) {
+      const userCopy = Object.assign({}, user);
+      delete userCopy.email;
+      waitingUsers.push(userCopy);
+    }
+    client.send(
+      JSON.stringify({
+        method: MATCH_CREATION,
+        token: newMatch.token,
+        waitingUsers,
+      })
+    );
   });
 };
 
 /**
- * @function beginMatch
- * @alias module:WebSocket.beginMatch
- * Generates players roles within a match.
+ * Begins (or restarts) a match.
+ * @description The function creates a Message object and pushes it to the chat of the match. Then notifies all players about the updated chat.
+ * @pre Match exists, has more than 1 user waiting and has not begun (in case it will be started, i.e not restarted).
+ * @post Message gets created. All users receive the a message including:
+ *  * method: CHAT which represents which method was called.
+ *  * chat: [Message] Updated array of Messages.
+ * @param {Number} token Token that identifies the match.
+ * @param {Number} [minimumSpies] Minimum number of spies. By default = 1.
+ * @param {Boolean} [restart] false if the match is new and will be started, true if its a new round with the same players.  By default = false.
+ * @throws Error the token was not defined.
+ * @throws Error if the match does not exist.
+ * @throws Error if the number of waiting players is less than 2 (i.e only one user is trying to start the match).
+ * @throws Error if the specified number of minimumSpies is greater or equal to the number of waiting players (i.e Match without not-spy users).
  */
-const beginMatch = (token, minimumSpies = 1) => {
+const beginMatch = (token, minimumSpies = 1, restart = false) => {
   if (!token) {
     throw new Error("Match's token is required");
   }
   if (!clients || !clients[token]) {
     throw new Error(`No players or connections to this match: ${token}`);
+  }
+  if (Object.keys(clients[token].connectedClients).length <= 1) {
+    throw new Error(
+      `Matches require minimum 2 playes, actual number of players: ${
+        Object.keys(clients[token].connectedClients).length
+      }`
+    );
   } else {
-    if (
-      (clients[token].spies.players &&
-        clients[token].spies.players.length > 0) ||
-      (clients[token].notSpies.players &&
-        clients[token].notSpies.players.length > 0)
-    ) {
-      throw new Error("Players already have roles");
+    if (!restart) {
+      if (
+        (clients[token].spies.players &&
+          clients[token].spies.players.length > 0) ||
+        (clients[token].notSpies.players &&
+          clients[token].notSpies.players.length > 0)
+      ) {
+        throw new Error("Players already have roles");
+      }
     } else {
-      if (clients[token].connectedClients.length == 1)
-        throw new Error("A match must consist of a minimum of two players");
-      if (minimumSpies >= clients[token].connectedClients.length)
-        throw new Error(
-          "The minimum number of spies must be lower than the quantity of players"
-        );
-      let spies = {};
-      let users = [];
-      let clientsIps = Object.keys(clients[token].connectedClients);
-      let newIds = [];
-      for (let i = 0; i < clientsIps.length; i++) {
-        let exists = true;
-        while (exists) {
-          let tempId = Math.floor(100000 + Math.random() * 900000);
-          if (newIds.includes(tempId)) {
-            continue;
-          } else {
-            newIds.push(tempId);
-            exists = false;
-          }
-        }
-      }
-      while (Object.keys(spies).length < minimumSpies) {
-        let tmpEmail = clientsIps[(clientsIps.length * Math.random()) << 0];
-        let spy = clients[token].connectedClients[tmpEmail];
-        //TODO: Set default location of spy using collection
-        spy.user.id = newIds.pop();
-        spy.player = new Player(spy.user, "Spy", "Any");
-
-        if (spies[tmpEmail]) continue;
-        else {
-          console.log("spy.user", spy.user);
-          const theSpy = Object.assign({}, spy.user);
-          delete theSpy.email;
-          users.push(theSpy);
-          delete spy.user;
-          spies[tmpEmail] = spy;
-        }
-      }
-      let notSpies = Object.assign({}, clients[token].connectedClients);
-      for (const [email, obj] of Object.entries(spies)) {
-        delete notSpies[email];
-        //delete obj.player.user.email;
-        spies[spies[email].player.user.id] = obj;
-        delete spies[email];
-      }
-      console.log("updatedSpies", spies);
-      let roles = clients[token].location.roles;
-      shuffle(roles);
-      for (const [email, obj] of Object.entries(notSpies)) {
-        obj.user.id = newIds.pop();
-        obj.player = new Player(obj.user, roles.pop(), {
-          name: clients[token].location.name,
-          image: clients[token].location.image,
-        });
-        const tempUser = Object.assign({}, obj.user);
-        delete tempUser.email;
-        users.push(tempUser);
-        delete obj.user;
-        notSpies[notSpies[email].player.user.id] = obj;
-        delete notSpies[email];
-      }
-      clients[token].spies = spies;
-      clients[token].notSpies = notSpies;
-      clients[token].waiting = false;
-      for (const [email, obj] of Object.entries(spies)) {
-        clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
-        const copy = Object.assign({}, obj.player);
-        delete copy.user.email;
-        clients[token].clientsDictionary[obj.client].ws.send(
-          JSON.stringify({
-            msg: "Match has started",
-            player: copy,
-            users,
-            locations: clients[token].allLocations,
-          })
-        );
-      }
-
-      for (const [email, obj] of Object.entries(notSpies)) {
-        clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
-        const copy = Object.assign({}, obj.player);
-        delete copy.user.email;
-        clients[token].clientsDictionary[obj.client].ws.send(
-          JSON.stringify({
-            msg: "Match has started",
-            player: copy,
-            users,
-          })
-        );
-      }
-      return;
+      clients[token].spies = {};
+      clients[token].notSpies = {};
     }
+    if (minimumSpies >= Object.keys(clients[token].connectedClients).length)
+      throw new Error(
+        "The minimum number of spies must be lower than the quantity of players"
+      );
+    let spies = {};
+    let users = [];
+    let clientsIps = Object.keys(clients[token].connectedClients);
+    let newIds = [];
+    for (let i = 0; i < clientsIps.length; i++) {
+      let exists = true;
+      while (exists) {
+        let tempId = Math.floor(100000 + Math.random() * 900000);
+        if (newIds.includes(tempId)) {
+          continue;
+        } else {
+          newIds.push(tempId);
+          exists = false;
+        }
+      }
+    }
+    while (Object.keys(spies).length < minimumSpies) {
+      let tmpEmail = clientsIps[(clientsIps.length * Math.random()) << 0];
+      if (spies[tmpEmail]) continue;
+      let spy = clients[token].connectedClients[tmpEmail];
+      //TODO: Set default location of spy using collection
+      spy.user.id = newIds.pop();
+      spy.player = new Player(Object.assign({}, spy.user), "Spy", "Any");
+      const theSpy = Object.assign({}, spy.user);
+      //User is now redundant as is in the player object.
+      delete spy.user;
+      //Delete confidential fields in copy.
+      delete theSpy.email;
+      theSpy._id && delete theSpy._id;
+      users.push(theSpy);
+      let theSpyCopy = _.cloneDeep(spy);
+      theSpyCopy.player.user.score = 0;
+      spies[tmpEmail] = theSpyCopy;
+    }
+    let notSpies = Object.assign({}, clients[token].connectedClients);
+    for (const [email, obj] of Object.entries(spies)) {
+      //Delete all objects with email that belong in spies object
+      delete notSpies[email];
+      //Players are now id assigned, set object to id and remove the email-id object.
+      spies[spies[email].player.user.id] = obj;
+      delete spies[email];
+    }
+    let roles = clients[token].location.roles;
+    shuffle(roles);
+    for (const [email, obj] of Object.entries(notSpies)) {
+      //Get another random id
+      obj.user.id = newIds.pop();
+      //Assign locations to remaining (not spies) players
+      let newRole = roles.pop();
+      obj.player = new Player(obj.user, newRole, {
+        name: clients[token].location.name,
+        image: clients[token].location.image,
+      });
+      //User is now redundant as is in the player object.
+      delete obj.user;
+      const tempUser = Object.assign({}, obj.user);
+      //Delete all confidential fields
+      delete tempUser.email;
+      tempUser._id && delete tempUser._id;
+      users.push(tempUser);
+      let theNotSpyCopy = _.cloneDeep(obj);
+      theNotSpyCopy.player.user.score = 0;
+      notSpies[notSpies[email].player.user.id] = theNotSpyCopy;
+      delete notSpies[email];
+    }
+    clients[token].spies = spies;
+    clients[token].notSpies = notSpies;
+    clients[token].waiting = false;
+    let endTime = new Date();
+    endTime.setMinutes(endTime.getMinutes() + 2);
+    for (const [email, obj] of Object.entries(spies)) {
+      clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
+      const copy = Object.assign({}, obj.player);
+      delete copy.user.email;
+      clients[token].clientsDictionary[obj.client].ws.send(
+        JSON.stringify({
+          method: BEGIN_MATCH,
+          player: copy,
+          users,
+          locations: clients[token].allLocations,
+          endTime,
+        })
+      );
+    }
+
+    for (const [email, obj] of Object.entries(notSpies)) {
+      clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
+      const copy = Object.assign({}, obj.player);
+      delete copy.user.email;
+      clients[token].clientsDictionary[obj.client].ws.send(
+        JSON.stringify({
+          method: BEGIN_MATCH,
+          player: copy,
+          users,
+          endTime,
+        })
+      );
+    }
+    return setTimeout(
+      () => endMatch(token),
+      endTime.getTime() - new Date().getTime()
+    );
   }
 };
 
+/**
+ * Joins a user to a match.
+ * @description The function looks if the user is not already waiting. In case that it is not waiting, the user gets added to connectedClients using its email
+ * (or fake email) which references the player, then gets added to clientsDictionary, which references to its WebSocket.
+ * @pre Match exists and has not begun.
+ * @post User joins the match. All users receive the a message including:
+ *  * method: JOIN_MATCH which represents which method was called.
+ *  * waitingUsers [User] Array of users that are currently waiting the match to begin.
+ * @param {Number} token Token that identifies the match.
+ * @param {User} user User to be added to the match.
+ * @param {WebSocket} client WebSocket of the user that requested to join the match.
+ * @throws Error any parameter was not defined.
+ * @throws Error if the match does not exist.
+ * @throws Error if the match had already begun.
+ * @throws Error if the specified user already exists in the match.
+ * @throws Error if the clients WebSocket exists in the match. In this case the user will be rejoined automatically.
+ * @throws Error if the match is full (i.e already 12 players waiting).
+ */
 const joinMatch = (token, user, client) => {
   if (token && user && client) {
     if (!clients[token]) {
@@ -297,7 +368,6 @@ const joinMatch = (token, user, client) => {
             "User already exists in the match, try changing your username or play anonymously"
           );
         if (clients[token].clientsDictionary[client._socket.remoteAddress]) {
-          client.send("User connection already exists. It will be deleted");
           let tempEmail =
             clients[token].clientsDictionary[client._socket.remoteAddress]
               .email;
@@ -315,9 +385,7 @@ const joinMatch = (token, user, client) => {
         };
       }
     }
-    client.send(
-      JSON.stringify({ msg: "Connected to match. New status -> Waiting" })
-    );
+    client.send(JSON.stringify({ method: JOIN_MATCH, joined: true }));
     let waitingUsers = [];
 
     for (const [email, { client, user }] of Object.entries(
@@ -330,7 +398,7 @@ const joinMatch = (token, user, client) => {
     for (const [ip, { ws, email }] of Object.entries(
       clients[token].clientsDictionary
     )) {
-      ws.send(JSON.stringify({ msg: "User joined", waitingUsers }));
+      ws.send(JSON.stringify({ method: JOIN_MATCH, waitingUsers }));
     }
   } else
     throw new Error(
@@ -338,6 +406,20 @@ const joinMatch = (token, user, client) => {
     );
 };
 
+/**
+ * Creates a message inside the chat in a match.
+ * @description The function creates a Message object and pushes it to the chat of the match. Then notifies all players about the updated chat.
+ * @pre Match exists and has begun.
+ * @post Message gets created. All users receive the a message including:
+ *  * method: CHAT which represents which method was called.
+ *  * chat: [Message] Updated array of Messages.
+ *  @param {Number} token Token that identifies the match.
+ * @param {String} message Message to add to the chat.
+ * @param {User} user User that sent the message.
+ * @throws Error any parameter  was not specified.
+ * @throws Error if the match does not exist.
+ * @throws Error if the match has not begun.
+ */
 const chatWithinMatch = (token, message, user) => {
   if (token && message && user) {
     if (!clients[token]) {
@@ -348,12 +430,9 @@ const chatWithinMatch = (token, message, user) => {
           "Match has not begun. Therefore chatting is prohibited"
         );
       else {
-        console.log("user", user);
-        const newMessage = new Message(user, message);
-        console.log("newMessage", newMessage);
         clients[token].chat.push(new Message(user, message));
         const chat = clients[token].chat;
-        this.notifyChanges(token, { msg: "New message", chat });
+        this.notifyChanges(token, { method: CHAT, chat });
       }
     }
   } else
@@ -362,7 +441,29 @@ const chatWithinMatch = (token, message, user) => {
     );
 };
 
-//TODO: WS de acabar partida/puntaje/localizaciones
+/**
+ * Creates a vote in a match.
+ * @description The function looks for references in clientsDictionary to find the voting user id using the WebSocket remote ip address. If the user has not voted,
+ * the function finds the user role. If its role is "Spy", then the user can only vote for locations and to do so, the idVote must match and mongoDB id of a location.
+ * If the location exists, then the vote gets registered for this location and the score updates if necessary (read @post). On the other hand, if the role is "Not Spy", then
+ * the user can only vote for users and to do so, the idVote must match a users id. If the user exists, then the vote gets registered for this user and the score updates
+ * if necessary (read @post).
+ * @pre Match exists and has begun.
+ * @post Vote get registered. If the vote is correct (The spy guessed correctly the location of the others users or The not-spy users guessed correctly a spy user),
+ * then the score of the voting user increases by 1 and the score of its role increases by 1 too.
+ * Then a message is send to the voting user (ws), including:
+ *  * method: CREATE_VOTE to identify which method was called.
+ *  * voted: true || false. True if the vote was successful or false if it was not (due to any error listed below).
+ * @param {Number} token Token that identifies the match.
+ * @param {String} idVote Id of the user or the location of the vote.
+ * @param {WebSocket} ws The websocket (therefore, the user) that requested to do the vote.
+ * @throws Error any parameter  was not specified.
+ * @throws Error if the match does not exist.
+ * @throws Error if the match has not begun.
+ * @throws Error if the user has already voted.
+ * @throws Error if voting user (represented by its WebSocket) does not belong to the match.
+ * @throws Error if the voting user doesn't have any role (highly unlikely due to match's flow).
+ */
 const createVote = (token, idVote, ws) => {
   if (token && idVote && ws) {
     if (!clients[token]) {
@@ -375,6 +476,8 @@ const createVote = (token, idVote, ws) => {
         throw new Error("Match has not begun. Therefore voting is prohibited");
       let idVotingUser =
         clients[token].clientsDictionary[ws._socket.remoteAddress].id;
+      let idEmail =
+        clients[token].clientsDictionary[ws._socket.remoteAddress].email;
       if (
         clients[token].usersWhoVoted &&
         clients[token].usersWhoVoted.includes(idVotingUser)
@@ -392,28 +495,29 @@ const createVote = (token, idVote, ws) => {
           let find = false;
           if (clients[token].allLocations[idVote]) {
             clients[token].allLocations[idVote].votes += 1;
-            if (clients[token].location._id === idVote) {
+            if (clients[token].location._id + "" == idVote) {
               clients[token].spies[idVotingUser].player.user.score += 1;
+              clients[token].connectedClients[idEmail].player.user.score += 1;
               clients[token].score.spies += 1;
             }
             find = true;
           }
-          console.log("Match status", clients[token]);
           return find
-            ? ws.send(JSON.stringify({ msg: "Vote registered" }))
-            : ws.send(JSON.stringify({ msg: "Voted location not found" }));
+            ? ws.send(JSON.stringify({ method: CREATE_VOTE, voted: true }))
+            : ws.send(JSON.stringify({ method: CREATE_VOTE, voted: false }));
         //Not spies vote for players
         case NOT_SPY_ROLE:
           let found = false;
           if (clients[token].spies[idVote]) {
             found = true;
-            clients[token].spies[idVote].player.votes += 1;
-            clients[token].score.notSpies += 1;
             if (!clients[token].notSpies[idVotingUser])
               throw new Error("Spies are not allowed to vote on players");
-            if (clients[token].notSpies[idVotingUser].player.user.score)
+            if (clients[token].notSpies[idVotingUser].player.user.score) {
               clients[token].notSpies[idVotingUser].player.user.score += 1;
-            else clients[token].notSpies[idVotingUser].player.user.score = 1;
+            } else clients[token].notSpies[idVotingUser].player.user.score = 1;
+            clients[token].spies[idVote].player.votes += 1;
+            clients[token].score.notSpies += 1;
+            clients[token].connectedClients[idEmail].player.user.score += 1;
           }
           if (clients[token].notSpies[idVote] && !found) {
             found = true;
@@ -427,10 +531,9 @@ const createVote = (token, idVote, ws) => {
               clients[token].usersWhoVoted = [idVotingUser];
             }
           }
-          console.log("Match status", clients[token]);
           return found
-            ? ws.send(JSON.stringify({ msg: "Vote registered" }))
-            : ws.send(JSON.stringify({ msg: "Voted user not found" }));
+            ? ws.send(JSON.stringify({ method: CREATE_VOTE, voted: true }))
+            : ws.send(JSON.stringify({ method: CREATE_VOTE, voted: false }));
 
         default:
           throw new Error("Player's role not defined");
@@ -442,26 +545,102 @@ const createVote = (token, idVote, ws) => {
     );
 };
 
-const createTimer = (token, duration) => {
+/**
+ * Ends the match with the token received as parameter.
+ * @description The function looks for which role had the most points and assign all players for that role into winners array and scoreboard
+ * array and then adds the other role to scoreboards array. Moreover, if a user has a _id attribute, then it exists in the database and
+ * therefore is actual score (from connectedClients) must be updated in the database.
+ * @pre Match exists and has not ended
+ * @post Match ends, clients within that match receive a message through the WebSocket including:
+ *  * method: END_MATCH to represent which method was called.
+ *  * ended: true to represent that the match's status changed.
+ *  * scoreboard: [{avatar, id,name,score}] which is an Array of Users (with name, avatar, score) with final match's score.
+ *  * winnerRole: "Spies" || "Not Spies" depending on which role had the most points.
+ *  * winners: [{avatar, id,name,score}] which is an Array of Users (with name, avatar, score) with the users that belong to the winning role.
+ *  * score: {spies: <Integer>, notSpies: <Integer>} which represents final score based on roles.
+ * @param  {Number} token Token that identifies the match
+ * @throws Error if parameter token was not specified.
+ * @throws Error if the match does not exist.
+ * @throws Error if the match has not begun.
+ */
+const endMatch = (token) => {
   if (token) {
-    if (!clients[token]) {
-      throw new Error("Match not found");
+    if (!clients[token]) throw new Error("Match not found");
+    if (!clients[token].spies || !clients[token].notSpies)
+      throw new Error("Match has not begun. Therefore ending it is prohibited");
+    if (clients[token].ended) {
+      this.notifyChanges(token, {
+        method: "END_MATCH",
+        ended: true,
+        msg: "Already ended",
+      });
     } else {
-      if (!clients[token].spies || !clients[token].notSpies)
-        throw new Error(
-          "Match has not begun. Therefore creating a timer is prohibited"
-        );
-      else {
-        clients[token].timer = new Timer(duration);
-        const timer = clients[token].timer;
-
-        //TODO: Cron task
-        this.notifyChanges(token, { msg: "Timer started", timer });
+      clients[token].ended = true;
+      for (const [emailId, { client, player }] of Object.entries(
+        clients[token].connectedClients
+      )) {
+        if (player.user._id) {
+          const userObj = Object.assign({}, player.user);
+          delete userObj._id;
+          delete userObj.id;
+          db.findAndUpdateOnePromise(
+            dbName,
+            usersCollection,
+            player.user._id,
+            userObj
+          );
+        }
+      }
+      let winners = [];
+      let winnerRole =
+        clients[token].score.spies >= clients[token].score.notSpies
+          ? "Spies"
+          : "Not Spies";
+      let scoreboard = [];
+      for (const [id, { client, player }] of Object.entries(
+        clients[token].spies
+      )) {
+        const copyOfUser = Object.assign({}, player.user);
+        copyOfUser._id && delete copyOfUser._id;
+        if (winnerRole === "Spies") {
+          winners.push(copyOfUser);
+        }
+        scoreboard.push(copyOfUser);
+      }
+      for (const [id, { client, player }] of Object.entries(
+        clients[token].notSpies
+      )) {
+        const copyOfUser = Object.assign({}, player.user);
+        copyOfUser._id && delete copyOfUser._id;
+        if (winnerRole === "Not Spies") {
+          winners.push(copyOfUser);
+        }
+        scoreboard.push(copyOfUser);
       }
     }
+    scoreboard.sort((a, b) => b.score - a.score);
+    let score = clients[token].score;
+    this.notifyChanges(token, {
+      method: "END_MATCH",
+      ended: true,
+      winnerRole,
+      winners,
+      scoreboard,
+      score,
+    });
+  } else {
+    throw new Error(
+      `Not all parameters defined for endMatch(token = ${token})`
+    );
   }
 };
 
+//#region Utilities
+////////////////////////////
+
+//   Utilities
+
+////////////////////////////
 const shuffle = (array) => {
   let currentIndex = array.length,
     temporaryValue,
@@ -507,3 +686,5 @@ exports.notifyChangesRoleWise = (token, document, role) => {
     }
   }
 };
+
+//#endregion Utilities

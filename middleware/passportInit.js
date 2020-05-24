@@ -23,15 +23,7 @@ const passportInit = () => {
           imageUrl = profile.photos[0].value;
         }
         //TODO: Encrypt Google id
-        let potentialOldUser = new User(
-          profile.emails[0].value,
-          profile.displayName,
-          imageUrl
-        );
-        Object.keys(potentialOldUser).forEach(
-          (key) =>
-            potentialOldUser[key] === undefined && delete potentialOldUser[key]
-        );
+        let potentialOldUser = { email: profile.emails[0].value };
         db.findOrCreateDocumentPromise(
           dbName,
           usersCollection,
