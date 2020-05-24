@@ -1,5 +1,5 @@
 import Layout from "../components/Layout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Typography, Button, makeStyles, Box } from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
 import { Router, withTranslation, Redirect } from "../plugins/i18n";
@@ -29,27 +29,25 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function WaitingRoom({ t, match, isOwner, beginMatch }) {
+function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
-  const listenMatch = (matchId) => {
-    const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
-    socket.onmessage = (event) => {
-      let players = JSON.parse(event.data).pendingToAssign;
-      let waiting = JSON.parse(event.data).waiting;
-      if (players) {
-        console.log("Players", players);
-        setPlayers(players);
-      }
-      if (!waiting) {
-        Router.push("/choose-place");
-        socket.close();
-      }
-    };
+  const listenMatch = () => {
+    match.wss.onmessage = (e) => {
+      console.log(e);
+
+    }
+    console.log(match);
+    console.log(match !== null);
+    if(match !== null && match.waitingUsers !== undefined ){
+      console.log(match.waitingUsers)
+      setPlayers(match.waitingUsers);
+    }
+    
   };
-  if (!match) {
-    return <Redirect to="/" />;
-  }
+  //if (!match) {
+    //return <Redirect to="/" />;
+  //}
 
   const loadInitialPlayers = async (matchId) => {
     const res = await http.get(`/matches/${matchId}`);
@@ -57,9 +55,14 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
     console.log("Players ->", players);
   };
 
+  const ws = useRef(null);
+
   useEffect(() => {
-    loadInitialPlayers(match._id);
-    listenMatch(match._id);
+    
+    if(match && match.wss){
+      listenMatch();
+      console.log("web socket waiting room ",match.wss)
+    }
   }, []);
 
   return (
@@ -77,7 +80,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
             {t("match-code")}
           </Typography>
           <Typography align="center" variant="h3" color="primary">
-            {match.token}
+            { match === null ? "" : match.token }
           </Typography>
         </Box>
 
@@ -97,7 +100,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
             className={styles.button}
             variant="contained"
             size="medium"
-            onClick={() => beginMatch(match._id)}
+            onClick={() => beginMatch(ws.current, match.token)}
           >
             {t("next")}
           </Button>

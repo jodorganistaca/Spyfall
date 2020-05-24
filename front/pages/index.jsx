@@ -78,20 +78,8 @@ const Home = function Home(props) {
   };
 
   const handleGuestName = async (name) => {
-    try {
-      const user = {
-        email: null,
-        name: name,
-        avatar: "https://www.twago.es/img/2018/default/no-user.png",
-        score: 0,
-      };
-      console.log(name);
-      ws.current.send(
-        JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name })
-      );
-      console.log(res);
-      //await wss.send(JSON.stringify({method: "JOIN_MATCH", "token": 123, "name": "hola"}));
-      //await createMatch(user);
+    try {    
+      await createMatch(ws.current,name);
     } catch (error) {
       console.error(error);
     }
@@ -103,14 +91,7 @@ const Home = function Home(props) {
   };
 
   const openJoinModal = async (name, code) => {
-    const user = {
-      email: null,
-      name: name,
-      avatar: "https://www.twago.es/img/2018/default/no-user.png",
-      score: 0,
-    };
-    console.log(name, code);
-    await joinMatch(user, code);
+    await joinMatch(ws.current,name, code);
   };
 
   const [open, setOpen] = useState(false);
@@ -124,14 +105,8 @@ const Home = function Home(props) {
     ws.current = new WebSocket(HOST);
     ws.current.onopen = () => console.log("ws opened");
     ws.current.onclose = () => console.log("ws closed");
-    ws.current.onmessage = (e) => {
-      const response = JSON.parse(e.data);
-      if (response["Match token"]) {
-        const token = response["Match token"];
-        console.log("Match", token);
-        //Router
-      }
-    };
+    
+    //return () => ws.current.close();
   }, []);
   return (
     <Layout justifyContent="space-between">
@@ -263,7 +238,7 @@ const Home = function Home(props) {
           </div>
         </Fade>
       </Modal>
-
+      {/* Modal for Join a Match */}
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -317,7 +292,7 @@ const Home = function Home(props) {
               onClick={() =>
                 auth.user
                   ? async () => userLoggedJoin(auth.user.user, matchCode)
-                  : async () => openJoinModal(guestName, matchCode)
+                  : openJoinModal(guestName, matchCode)
               }
             >
               {t("join-match")}
@@ -338,7 +313,7 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
+const mapStateToProps = (state) => ({ auth: state.auth, match: state.match, wss: state.wss });
 
 const mapDispatchToProps = {
   append: appendToString,

@@ -1,5 +1,4 @@
 import { http } from "../../plugins/axios";
-import wss from "../../plugins/ws";
 import { Router } from "../../plugins/i18n";
 import { setAlert } from "./alert";
 import {
@@ -29,41 +28,62 @@ const getCookie = (cname) => {
   return "";
 };
 
-export const createMatch = (user) => async (dispatch) => {
+export const createMatch = (wss,name) => async (dispatch) => {
   try {
-    const res = await wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
-    await http.put(`/matches/join/${res.data.token}`, {
-      user,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    dispatch({
-      type: CREATE_MATCH_SUCCESS,
-      payload: res.data,
-    });
+    wss.send(
+      JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name })
+    );
+    console.log(name);
+    console.log(wss);
+    let token;
+    wss.onmessage = (e) => {
+      const response = JSON.parse(e.data);
+      console.log(e.data);
+      if (response["Match token"]) {
+        token = response["Match token"];
+        const ws = Object.assign(wss);
+        console.log("create match ", token, " wss ", typeof(wss), " ", ws);
+        dispatch({
+          type: CREATE_MATCH_SUCCESS,
+          payload: {
+            wss,
+            token,
+          },
+        });
+        //wss.close();
+      }
+    };       
     console.log("redirect to waiting room");
     return Router.push("/waiting-room");
   } catch (error) {
+    console.log(error);
     return dispatch({
       type: CREATE_MATCH_FAIL,
     });
   }
 };
 
-export const joinMatch = (user, code) => async (dispatch) => {
+export const joinMatch = (wss,name,token) => async (dispatch) => {
   try {
-    const res = await http.put(`/matches/join/${code}`, {
-      withCredentials: true,
-      user,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    dispatch({
-      type: JOIN_MATCH_SUCCESS,
-      payload: res.data,
-    });
+    console.log(name, token);
+    console.log(wss);
+    wss.send(JSON.stringify({method: "JOIN_MATCH", token, name}));
+    console.log(name);
+    console.log(wss);
+    wss.onmessage = (e) => {
+      const response = JSON.parse(e.data);
+      console.log(response);
+      console.log("aaaah", response.waitingUsers);
+      dispatch({
+        type: JOIN_MATCH_SUCCESS,
+        payload: {
+          wss,
+          token,
+          waitingUsers: response.waitingUsers
+        },
+      });
+    };      
+    console.log("redirect to waiting room");
     return Router.push("/waiting-room");
   } catch (error) {
     return dispatch({
@@ -84,18 +104,24 @@ export const startMatch = (code, user) => async (dispatch) => {
   }
 };
 
-export const beginMatch = (matchId) => async (dispatch) => {
+export const beginMatch = (wss, token) => async (dispatch) => {
   try {
-    const res = await http.put(`/matches/beginMatch/${matchId}`, {
+    console.log("wss ", wss, " token ", token);
+    wss.send(JSON.stringify({method: "BEGIN_MATCH", token, minimumSpies: 1}));
+    wss.onmessage = (e) =>{
+      console.log(e);
+      dispatch({
+        type: BEGIN_MATCH_SUCCESS,
+        payload: res.data,
+      });
+    } 
+    /*const res = await http.put(`/matches/beginMatch/${matchId}`, {
       withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },
-    });
-    dispatch({
-      type: BEGIN_MATCH_SUCCESS,
-      payload: res.data,
-    });
+    });*/
+    
     return Router.push("/choose-place");
   } catch (error) {
     return dispatch({

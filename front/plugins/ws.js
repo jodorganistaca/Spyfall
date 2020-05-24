@@ -6,7 +6,7 @@ wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
 
 wss.send(JSON.stringify({method: "JOIN_MATCH", "token": 123, "name": "hola"}));
 
-wss.send(JSON.stringify({method: "BEGIN_MATCH", minimumSpies: 5}));
+wss.send(JSON.stringify({method: "BEGIN_MATCH", "token": 123, minimumSpies: 5}));
 
 wss.send(JSON.stringify({method: "CHAT", token: 5, message: "", player: ""}));
 
