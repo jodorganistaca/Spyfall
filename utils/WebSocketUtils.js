@@ -1,5 +1,5 @@
 /**
- * MongoDB driver module.
+ * WebSocketUtils module.
  * @module WebSocketUtils
  * @author Juan Sebastián Bravo <js.bravo@uniandes.edu.co>
  */
