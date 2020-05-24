@@ -42,10 +42,11 @@ const _ = require("lodash");
  * Clients connected to the WebSocket.
  */
 let clients = {};
+
 /**
+ * Function that handles all methods requested through the WebSocket.
  * @function setup
  * @alias module:WebSocket.setup
- * Creates the WebSockets an adds clients to a table based on the id they sent as URL Query Param = "matchId"
  */
 exports.setup = (server, session) => {
   const wss = new WebSocket.Server({
@@ -137,9 +138,16 @@ exports.setup = (server, session) => {
 };
 
 /**
- * @function createMatch
- * @alias module:WebSocket.createMatch
- * Generates a match object based on existing matches and sends it to the creator.
+ * Creates a match.
+ * @description The function starts by creating temporal, unique ids for the players inside the match. Then, it picks randomly selected players and sets them as spies in the match. After that,
+ * the players object gets filtered, so that only non - spies are there and assign them as non spies. Copies of objects are made to hide private fields in the WebSocket message, such as _id and email.
+ * @post Match gets created. The creating user will receive a message through the WebSocket including:
+ *  * method: CREATE_MATCH to identify which method was called.
+ *  * token: Token of the created match.
+ *  * waitingUsers: [User] To know which users are waiting (only the creator user). Used to map props easier in React.
+ * @param {Number} maxRounds Maximum number of rounds in the match.
+ * @param {User} User User that is creating the match.
+ * @param {WebSocket} client WebSocket of the user creating the match.
  */
 const createMatch = (maxRounds, user, client) => {
   let exists = true;
@@ -181,18 +189,22 @@ const createMatch = (maxRounds, user, client) => {
 
 /**
  * Begins (or restarts) a match.
- * @description The function creates a Message object and pushes it to the chat of the match. Then notifies all players about the updated chat.
+ * @description The function starts by creating temporal, unique ids for the players inside the match. Then, it picks randomly selected players and sets them as spies in the match. After that,
+ * the players object gets filtered, so that only non - spies are there and assign them as non spies. Copies of objects are made to hide private fields in the WebSocket message, such as _id and email.
  * @pre Match exists, has more than 1 user waiting and has not begun (in case it will be started, i.e not restarted).
- * @post Message gets created. All users receive the a message including:
- *  * method: CHAT which represents which method was called.
- *  * chat: [Message] Updated array of Messages.
+ * @post Message gets created. Users receive a message including:
+ *  * method: BEGIN_MATCH to identify which method was called.
+ *  * player: {User, location, role} To send every player its role (spy or not spy). If it isn't spy, the user will receive a random role based on the location.
+ *  * endTime: {Date} Time the server will end the match.
+ *  * users: [User: {name, avatar, id}]  To vote for the user.
+ *  * locations : {[_id of location]: {Location}} To vote for locations (only if they are spies).
  * @param {Number} token Token that identifies the match.
  * @param {Number} [minimumSpies] Minimum number of spies. By default = 1.
  * @param {Boolean} [restart] false if the match is new and will be started, true if its a new round with the same players.  By default = false.
- * @throws Error the token was not defined.
- * @throws Error if the match does not exist.
- * @throws Error if the number of waiting players is less than 2 (i.e only one user is trying to start the match).
- * @throws Error if the specified number of minimumSpies is greater or equal to the number of waiting players (i.e Match without not-spy users).
+ * @throws {Error} the token was not defined.
+ * @throws {Error} if the match does not exist.
+ * @throws {Error} if the number of waiting players is less than 2 (i.e only one user is trying to start the match).
+ * @throws {Error} if the specified number of minimumSpies is greater or equal to the number of waiting players (i.e Match without not-spy users).
  */
 const beginMatch = (token, minimumSpies = 1, restart = false) => {
   if (!token) {
@@ -341,12 +353,12 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
  * @param {Number} token Token that identifies the match.
  * @param {User} user User to be added to the match.
  * @param {WebSocket} client WebSocket of the user that requested to join the match.
- * @throws Error any parameter was not defined.
- * @throws Error if the match does not exist.
- * @throws Error if the match had already begun.
- * @throws Error if the specified user already exists in the match.
- * @throws Error if the clients WebSocket exists in the match. In this case the user will be rejoined automatically.
- * @throws Error if the match is full (i.e already 12 players waiting).
+ * @throws {Error} any parameter was not defined.
+ * @throws {Error} if the match does not exist.
+ * @throws {Error} if the match had already begun.
+ * @throws {Error} if the specified user already exists in the match.
+ * @throws {Error} if the clients WebSocket exists in the match. In this case the user will be rejoined automatically.
+ * @throws {Error} if the match is full (i.e already 12 players waiting).
  */
 const joinMatch = (token, user, client) => {
   if (token && user && client) {
@@ -416,9 +428,9 @@ const joinMatch = (token, user, client) => {
  *  @param {Number} token Token that identifies the match.
  * @param {String} message Message to add to the chat.
  * @param {User} user User that sent the message.
- * @throws Error any parameter  was not specified.
- * @throws Error if the match does not exist.
- * @throws Error if the match has not begun.
+ * @throws {Error} any parameter  was not specified.
+ * @throws {Error} if the match does not exist.
+ * @throws {Error} if the match has not begun.
  */
 const chatWithinMatch = (token, message, user) => {
   if (token && message && user) {
@@ -445,9 +457,9 @@ const chatWithinMatch = (token, message, user) => {
  * Creates a vote in a match.
  * @description The function looks for references in clientsDictionary to find the voting user id using the WebSocket remote ip address. If the user has not voted,
  * the function finds the user role. If its role is "Spy", then the user can only vote for locations and to do so, the idVote must match and mongoDB id of a location.
- * If the location exists, then the vote gets registered for this location and the score updates if necessary (read @post). On the other hand, if the role is "Not Spy", then
+ * If the location exists, then the vote gets registered for this location and the score updates if necessary (read (at)post). On the other hand, if the role is "Not Spy", then
  * the user can only vote for users and to do so, the idVote must match a users id. If the user exists, then the vote gets registered for this user and the score updates
- * if necessary (read @post).
+ * if necessary (read (at)post).
  * @pre Match exists and has begun.
  * @post Vote get registered. If the vote is correct (The spy guessed correctly the location of the others users or The not-spy users guessed correctly a spy user),
  * then the score of the voting user increases by 1 and the score of its role increases by 1 too.
@@ -457,12 +469,12 @@ const chatWithinMatch = (token, message, user) => {
  * @param {Number} token Token that identifies the match.
  * @param {String} idVote Id of the user or the location of the vote.
  * @param {WebSocket} ws The websocket (therefore, the user) that requested to do the vote.
- * @throws Error any parameter  was not specified.
- * @throws Error if the match does not exist.
- * @throws Error if the match has not begun.
- * @throws Error if the user has already voted.
- * @throws Error if voting user (represented by its WebSocket) does not belong to the match.
- * @throws Error if the voting user doesn't have any role (highly unlikely due to match's flow).
+ * @throws {Error} any parameter  was not specified.
+ * @throws {Error} if the match does not exist.
+ * @throws {Error} if the match has not begun.
+ * @throws {Error} if the user has already voted.
+ * @throws {Error} if voting user (represented by its WebSocket) does not belong to the match.
+ * @throws {Error} if the voting user doesn't have any role (highly unlikely due to match's flow).
  */
 const createVote = (token, idVote, ws) => {
   if (token && idVote && ws) {

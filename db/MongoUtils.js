@@ -36,6 +36,8 @@ const client = new MongoClient(uri, {
 const ObjectId = require("mongodb").ObjectID;
 
 /**
+ * Returns a list of all databases of the MongoURI.
+ * Note: MongoURI user must have admin privileges.
  * @function getDatabasesPromise
  * @alias module:MongoUtils.getDatabasesPromise
  * @throws {Error} if the connection could not be established.
@@ -46,6 +48,7 @@ exports.getDatabasesPromise = () => {
 };
 
 /**
+ * Returns a list of all collections in a given database.
  * @function getCollectionPromise
  * @alias module:MongoUtils.getCollectionPromise
  * @param {string} dbName Name of the database to query its collections.
@@ -63,13 +66,14 @@ exports.getCollectionPromise = (dbName) => {
 };
 
 /**
+ * Returns all documents of a given collection and given database names.
  * @function getDocumentsPromise
  * @alias module:MongoUtils.getDocumentsPromise
  * @param {string} dbName Name of the database to query.
  * @param {string} collectionName Name of the collection to query its documents.
  * @throws {Error} if uri param is null, undefined or is not a string.
  * @throws {Error} if the connection could not be established.
- * @returns {Promise} A Promise that will return an array with the documents of the collection.
+ * @returns {Promise<Array>} A Promise that will return an array with the documents of the collection.
  */
 exports.getDocumentsPromise = (dbName, collectionName) => {
   if (!dbName || !(dbName instanceof String)) {
@@ -91,6 +95,7 @@ exports.getDocumentsPromise = (dbName, collectionName) => {
 };
 
 /**
+ * Deletes a documents by its _id.
  * @function findAndDeleteOnePromise
  * @alias module:MongoUtils.findAndDeleteOnePromise
  * @param {string} dbName Name of the database to query.
@@ -123,6 +128,7 @@ exports.findAndDeleteOnePromise = (dbName, collectionName, _id) => {
 };
 
 /**
+ * Finds and updates one document based on a new object or a set of parameters (such as $push).
  * @function findAndUpdateOnePromise
  * @alias module:MongoUtils.findAndUpdateOnePromise
  * @param {string} dbName Name of the database to query.
@@ -169,6 +175,7 @@ exports.findAndUpdateOnePromise = (
 };
 
 /**
+ * Finds and specific documents by its id.
  * @function findOnePromise
  * @alias module:MongoUtils.findOnePromise
  * @param {string} dbName Name of the database to query.
@@ -201,6 +208,7 @@ exports.findOnePromise = (dbName, collectionName, _id) => {
 };
 
 /**
+ * Finds the documents that match a given object as parameter.
  * @function findOneObjectPromise
  * @alias module:MongoUtils.findOneObjectPromise
  * @param {string} dbName Name of the database to query.
@@ -226,6 +234,7 @@ exports.findOneObjectPromise = (dbName, collectionName, object) => {
 };
 
 /**
+ * Creates a document inside a collection and database given.
  * @function createOneDocumentPromise
  * @alias module:MongoUtils.createOneDocumentPromise
  * @param {string} dbName Name of the database to query.
@@ -250,6 +259,7 @@ exports.createOneDocumentPromise = (dbName, collectionName, object) => {
 };
 
 /**
+ * Tries to find a document and in case it was not found, it is created.
  * @function findOrCreateDocumentPromise
  * @alias module:MongoUtils.findOrCreateDocumentPromise
  * @param {string} dbName Name of the database to query.
@@ -280,9 +290,9 @@ exports.findOrCreateDocumentPromise = (
   );
 };
 /**
+ * Returns atomic changes in the collection specified.
  * @function listenForChanges
  * @alias module:MongoUtils.listenForChanges
- * Returns atomic changes in the collection specified.
  * @param {string} dbName Name of the database to query.
  * @param {string} collectionName Name of the collection to watch its documents.
  * @param {Function} callback The function to be called with the _id of the modified document and the full document.
