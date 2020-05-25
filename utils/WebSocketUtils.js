@@ -306,7 +306,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
     clients[token].notSpies = notSpies;
     clients[token].waiting = false;
     let endTime = new Date();
-    endTime.setMinutes(endTime.getMinutes() + 2);
+    endTime.setMinutes(endTime.getMinutes() + 8);
     for (const [email, obj] of Object.entries(spies)) {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
       const copy = Object.assign({}, obj.player);

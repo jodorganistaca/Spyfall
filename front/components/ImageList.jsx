@@ -39,7 +39,7 @@ const ImageList = function ({
   maxWidth = "auto",
   maxHeight = "auto",
   cellHeight = 80,
-  fieldTitle = "title",
+  fieldTitle = "name",
   fieldImage = "image",
 }) {
   const styles = useStyles();

@@ -38,16 +38,16 @@ export const createMatch = (wss,name) => async (dispatch) => {
     let token;
     wss.onmessage = (e) => {
       const response = JSON.parse(e.data);
-      console.log(e.data);
-      if (response["Match token"]) {
-        token = response["Match token"];
-        const ws = Object.assign(wss);
-        console.log("create match ", token, " wss ", typeof(wss), " ", ws);
+      console.log("create Match ", e);
+      if (response["token"]) {
+        token = response["token"];
+        console.log("create match ", token, " wss ", wss);
         dispatch({
           type: CREATE_MATCH_SUCCESS,
           payload: {
             wss,
             token,
+            waitingUsers: response.waitingUsers
           },
         });
         //wss.close();
@@ -72,8 +72,7 @@ export const joinMatch = (wss,name,token) => async (dispatch) => {
     console.log(wss);
     wss.onmessage = (e) => {
       const response = JSON.parse(e.data);
-      console.log(response);
-      console.log("aaaah", response.waitingUsers);
+      console.log("join match " , response);
       dispatch({
         type: JOIN_MATCH_SUCCESS,
         payload: {
@@ -109,10 +108,14 @@ export const beginMatch = (wss, token) => async (dispatch) => {
     console.log("wss ", wss, " token ", token);
     wss.send(JSON.stringify({method: "BEGIN_MATCH", token, minimumSpies: 1}));
     wss.onmessage = (e) =>{
+      const response = JSON.parse(e.data);
       console.log(e);
+      console.log("response begin match ", response);
+      response.token = token;
+      response.wss = wss;
       dispatch({
         type: BEGIN_MATCH_SUCCESS,
-        payload: res.data,
+        payload: response,
       });
     } 
     /*const res = await http.put(`/matches/beginMatch/${matchId}`, {
@@ -122,7 +125,7 @@ export const beginMatch = (wss, token) => async (dispatch) => {
       },
     });*/
     
-    return Router.push("/choose-place");
+    return Router.push("/play");
   } catch (error) {
     return dispatch({
       type: BEGIN_MATCH_FAIL,

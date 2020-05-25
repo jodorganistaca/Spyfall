@@ -33,8 +33,20 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const listenMatch = () => {
+    
     match.wss.onmessage = (e) => {
-      console.log(e);
+      let method = "";
+      const response = JSON.parse(e.data);
+      method = response.method;
+      switch(method){
+        case "JOIN_MATCH":
+          setPlayers(response.waitingUsers);
+          break;
+        case "BEGIN_MATCH":
+
+          break;
+      }
+      console.log("waiting room ", e);
 
     }
     console.log(match);
@@ -55,7 +67,22 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
     console.log("Players ->", players);
   };
 
-  const ws = useRef(null);
+  if(match && match.wss){
+    match.wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      method = response.method;
+      switch(method){
+        case "JOIN_MATCH":
+          setPlayers(response.waitingUsers);
+          break;
+        case "MATCH_CREATION":
+          setPlayers(response.waitingUsers);
+          break;
+      }
+
+    }
+  }
 
   useEffect(() => {
     
@@ -100,7 +127,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
             className={styles.button}
             variant="contained"
             size="medium"
-            onClick={() => beginMatch(ws.current, match.token)}
+            onClick={() => beginMatch(match.wss, match.token)}
           >
             {t("next")}
           </Button>

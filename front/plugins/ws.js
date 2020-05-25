@@ -2,7 +2,7 @@
 
 const wss = new WebSocket("ws://localhost:3001");
 /*
-wss.send(JSON.stringify({method: "MATCH_CREATION", maxRounds: 5}));
+wss.send(JSON.stringify({"method": "MATCH_CREATION", "maxRounds": 5, name: ""}));
 
 wss.send(JSON.stringify({method: "JOIN_MATCH", "token": 123, "name": "hola"}));
 

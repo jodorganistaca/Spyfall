@@ -83,9 +83,12 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({ t, role = "spy", places, matches }) {
+const Play = function ({ t, role = "spy", places, match }) {
   const styles = useStyles();
-  const match = matches.match;
+
+  useEffect(()=>{
+    console.log("useEffect play ", match);
+  },[])
   return (
     <Layout secondary>
       <Grid container justify="center" alignItems="center">
@@ -102,7 +105,7 @@ const Play = function ({ t, role = "spy", places, matches }) {
                 {t("they-are-spies")}
               </Typography>
               <AvatarList
-                items={match.players.filter((player) => player.role === "Spy")}
+                items={match.users}
                 noCounter
                 orientation="vertical"
               />
@@ -144,9 +147,25 @@ const Play = function ({ t, role = "spy", places, matches }) {
         <Typography align="center" variant="subtitle1">
           {t(`time-left`)}
         </Typography>
-        <Countdown finishTime={match.timer.ends} t={t} />
+        <Countdown finishTime={ match.endTime} t={t} />
       </Box>
-
+      {
+        match.player.role === "Spy" ?
+        <Grid container>
+          <Grid item xs>
+            <ImageList
+              items={Object.values(match.locations)}
+              maxWidth="100%"
+              maxHeight="600px"
+              horizontal
+            />
+          </Grid>
+        </Grid>
+        :
+        <div>
+          hola
+        </div>
+      }
       <Grid container>
         <Grid item xs>
           <ImageList
@@ -172,20 +191,15 @@ const Play = function ({ t, role = "spy", places, matches }) {
 
 Play.getInitialProps = async () => {
   let places = [];
-  try {
-    const response = await http.get("/locations");
-    console.log(response);
-    places = response.data;
-  } catch (error) {
-    console.error(error);
-  }
+  
+  
   return {
     namespacesRequired: ["play"],
     places,
   };
 };
 
-const mapStateToProps = (state) => ({ matches: state.matches });
+const mapStateToProps = (state) => ({ match: state.matches.match });
 
 export default withTranslation("play")(
   connect(mapStateToProps, () => ({}))(Play)

@@ -86,7 +86,12 @@ const Votation = function ({
   const [players, setPlayers] = useState([]);
   const styles = useStyles();
   const vote = async (p) => {
-    try {
+    console.log(match.users[p]);
+    match.wss.send(JSON.stringify({method: "CREATE_VOTE", token: match.token, idVote: match.users[p].id}));
+    match.wss.onmessage = (e) => {
+      console.log(e);
+    }
+    /*try {
       console.log(p);
       console.log(players[p]);
       const res = await axios.post(
@@ -100,7 +105,7 @@ const Votation = function ({
     } catch (error) {
       return Router.push("/publish-votation");
       console.error(error);
-    }
+    }*/
   };
   const createTable = () => {
     let table = [];
@@ -127,7 +132,7 @@ const Votation = function ({
                   variant="subtitle1"
                   inputRef={myInput}
                 >
-                  {players[i].user.name}
+                  {players[i].name}
                 </Typography>
               </Box>
             </Button>
@@ -138,7 +143,8 @@ const Votation = function ({
     return table;
   };
   const getPlayers = async () => {
-    if (match !== null) {
+    setPlayers(match.users);
+    /*if (match !== null) {
       const response = await axios.get(
         `http://localhost:3001/matches/token/${match.token}`
       );
@@ -148,9 +154,10 @@ const Votation = function ({
         console.log(p);
         setPlayers(p);
       }
-    }
+    }*/
   };
   useEffect(() => {
+    console.log("useEffect votation ", match);
     getPlayers();
   }, []);
   return (
@@ -196,11 +203,9 @@ const Votation = function ({
 
 Votation.getInitialProps = async () => {
   try {
-    const response = await http.get(
-      `/matches/token/${state.matches.match._id}`
-    );
-    const players = response.data["players"];
-    console.log(response);
+    const players = match.users;
+
+    console.log("votation match", match);
     return {
       namespacesRequired: ["votation"],
       players,
