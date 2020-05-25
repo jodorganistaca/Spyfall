@@ -260,11 +260,12 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       //TODO: Set default location of spy using collection
       spy.user.id = newIds.pop();
       spy.player = new Player(Object.assign({}, spy.user), "Spy", "Any");
-      const theSpy = Object.assign({}, spy.user);
+      const theSpy = _.cloneDeep(spy.user);
       //User is now redundant as is in the player object.
       delete spy.user;
       //Delete confidential fields in copy.
       delete theSpy.email;
+      delete theSpy.score;
       theSpy._id && delete theSpy._id;
       users.push(theSpy);
       let theSpyCopy = _.cloneDeep(spy);
@@ -291,12 +292,14 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
         image: clients[token].location.image,
       });
       //User is now redundant as is in the player object.
-      delete obj.user;
-      const tempUser = Object.assign({}, obj.user);
+
+      const tempUser = _.cloneDeep(obj.user);
       //Delete all confidential fields
       delete tempUser.email;
+      delete tempUser.score;
       tempUser._id && delete tempUser._id;
       users.push(tempUser);
+      delete obj.user;
       let theNotSpyCopy = _.cloneDeep(obj);
       theNotSpyCopy.player.user.score = 0;
       notSpies[notSpies[email].player.user.id] = theNotSpyCopy;
@@ -588,6 +591,7 @@ const endMatch = (token) => {
       });
     } else {
       clients[token].ended = true;
+      let scoreboard = [];
       for (const [emailId, { client, player }] of Object.entries(
         clients[token].connectedClients
       )) {
@@ -608,7 +612,7 @@ const endMatch = (token) => {
         clients[token].score.spies >= clients[token].score.notSpies
           ? "Spies"
           : "Not Spies";
-      let scoreboard = [];
+
       for (const [id, { client, player }] of Object.entries(
         clients[token].spies
       )) {
@@ -629,17 +633,17 @@ const endMatch = (token) => {
         }
         scoreboard.push(copyOfUser);
       }
+
+      let score = clients[token].score;
+      this.notifyChanges(token, {
+        method: "END_MATCH",
+        ended: true,
+        winnerRole,
+        winners,
+        scoreboard,
+        score,
+      });
     }
-    scoreboard.sort((a, b) => b.score - a.score);
-    let score = clients[token].score;
-    this.notifyChanges(token, {
-      method: "END_MATCH",
-      ended: true,
-      winnerRole,
-      winners,
-      scoreboard,
-      score,
-    });
   } else {
     throw new Error(
       `Not all parameters defined for endMatch(token = ${token})`
