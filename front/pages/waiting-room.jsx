@@ -1,11 +1,11 @@
 import Layout from "../components/Layout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Typography, Button, makeStyles, Box } from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
 import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { http } from "../plugins/axios";
+import http from "../plugins/axios";
 import { beginMatch } from "../store/actions/matches";
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -29,37 +29,69 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function WaitingRoom({ t, match, isOwner, beginMatch }) {
+function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
-  const listenMatch = (matchId) => {
-    const socket = new WebSocket(`ws://localhost:3001?matchId=${matchId}`);
-    socket.onmessage = (event) => {
-      let players = JSON.parse(event.data).pendingToAssign;
-      let waiting = JSON.parse(event.data).waiting;
-      if (players) {
-        console.log("Players", players);
-        setPlayers(players);
+  const listenMatch = () => {
+    
+    match.wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      method = response.method;
+      switch(method){
+        case "JOIN_MATCH":
+          setPlayers(response.waitingUsers);
+          break;
+        case "BEGIN_MATCH":
+
+          break;
       }
-      if (!waiting) {
-        Router.push("/choose-place");
-        socket.close();
-      }
-    };
+      console.log("waiting room ", e);
+
+    }
+    console.log(match);
+    console.log(match !== null);
+    if(match !== null && match.waitingUsers !== undefined ){
+      console.log(match.waitingUsers)
+      setPlayers(match.waitingUsers);
+    }
+    
   };
-  if (!match) {
-    return <Redirect to="/" />;
-  }
+  //if (!match) {
+    //return <Redirect to="/" />;
+  //}
 
   const loadInitialPlayers = async (matchId) => {
     const res = await http.get(`/matches/${matchId}`);
     setPlayers(res.data.pendingToAssign);
     console.log("Players ->", players);
   };
+
+  if(match && match.wss){
+    match.wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      method = response.method;
+      switch(method){
+        case "JOIN_MATCH":
+          setPlayers(response.waitingUsers);
+          break;
+        case "MATCH_CREATION":
+          setPlayers(response.waitingUsers);
+          break;
+      }
+
+    }
+  }
+
   useEffect(() => {
-    loadInitialPlayers(match._id);
-    listenMatch(match._id);
+    
+    if(match && match.wss){
+      listenMatch();
+      console.log("web socket waiting room ",match.wss)
+    }
   }, []);
+
   return (
     <Layout secondary>
       <Box
@@ -75,7 +107,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
             {t("match-code")}
           </Typography>
           <Typography align="center" variant="h3" color="primary">
-            {match.token}
+            { match === null ? "" : match.token }
           </Typography>
         </Box>
 
@@ -90,12 +122,12 @@ function WaitingRoom({ t, match, isOwner, beginMatch }) {
 
         <AvatarList items={players} />
 
-        {isOwner && (
+        {(true || isOwner) && (
           <Button
             className={styles.button}
             variant="contained"
             size="medium"
-            onClick={() => beginMatch(match._id)}
+            onClick={() => beginMatch(match.wss, match.token)}
           >
             {t("next")}
           </Button>
@@ -109,11 +141,12 @@ WaitingRoom.getInitialProps = async () => ({
   namespacesRequired: ["waiting-room"],
 });
 
-WaitingRoom.propTypes = {
-  match: PropTypes.object.isRequired,
-  isOwner: PropTypes.bool.isRequired,
-  beginMatch: PropTypes.func.isRequired,
-};
+// WaitingRoom.propTypes = {
+//   match: PropTypes.object.isRequired,
+//   isOwner: PropTypes.bool.isRequired,
+//   beginMatch: PropTypes.func.isRequired,
+// };
+
 const mapStateToProps = (state) => ({
   match: state.matches.match,
   isOwner: state.matches.isOwner,

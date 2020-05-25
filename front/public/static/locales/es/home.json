@@ -5,5 +5,7 @@
   "how-to-play": "¿Cómo jugar?",
   "login-title": "Inicia sesión para guardar tu marcador",
   "change-locale": "Cambiar idioma",
-  "or": "o"
+  "or": "o",
+  "modal-create-title": "Ingrese su nombre o apodo",
+  "modal-title": "¿A qué partida deseas ingresar?"
 }

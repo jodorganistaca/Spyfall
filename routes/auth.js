@@ -29,7 +29,6 @@ router.get(
 );
 
 router.get("/getProfile", (req, res) => {
-  console.log(req.user);
   if (req.user) {
     return res.json({
       success: true,

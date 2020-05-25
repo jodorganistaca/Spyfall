@@ -18,7 +18,8 @@ import CustomTooltip from "../components/CustomTooltip";
 import Chat from "../components/Chat";
 
 import { Router } from "../plugins/i18n";
-import { http } from "../plugins/axios";
+import { connect } from "react-redux";
+import http from "../plugins/axios";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -53,6 +54,8 @@ const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
     const initTime = moment(new Date(finishTime));
     const sub = initTime.subtract(moment(new Date()));
+
+    console.log(finishTime, initTime.hours(), initTime.minutes());
     return sub.valueOf();
   };
 
@@ -80,13 +83,12 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({
-  t,
-  role = "spy",
-  finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
-  places,
-}) {
+const Play = function ({ t, places, match }) {
   const styles = useStyles();
+  const role = match.player.role;
+  useEffect(() => {
+    console.log("useEffect play ", match);
+  }, []);
   return (
     <Layout secondary>
       <Grid container justify="center" alignItems="center">
@@ -97,29 +99,13 @@ const Play = function ({
           md={2}
           style={{ paddingLeft: "35px" }}
         >
-          {role === "spy" && (
+          {role === "Spy" && match.alsoSpies.length > 0 && (
             <>
               <Typography style={{ marginBottom: "10px" }} variant="subtitle1">
                 {t("they-are-spies")}
               </Typography>
               <AvatarList
-                items={[
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                  {
-                    name: "test1",
-                    pic:
-                      "https://static4.abc.es/media/play/2017/09/28/avatar-kVmB--1240x698@abc.jpeg",
-                  },
-                ]}
+                items={match.alsoSpies}
                 noCounter
                 orientation="vertical"
               />
@@ -128,9 +114,13 @@ const Play = function ({
         </Grid>
 
         <Grid item xs={8} style={{ textAlign: "center" }}>
-          <RoleImage style={{ marginBottom: 20 }} role={role} />
+          {role === "Spy" ? (
+            <RoleImage style={{ marginBottom: 20 }} role={role} />
+          ) : (
+            <img width="200px" src={match.location.image} />
+          )}
           <Typography color="primary" variant="h4">
-            {t(`${role}-title`)}
+            {t(`${role === "Spy" ? role : match.location.name}-title`)}
           </Typography>
           <Typography variant="subtitle1">
             {t(`${role}-description`)}
@@ -144,7 +134,7 @@ const Play = function ({
                 aria-label={t("suggested-questions")}
                 style={{ fontSize: "0.83rem" }}
               >
-                <IconButton color="primary" variant="contained" style={{}}>
+                <IconButton color="primary" variant="contained">
                   <Help style={{ width: 30, height: 30 }} />
                 </IconButton>
               </CustomTooltip>
@@ -161,9 +151,22 @@ const Play = function ({
         <Typography align="center" variant="subtitle1">
           {t(`time-left`)}
         </Typography>
-        <Countdown finishTime={finishTime} t={t} />
+        <Countdown finishTime={match.endTime} t={t} />
       </Box>
-
+      {match.player.role === "Spy" ? (
+        <Grid container>
+          <Grid item xs>
+            <ImageList
+              items={Object.values(match.locations)}
+              maxWidth="100%"
+              maxHeight="600px"
+              horizontal
+            />
+          </Grid>
+        </Grid>
+      ) : (
+        <div>hola</div>
+      )}
       <Grid container>
         <Grid item xs>
           <ImageList
@@ -181,7 +184,7 @@ const Play = function ({
         className={styles.button}
         onClick={() => Router.push("/votation")}
       >
-        {t(`${role}-finish`)}
+        {t(`Vote`)}
       </Button>
     </Layout>
   );
@@ -189,17 +192,15 @@ const Play = function ({
 
 Play.getInitialProps = async () => {
   let places = [];
-  try {
-    const response = await http.get("/locations");
-    console.log(response);
-    places = response.data;
-  } catch (error) {
-    console.error(error);
-  }
+
   return {
     namespacesRequired: ["play"],
     places,
   };
 };
 
-export default withTranslation("play")(Play);
+const mapStateToProps = (state) => ({ match: state.matches.match });
+
+export default withTranslation("play")(
+  connect(mapStateToProps, () => ({}))(Play)
+);

@@ -5,5 +5,7 @@
   "how-to-play": "Spielanleitung",
   "login-title": "Anmelden um deinen Fortschtritt zu speichern",
   "change-locale": "Wechseln Locale",
-  "or": "oder"
+  "or": "oder",
+  "modal-create-title": "Bitte geben Sie Ihren Namen oder Spitznamen ein",
+  "modal-title": "An welches Match möchtest du teilnehmen?"
 }

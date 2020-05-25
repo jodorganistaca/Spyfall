@@ -5,5 +5,7 @@
   "how-to-play": "How to play?",
   "login-title": "Login to save progress",
   "change-locale": "Change language",
-  "or": "or"
+  "or": "or",
+  "modal-create-title": "Please enter your name or nickname",
+  "modal-title": "In which match do you want to play?"
 }
