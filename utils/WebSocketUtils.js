@@ -591,6 +591,7 @@ const endMatch = (token) => {
       });
     } else {
       clients[token].ended = true;
+      let scoreboard = [];
       for (const [emailId, { client, player }] of Object.entries(
         clients[token].connectedClients
       )) {
@@ -611,7 +612,7 @@ const endMatch = (token) => {
         clients[token].score.spies >= clients[token].score.notSpies
           ? "Spies"
           : "Not Spies";
-      let scoreboard = [];
+
       for (const [id, { client, player }] of Object.entries(
         clients[token].spies
       )) {
@@ -632,17 +633,17 @@ const endMatch = (token) => {
         }
         scoreboard.push(copyOfUser);
       }
+
+      let score = clients[token].score;
+      this.notifyChanges(token, {
+        method: "END_MATCH",
+        ended: true,
+        winnerRole,
+        winners,
+        scoreboard,
+        score,
+      });
     }
-    scoreboard && scoreboard.sort((a, b) => b.score - a.score);
-    let score = clients[token].score;
-    this.notifyChanges(token, {
-      method: "END_MATCH",
-      ended: true,
-      winnerRole,
-      winners,
-      scoreboard,
-      score,
-    });
   } else {
     throw new Error(
       `Not all parameters defined for endMatch(token = ${token})`
