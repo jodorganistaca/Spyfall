@@ -71,33 +71,16 @@ class ChatContainer extends Component {
     };
   }
 
-  getCookie(cname) {
-    let name = cname + "=";
-    let decodedCookie = decodeURIComponent(document.cookie);
-    let ca = decodedCookie.split(";");
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) == " ") {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return "";
-  }
-
   componentWillMount() {
     // let id = this.props.navigation.getParam("id", 0);
     // this.setState({ id: id.toString() });
     this.getMessages();
   }
   receiveMessages(event) {
-    const player = JSON.parse(this.getCookie("Spyfall-Player"));
     let messages = JSON.parse(event.data).chat;
     messages.forEach((element) => {
-      if (element.player == player) element.sender = "sender";
-      else element.sender = "receiver";
+      if (element.user == user) element.sender = "sender";
+      else element.user = "receiver";
       element.content = element.message;
     });
     this.setState({
@@ -106,10 +89,7 @@ class ChatContainer extends Component {
   }
 
   getMessages() {
-    const socket = new WebSocket(
-      "ws://localhost:3001?matchId=5eb74f4b66456236f0c95d5c"
-    );
-    socket.onmessage = this.receiveMessages;
+    // ws.onmessage = this.receiveMessages;
   }
 
   async sendMessage() {

@@ -253,6 +253,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
         }
       }
     }
+    let allSpies = [];
     while (Object.keys(spies).length < minimumSpies) {
       let tmpEmail = clientsIps[(clientsIps.length * Math.random()) << 0];
       if (spies[tmpEmail]) continue;
@@ -268,6 +269,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       delete theSpy.score;
       theSpy._id && delete theSpy._id;
       users.push(theSpy);
+      allSpies.push(theSpy);
       let theSpyCopy = _.cloneDeep(spy);
       theSpyCopy.player.user.score = 0;
       spies[tmpEmail] = theSpyCopy;
@@ -314,6 +316,8 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
       const copy = Object.assign({}, obj.player);
       delete copy.user.email;
+      let alsoSpies = allSpies;
+      alsoSpies = alsoSpies.filter((e) => e.id !== obj.player.user.id);
       clients[token].clientsDictionary[obj.client].ws.send(
         JSON.stringify({
           method: BEGIN_MATCH,
@@ -321,6 +325,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
           users,
           locations: clients[token].allLocations,
           endTime,
+          alsoSpies,
         })
       );
     }
@@ -335,6 +340,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
           player: copy,
           users,
           endTime,
+          location: clients[token].location,
         })
       );
     }

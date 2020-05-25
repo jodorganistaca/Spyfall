@@ -83,12 +83,12 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({ t, role = "spy", places, match }) {
+const Play = function ({ t, places, match }) {
   const styles = useStyles();
-
-  useEffect(()=>{
+  const role = match.player.role;
+  useEffect(() => {
     console.log("useEffect play ", match);
-  },[])
+  }, []);
   return (
     <Layout secondary>
       <Grid container justify="center" alignItems="center">
@@ -99,13 +99,13 @@ const Play = function ({ t, role = "spy", places, match }) {
           md={2}
           style={{ paddingLeft: "35px" }}
         >
-          {role === "spy" && (
+          {role === "Spy" && match.alsoSpies.length > 0 && (
             <>
               <Typography style={{ marginBottom: "10px" }} variant="subtitle1">
                 {t("they-are-spies")}
               </Typography>
               <AvatarList
-                items={match.users}
+                items={match.alsoSpies}
                 noCounter
                 orientation="vertical"
               />
@@ -114,9 +114,13 @@ const Play = function ({ t, role = "spy", places, match }) {
         </Grid>
 
         <Grid item xs={8} style={{ textAlign: "center" }}>
-          <RoleImage style={{ marginBottom: 20 }} role={role} />
+          {role === "Spy" ? (
+            <RoleImage style={{ marginBottom: 20 }} role={role} />
+          ) : (
+            <img width="200px" src={match.location.image} />
+          )}
           <Typography color="primary" variant="h4">
-            {t(`${role}-title`)}
+            {t(`${role === "Spy" ? role : match.location.name}-title`)}
           </Typography>
           <Typography variant="subtitle1">
             {t(`${role}-description`)}
@@ -147,10 +151,9 @@ const Play = function ({ t, role = "spy", places, match }) {
         <Typography align="center" variant="subtitle1">
           {t(`time-left`)}
         </Typography>
-        <Countdown finishTime={ match.endTime} t={t} />
+        <Countdown finishTime={match.endTime} t={t} />
       </Box>
-      {
-        match.player.role === "Spy" ?
+      {match.player.role === "Spy" ? (
         <Grid container>
           <Grid item xs>
             <ImageList
@@ -161,11 +164,9 @@ const Play = function ({ t, role = "spy", places, match }) {
             />
           </Grid>
         </Grid>
-        :
-        <div>
-          hola
-        </div>
-      }
+      ) : (
+        <div>hola</div>
+      )}
       <Grid container>
         <Grid item xs>
           <ImageList
@@ -183,7 +184,7 @@ const Play = function ({ t, role = "spy", places, match }) {
         className={styles.button}
         onClick={() => Router.push("/votation")}
       >
-        {t(`${role}-finish`)}
+        {t(`Vote`)}
       </Button>
     </Layout>
   );
@@ -191,8 +192,7 @@ const Play = function ({ t, role = "spy", places, match }) {
 
 Play.getInitialProps = async () => {
   let places = [];
-  
-  
+
   return {
     namespacesRequired: ["play"],
     places,
