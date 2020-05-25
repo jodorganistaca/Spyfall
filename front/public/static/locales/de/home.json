@@ -2,6 +2,8 @@
   "title": "Spiel mit deinen Freunden!",
   "create-match": "Neue Match",
   "join-match": "Nimm an einem Match teil",
+  "name": "Name",
+  "code": "Code",
   "how-to-play": "Spielanleitung",
   "login-title": "Anmelden um deinen Fortschtritt zu speichern",
   "change-locale": "Wechseln Locale",

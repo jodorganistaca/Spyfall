@@ -2,6 +2,8 @@
   "title": "¡Juega con tus amigos ahora!",
   "create-match": "Crear partida",
   "join-match": "Unirse a una partida",
+  "name": "Nombre",
+  "code": "Código",
   "how-to-play": "¿Cómo jugar?",
   "login-title": "Inicia sesión para guardar tu marcador",
   "change-locale": "Cambiar idioma",

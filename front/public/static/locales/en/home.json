@@ -2,6 +2,8 @@
   "title": "Play with your friends!",
   "create-match": "Create match",
   "join-match": "Join match",
+  "name": "Name",
+  "code": "Code",
   "how-to-play": "How to play?",
   "login-title": "Login to save progress",
   "change-locale": "Change language",

@@ -221,7 +221,8 @@ const Home = function Home(props) {
             <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
               <TextField
                 id="outlined-basic"
-                label="Nombre"
+                label={t("name")}
+                style={{ width: 300 }}
                 variant="outlined"
                 value={guestName}
                 onChange={(event) => setGuestName(event.target.value)}
@@ -265,7 +266,8 @@ const Home = function Home(props) {
                 >
                   <TextField
                     id="outlined-basic-2"
-                    label="Nombre"
+                    label={t("name")}
+                    style={{ width: 300 }}
                     variant="outlined"
                     value={guestName}
                     onChange={(event) => setGuestName(event.target.value)}
@@ -279,7 +281,8 @@ const Home = function Home(props) {
             <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
               <TextField
                 id="outlined-basic-3"
-                label="Código"
+                label={t("code")}
+                style={{ width: 300 }}
                 variant="outlined"
                 value={matchCode}
                 onChange={(event) => setMatchCode(event.target.value)}
