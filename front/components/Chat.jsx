@@ -8,7 +8,7 @@ const useStyles = makeStyles((theme) => ({
   chatIcon: { color: theme.palette.success.main },
 }));
 
-const Chat = function ({ title }) {
+const Chat = function ({ title, match }) {
   const [anchor, setAnchor] = useState(null);
 
   const styles = useStyles();

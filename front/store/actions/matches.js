@@ -10,25 +10,10 @@ import {
   BEGIN_MATCH_FAIL,
   JOIN_MATCH_SUCCESS,
   JOIN_MATCH_FAIL,
+  MESSAGE_RECEIVED,
 } from "./types";
 
-const getCookie = (cname) => {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == " ") {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-};
-
-export const createMatch = (wss, name) => async (dispatch) => {
+export const createMatch = (wss, name) => (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name }));
     console.log(name);
@@ -61,13 +46,13 @@ export const createMatch = (wss, name) => async (dispatch) => {
   }
 };
 
-export const joinMatch = (wss, name, token) => async (dispatch) => {
+export const joinMatch = (wss, name, token) => (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "JOIN_MATCH", token, name }));
-    wss.onmessage = async (e) => {
+    wss.onmessage = (e) => {
       const response = JSON.parse(e.data);
       if (!response.error) {
-        await dispatch({
+        dispatch({
           type: JOIN_MATCH_SUCCESS,
           payload: {
             wss,
@@ -87,28 +72,16 @@ export const joinMatch = (wss, name, token) => async (dispatch) => {
   }
 };
 
-export const startMatch = (code, user) => async (dispatch) => {
-  try {
-    const response = await http.put(`/matches/start/${code}`, {
-      player: { user },
-    });
-    return dispatch({ type: START_MATCH_SUCCESSFUL, payload: response.data });
-  } catch (error) {
-    console.error(error);
-    return Promise.reject(error);
-  }
-};
-
-export const beginMatch = (wss, token) => async (dispatch) => {
+export const beginMatch = (wss, token) => (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
-    wss.onmessage = async (e) => {
+    wss.onmessage = (e) => {
       const response = JSON.parse(e.data);
       console.log(e);
       if (!response.error) {
         response.token = token;
         response.wss = wss;
-        await dispatch({
+        dispatch({
           type: BEGIN_MATCH_SUCCESS,
           payload: response,
         });

@@ -10,6 +10,8 @@ import {
   Avatar,
 } from "@material-ui/core";
 import { Send, Image } from "@material-ui/icons";
+import { withTranslation } from "../plugins/i18n";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   message: {
@@ -17,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Message = ({ content, sender }) => (
+const Message = ({ content, sender, user, date }) => (
   <Box
     display="flex"
     alignSelf="stretch"
@@ -27,11 +29,11 @@ const Message = ({ content, sender }) => (
     marginBottom="3px"
   >
     {sender === "receiver" && (
-      <Avatar>
-        <Image src={"/public/assets/logo.png"} />
+      <Avatar src={user.avatar}>
+        <Image />
       </Avatar>
     )}
-
+    {user.name}
     <Box
       margin="0px 10px 0px 10px"
       padding="10px 20px 10px 20px"
@@ -51,10 +53,9 @@ const Message = ({ content, sender }) => (
         {content}
       </Typography>
     </Box>
-
     {sender === "sender" && (
-      <Avatar>
-        <Image src={"/public/assets/logo.png"} />
+      <Avatar src={user.avatar}>
+        <Image />
       </Avatar>
     )}
   </Box>
@@ -64,6 +65,7 @@ class ChatContainer extends Component {
   constructor(props) {
     super(props);
     this.receiveMessages = this.receiveMessages.bind(this);
+    this.match = props.match;
     this.state = {
       messages: [],
       messageToSend: undefined,
@@ -71,10 +73,46 @@ class ChatContainer extends Component {
     };
   }
 
+  sendMessage = (wss, token, message, chattingUser) => {
+    this.match.wss.send(
+      JSON.stringify({ method: "CHAT", token, message: "Gola", chattingUser })
+    );
+  };
+
+  listenMatch = () => {
+    this.match.wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      if (!response.error) {
+        let messages = response.chat;
+        method = response.method;
+        switch (method) {
+          case "CHAT":
+            messages.forEach((element) => {
+              if (element.user.id == this.match.player.user.id) {
+                console.log("Same id");
+                element.sender = "sender";
+              } else element.sender = "receiver";
+              element.content = element.message;
+              console.log(element);
+            });
+            this.setState({
+              messages,
+            });
+            break;
+        }
+      }
+      console.log("chat container", e);
+    };
+    console.log(this.match);
+    console.log(this.match !== null);
+  };
+
   componentWillMount() {
-    // let id = this.props.navigation.getParam("id", 0);
-    // this.setState({ id: id.toString() });
-    this.getMessages();
+    if (this.match && this.match.wss) {
+      this.listenMatch();
+      console.log("web socket chat  ", this.match.wss);
+    }
   }
   receiveMessages(event) {
     let messages = JSON.parse(event.data).chat;
@@ -83,48 +121,10 @@ class ChatContainer extends Component {
       else element.user = "receiver";
       element.content = element.message;
     });
-    this.setState({
-      messages,
-    });
   }
 
-  getMessages() {
-    // ws.onmessage = this.receiveMessages;
-  }
-
-  async sendMessage() {
-    try {
-      const res = await axios.get("/getProfile");
-
-      dispatch({
-        type: LOGIN_SUCCESS,
-        payload: res.data,
-      });
-
-      dispatch(loadUser());
-    } catch (error) {
-      console.log(error.response);
-      const errors = error.response.data.errors;
-
-      if (errors) {
-        errors.forEach((element) => {
-          dispatch(setAlert(element.msg, "danger"));
-        });
-      }
-      dispatch({ type: LOGIN_FAIL });
-    }
-
-    // try {
-    //   let response = await chat.sendMessage(
-    //     this.state.id + "",
-    //     null,
-    //     this.state.messageToSend,
-    //     Date.now().toLocaleString()
-    //   );
-    //   this.setState({ messageToSend: undefined });
-    // } catch (error) {
-    //   console.error(error);
-    // }
+  handleChange(e) {
+    this.setState({ messageToSend: e.value });
   }
 
   render() {
@@ -160,6 +160,7 @@ class ChatContainer extends Component {
                 key={value.id}
                 content={value.content}
                 sender={value.sender}
+                user={value.user}
               />
             ))}
           </PerfectScrollbar>
@@ -169,9 +170,20 @@ class ChatContainer extends Component {
           <TextField
             style={{ flex: 3, width: "auto" }}
             label="Escribe tu mensaje aquí"
-            defaultValue={this.state.messageToSend}
+            value={this.state.messageToSend}
+            onChange={this.handleChange.bind(this)}
           />
-          <IconButton>
+          <IconButton
+            onClick={() => {
+              console.log("Se enviara un mensaje");
+              return this.sendMessage(
+                this.match.wss,
+                this.match.token,
+                this.state.messageToSend,
+                this.match.player.user
+              );
+            }}
+          >
             <Send />
           </IconButton>
         </Box>
@@ -180,4 +192,11 @@ class ChatContainer extends Component {
   }
 }
 
-export default ChatContainer;
+const mapStateToProps = (state) => ({
+  match: state.matches.match,
+  chat: state.matches.chat,
+});
+
+export default withTranslation("ChatContainer")(
+  connect(mapStateToProps, null)(ChatContainer)
+);
