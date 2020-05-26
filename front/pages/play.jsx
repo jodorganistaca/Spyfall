@@ -90,7 +90,7 @@ const Play = function ({ t, places, match }) {
     console.log("useEffect play ", match);
   }, []);
   return (
-    <Layout secondary>
+    <Layout secondary info={t("info")}>
       <Grid container justify="center" alignItems="center">
         <Grid
           alignItems="center"

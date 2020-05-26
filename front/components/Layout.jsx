@@ -27,7 +27,7 @@ export function Layout(props) {
   useEffect(() => {
     store.dispatch(loadUser());
   }, []);
-  const { children, auth, secondary = false } = props;
+  const { children, auth, secondary = false, info } = props;
 
   return (
     <Box height="100%">
@@ -45,7 +45,7 @@ export function Layout(props) {
       >
         <Container className={styles.container}>
           <Paper elevation={3} className={styles.paper}>
-            <AppBar auth={auth} />
+            <AppBar auth={auth} info={info} />
             <Box
               display="flex"
               flexDirection="column"

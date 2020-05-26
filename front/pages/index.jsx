@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   Typography,
   Box,
+  Grid,
   makeStyles,
   Button,
   IconButton,
@@ -25,6 +26,8 @@ import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import Http from "../plugins/axios";
+import CustomTooltip from "../components/CustomTooltip";
+import { Help } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -61,6 +64,15 @@ const useStyles = makeStyles((theme) => ({
     borderColor: "transparent",
     flexDirection: "column",
   },
+  rightBar: {
+    [theme.breakpoints.up("md")]: {
+      textAlign: "end",
+      paddingRight: 40,
+    },
+    [theme.breakpoints.down("sm")]: {
+      textAlign: "center",
+    },
+  }
 }));
 
 const Home = function Home(props) {
@@ -109,14 +121,13 @@ const Home = function Home(props) {
     //return () => ws.current.close();
   }, []);
   return (
-    <Layout justifyContent="space-between">
+    <Layout justifyContent="space-between" info={t("info")}>
       {
         // <Modal openModal={openModal} handleCloseModal={handleCloseModal} />
       }
       <Box className={styles.imageContainer}>
         <Image src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
-
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography
           align="center"
