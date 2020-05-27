@@ -8,6 +8,7 @@ import {
   IconButton,
   Divider,
   TextField,
+  Tooltip,
 } from "@material-ui/core";
 import PropTypes from "prop-types";
 import Image from "material-ui-image";
@@ -25,7 +26,7 @@ import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import Http from "../plugins/axios";
-
+import CustomTooltip from "../components/CustomTooltip";
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
@@ -78,8 +79,8 @@ const Home = function Home(props) {
   };
 
   const handleGuestName = async (name) => {
-    try {    
-      await createMatch(ws.current,name);
+    try {
+      await createMatch(ws.current, name);
     } catch (error) {
       console.error(error);
     }
@@ -91,21 +92,25 @@ const Home = function Home(props) {
   };
 
   const openJoinModal = async (name, code) => {
-    await joinMatch(ws.current,name, code);
+    await joinMatch(ws.current, name, code);
   };
 
   const [open, setOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [matchCode, setMatchCode] = useState(undefined);
   const [guestName, setGuestName] = useState(undefined);
+  const [hasWs, setHasWs] = useState(false);
   const ws = useRef(null);
 
   useEffect(() => {
     let HOST = "ws://localhost:3001";
     ws.current = new WebSocket(HOST);
-    ws.current.onopen = () => console.log("ws opened");
+    ws.current.onopen = (e) => {
+      console.log("Ws connected");
+      setHasWs(true);
+    };
     ws.current.onclose = () => console.log("ws closed");
-    
+
     //return () => ws.current.close();
   }, []);
   return (
@@ -125,33 +130,67 @@ const Home = function Home(props) {
         >
           {t("title")}
         </Typography>
-
-        <Box display="flex" flexDirection="column">
-          <Button
-            variant="contained"
-            size="medium"
-            color="secondary"
-            className={styles.button}
-            startIcon={<Add />}
-            onClick={
-              auth.user
-                ? async () => createMatch(auth.user.user)
-                : async () => setOpenModal(true)
-            }
-          >
-            {t("create-match")}
-          </Button>
-          <Button
-            variant="contained"
-            size="medium"
-            color="secondary"
-            className={styles.button}
-            startIcon={<PlayArrow />}
-            onClick={() => setOpen(true)}
-          >
-            {t("join-match")}
-          </Button>
-        </Box>
+        {!hasWs ? (
+          <CustomTooltip title="Please wait until the page finishes loading">
+            <Box display="flex" flexDirection="column">
+              <Button
+                variant="contained"
+                size="medium"
+                color="secondary"
+                disabled={!hasWs}
+                style={!hasWs ? { pointerEvents: "none" } : {}}
+                className={styles.button}
+                startIcon={<Add />}
+                onClick={
+                  auth.user
+                    ? async () => createMatch(auth.user.user)
+                    : async () => setOpenModal(true)
+                }
+              >
+                {t("create-match")}
+              </Button>
+              <Button
+                variant="contained"
+                size="medium"
+                color="secondary"
+                disabled={!hasWs}
+                className={styles.button}
+                style={!hasWs ? { pointerEvents: "none" } : {}}
+                startIcon={<PlayArrow />}
+                onClick={() => setOpen(true)}
+              >
+                {t("join-match")}
+              </Button>
+            </Box>
+          </CustomTooltip>
+        ) : (
+          <Box display="flex" flexDirection="column">
+            <Button
+              variant="contained"
+              size="medium"
+              color="secondary"
+              className={styles.button}
+              startIcon={<Add />}
+              onClick={
+                auth.user
+                  ? async () => createMatch(auth.user.user)
+                  : async () => setOpenModal(true)
+              }
+            >
+              {t("create-match")}
+            </Button>
+            <Button
+              variant="contained"
+              size="medium"
+              color="secondary"
+              className={styles.button}
+              startIcon={<PlayArrow />}
+              onClick={() => setOpen(true)}
+            >
+              {t("join-match")}
+            </Button>
+          </Box>
+        )}
 
         <NextLink href="/how-to-play">{t("how-to-play")}</NextLink>
       </Box>
@@ -210,6 +249,7 @@ const Home = function Home(props) {
         open={openModal}
         onClose={() => setOpenModal(false)}
         closeAfterTransition
+        style={{ outline: "none" }}
         BackdropComponent={Backdrop}
         BackdropProps={{ timeout: 500 }}
       >
@@ -218,13 +258,21 @@ const Home = function Home(props) {
             <Typography variant="h5" style={{ marginBottom: 30 }}>
               {t("modal-create-title")}
             </Typography>
-            <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
+            <form
+              noValidate
+              autoComplete="off"
+              style={{ marginBottom: 30 }}
+              onSubmit={(e) => e.preventDefault()}
+            >
               <TextField
                 id="outlined-basic"
                 label={t("name")}
                 style={{ width: 300 }}
                 variant="outlined"
                 value={guestName}
+                onKeyDown={(e) => {
+                  if (e.key == "Enter") return handleGuestName(guestName);
+                }}
                 onChange={(event) => setGuestName(event.target.value)}
               />
             </form>
@@ -263,6 +311,7 @@ const Home = function Home(props) {
                   noValidate
                   autoComplete="off"
                   style={{ marginBottom: 30 }}
+                  onSubmit={(e) => e.preventDefault()}
                 >
                   <TextField
                     id="outlined-basic-2"
@@ -278,7 +327,12 @@ const Home = function Home(props) {
             <Typography variant="h5" style={{ marginBottom: 30 }}>
               {t("modal-title")}
             </Typography>
-            <form noValidate autoComplete="off" style={{ marginBottom: 30 }}>
+            <form
+              noValidate
+              autoComplete="off"
+              style={{ marginBottom: 30 }}
+              onSubmit={(e) => e.preventDefault()}
+            >
               <TextField
                 id="outlined-basic-3"
                 label={t("code")}
@@ -286,6 +340,12 @@ const Home = function Home(props) {
                 variant="outlined"
                 value={matchCode}
                 onChange={(event) => setMatchCode(event.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key == "Enter")
+                    return auth.user
+                      ? async () => userLoggedJoin(auth.user.user, matchCode)
+                      : openJoinModal(guestName, matchCode);
+                }}
               />
             </form>
             <Button
@@ -316,7 +376,7 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth, match: state.match});
+const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
 
 const mapDispatchToProps = {
   append: appendToString,

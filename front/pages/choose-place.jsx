@@ -1,11 +1,19 @@
 import { Router, withTranslation } from "../plugins/i18n";
 import { Box, makeStyles, Typography, Button } from "@material-ui/core";
 import Layout from "../components/Layout";
-import ImageList from "../components/ImageList";
 import http from "../plugins/axios";
 import { connect } from "react-redux";
-import { startMatch } from "../store/actions/matches";
-
+import { useState, useEffect } from "react";
+import {
+  GridList,
+  GridListTile,
+  GridListTileBar,
+  IconButton,
+} from "@material-ui/core";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked";
+import CheckCircle from "@material-ui/icons/CheckCircle";
+import CustomTooltip from "../components/CustomTooltip";
 const useStyles = makeStyles((theme) => ({
   container: { justifyContent: "space-between" },
   button: {
@@ -20,37 +28,125 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: "#1B7D46",
     },
   },
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    overflow: "hidden",
+    backgroundColor: theme.palette.background.paper,
+    padding: "0px 30px 0px 30px",
+    maxHeight: "100%",
+    marginTop: "30px",
+  },
+  gridList: {
+    width: "auto",
+    height: "auto",
+    padding: "0px 10px 0px 10px",
+  },
+  icon: { color: theme.palette.success.main },
+  itemImage: {
+    "&:hover": {
+      cursor: "pointer",
+    },
+  },
 }));
 
-const ChoosePlace = function ({ t, match, places, auth, startMatch }) {
+const ImageList = function ({
+  items = [],
+  maxWidth = "auto",
+  maxHeight = "auto",
+  cellHeight = 80,
+  fieldTitle = "name",
+  fieldImage = "image",
+  selected,
+  setSelected,
+}) {
   const styles = useStyles();
-  const code = match.token;
-  const user = auth.user.user;
 
-  const startGame = async (code, user) => {
-    try {
-      await startMatch(code, user);
-      Router.push("/play");
-    } catch (error) {
-      console.error(error);
-    }
+  return (
+    <div className={styles.root}>
+      <PerfectScrollbar>
+        <GridList
+          cellHeight={cellHeight}
+          className={styles.gridList}
+          style={{ maxWidth, maxHeight }}
+          cols={4}
+        >
+          {items.map((tile, index) => (
+            <GridListTile
+              key={`img_${index}`}
+              cols={1}
+              onClick={() => {
+                setSelected(tile.id);
+              }}
+              className={styles.itemImage}
+            >
+              <img
+                src={tile[fieldImage]}
+                alt={tile[fieldTitle]}
+                style={{ opacity: selected === tile.id ? 1 : 0.5 }}
+              />
+              <GridListTileBar
+                actionIcon={
+                  <IconButton aria-label={`icon ${tile[fieldTitle]}`}>
+                    {selected !== tile.id && (
+                      <RadioButtonUnchecked className={styles.icon} />
+                    )}
+                    {selected === tile.id && (
+                      <CheckCircle className={styles.icon} />
+                    )}
+                  </IconButton>
+                }
+                title={tile[fieldTitle]}
+              />
+            </GridListTile>
+          ))}
+        </GridList>
+      </PerfectScrollbar>
+    </div>
+  );
+};
+
+const ChoosePlace = function ({ t, match, auth }) {
+  const styles = useStyles();
+  const wss = match.wss;
+  const [selected, setSelected] = useState("");
+  const [voted, setVoted] = useState(false);
+  let locations = [];
+  for (const [key, location] of Object.entries(match.locations)) {
+    let tempObj = location;
+    tempObj.id = key;
+    locations.push(tempObj);
+  }
+
+  const voteForPlace = (token, wss, idVote) => {
+    wss.send(
+      JSON.stringify({
+        method: "CREATE_VOTE",
+        token: token,
+        idVote,
+      })
+    );
+    document.body.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape" })
+    );
+    document.body.dispatchEvent(new KeyboardEvent("keyup", { key: "Escape" }));
+    wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      method = response.method;
+      if (!response.error) {
+        switch (method) {
+          case "CREATE_VOTE":
+            if (response.voted == true) setVoted(true);
+            break;
+        }
+      }
+    };
   };
 
   return (
     <Layout secondary>
-      <Box display="flex" alignItems="flex-end" marginBottom="50px">
-        <Typography
-          variant="subtitle2"
-          align="center"
-          style={{ marginRight: 5, marginBottom: 3 }}
-        >
-          {t("match-code")}
-        </Typography>
-        <Typography align="center" variant="h6" color="primary">
-          {code}
-        </Typography>
-      </Box>
-
       <Box
         display="flex"
         flexDirection="column"
@@ -64,29 +160,51 @@ const ChoosePlace = function ({ t, match, places, auth, startMatch }) {
           {t("title")}
         </Typography>
 
-        <ImageList cellHeight={160} items={places} fieldTitle="name" />
-      </Box>
+        <ImageList
+          cellHeight={160}
+          items={locations}
+          fieldTitle="name"
+          selected={selected}
+          setSelected={setSelected}
+        />
 
-      <Button
-        className={styles.button}
-        variant="contained"
-        size="medium"
-        onClick={() => startGame(code, user)}
-      >
-        {t("start-game")}
-      </Button>
+        {voted ? (
+          <CustomTooltip placement="top" title="You already voted">
+            <Box display="flex" flexDirection="row">
+              <Button
+                variant="contained"
+                size="medium"
+                color="success"
+                disabled={voted}
+                className={styles.button}
+                onClick={() =>
+                  voteForPlace(match.token, wss, selected, setVoted)
+                }
+              >
+                {t("vote")}
+              </Button>
+            </Box>
+          </CustomTooltip>
+        ) : (
+          <Box display="flex" flexDirection="row">
+            <Button
+              variant="contained"
+              size="medium"
+              color="success"
+              className={styles.button}
+              onClick={() => voteForPlace(match.token, wss, selected, setVoted)}
+            >
+              {t("vote")}
+            </Button>
+          </Box>
+        )}
+      </Box>
     </Layout>
   );
 };
 
 ChoosePlace.getInitialProps = async () => {
   let places = [];
-  try {
-    const response = await http.get("/locations");
-    places = response.data;
-  } catch (error) {
-    console.error(error);
-  }
   return {
     namespacesRequired: ["choose-place"],
     places,
@@ -98,10 +216,6 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
 });
 
-const mapActionsToProps = {
-  startMatch,
-};
-
 export default withTranslation("choose-place")(
-  connect(mapStateToProps, mapActionsToProps)(ChoosePlace)
+  connect(mapStateToProps, {})(ChoosePlace)
 );

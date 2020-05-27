@@ -7,16 +7,23 @@ import {
   Typography,
   Grid,
   IconButton,
+  GridList,
+  GridListTile,
+  GridListTileBar,
 } from "@material-ui/core";
 import { useState, useEffect } from "react";
 import moment from "moment/moment";
-import ImageList from "../components/ImageList";
 import AvatarList from "../components/AvatarList";
 import { Help } from "@material-ui/icons";
-
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
 import CustomTooltip from "../components/CustomTooltip";
 import Chat from "../components/Chat";
-
+import Votation from "./votation";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked";
+import CheckCircle from "@material-ui/icons/CheckCircle";
 import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import http from "../plugins/axios";
@@ -42,6 +49,27 @@ const useStyles = makeStyles((theme) => ({
     },
     [theme.breakpoints.down("sm")]: {
       textAlign: "center",
+    },
+  },
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    overflow: "hidden",
+    backgroundColor: theme.palette.background.paper,
+    padding: "0px 30px 0px 30px",
+    maxHeight: "100%",
+    marginTop: "30px",
+  },
+  gridList: {
+    width: "auto",
+    height: "auto",
+    padding: "0px 10px 0px 10px",
+  },
+  icon: { color: theme.palette.success.main },
+  itemImage: {
+    "&:hover": {
+      cursor: "pointer",
     },
   },
 }));
@@ -84,11 +112,46 @@ const Countdown = ({ finishTime, t }) => {
 };
 
 const Play = function ({ t, places, match }) {
+  if (!match) {
+    console.log("Match not found");
+  }
+  useEffect(() => {
+    listenMatch(match.wss);
+  }, []);
+  const [openModal, setOpenModal] = useState(false);
   const styles = useStyles();
   const role = match.player.role;
-  useEffect(() => {
-    console.log("useEffect play ", match);
-  }, []);
+  const [voted, setVoted] = useState(false);
+
+  const listenMatch = (wss) => {
+    wss.onmessage = (e) => {
+      let method = "";
+      const response = JSON.parse(e.data);
+      if (!response.error) {
+        method = response.method;
+        switch (method) {
+          case "END_MATCH":
+            Router.push("/votation");
+            break;
+          case "CREATE_VOTE":
+            if (response.voted == true) setVoted(true);
+            break;
+        }
+      }
+      console.log("chat container", e);
+    };
+  };
+
+  const voteForPlace = (token, wss, idVote) => {
+    wss.send(
+      JSON.stringify({
+        method: "CREATE_VOTE",
+        token: token,
+        idVote,
+      })
+    );
+  };
+
   return (
     <Layout secondary>
       <Grid container justify="center" alignItems="center">
@@ -153,20 +216,6 @@ const Play = function ({ t, places, match }) {
         </Typography>
         <Countdown finishTime={match.endTime} t={t} />
       </Box>
-      {match.player.role === "Spy" ? (
-        <Grid container>
-          <Grid item xs>
-            <ImageList
-              items={Object.values(match.locations)}
-              maxWidth="100%"
-              maxHeight="600px"
-              horizontal
-            />
-          </Grid>
-        </Grid>
-      ) : (
-        <div>hola</div>
-      )}
       <Grid container>
         <Grid item xs>
           <ImageList
@@ -182,10 +231,174 @@ const Play = function ({ t, places, match }) {
         size="medium"
         variant="contained"
         className={styles.button}
-        onClick={() => Router.push("/votation")}
+        onClick={() => {
+          setOpenModal(true);
+        }}
       >
-        {t(`Vote`)}
+        {t(`I know where is everybody!`)}
       </Button>
+
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        className={styles.modal}
+        style={{ outline: "none" }}
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{ timeout: 500 }}
+      >
+        <Fade in={openModal}>
+          <div className={styles.paper}>
+            {match.player.role !== "Spy" ? (
+              <>
+                <Votation />
+              </>
+            ) : (
+              <>
+                <ChoosePlace
+                  t={t}
+                  match={match}
+                  voted={voted}
+                  setVoted={setVoted}
+                  voteForPlace={voteForPlace}
+                />
+              </>
+            )}
+          </div>
+        </Fade>
+      </Modal>
+    </Layout>
+  );
+};
+
+/*
+Choose place
+ */
+
+const ImageList = function ({
+  items = [],
+  maxWidth = "auto",
+  maxHeight = "auto",
+  cellHeight = 80,
+  fieldTitle = "name",
+  fieldImage = "image",
+  selected,
+  setSelected,
+}) {
+  const styles = useStyles();
+
+  return (
+    <div className={styles.root}>
+      <PerfectScrollbar>
+        <GridList
+          cellHeight={cellHeight}
+          className={styles.gridList}
+          style={{ maxWidth, maxHeight }}
+          cols={4}
+        >
+          {items.map((tile, index) => (
+            <GridListTile
+              key={`img_${index}`}
+              cols={1}
+              onClick={() => {
+                setSelected(tile.id);
+              }}
+              className={styles.itemImage}
+            >
+              <img
+                src={tile[fieldImage]}
+                alt={tile[fieldTitle]}
+                style={{ opacity: selected === tile.id ? 1 : 0.5 }}
+              />
+              <GridListTileBar
+                actionIcon={
+                  <IconButton aria-label={`icon ${tile[fieldTitle]}`}>
+                    {selected !== tile.id && (
+                      <RadioButtonUnchecked className={styles.icon} />
+                    )}
+                    {selected === tile.id && (
+                      <CheckCircle className={styles.icon} />
+                    )}
+                  </IconButton>
+                }
+                title={tile[fieldTitle]}
+              />
+            </GridListTile>
+          ))}
+        </GridList>
+      </PerfectScrollbar>
+    </div>
+  );
+};
+
+const ChoosePlace = function ({ t, match, voteForPlace, voted, setVoted }) {
+  const styles = useStyles();
+  const [selected, setSelected] = useState("");
+  let locations = [];
+  for (const [key, location] of Object.entries(match.locations)) {
+    let tempObj = location;
+    tempObj.id = key;
+    locations.push(tempObj);
+  }
+
+  return (
+    <Layout secondary>
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignSelf="stretch"
+        alignItems="center"
+        justifyContent="center"
+        maxHeight="65vh"
+        flex={1}
+      >
+        <Typography align="center" variant="h3" styles={{ marginBottom: 50 }}>
+          {t("title")}
+        </Typography>
+
+        <ImageList
+          cellHeight={160}
+          items={locations}
+          fieldTitle="name"
+          selected={selected}
+          setSelected={setSelected}
+        />
+
+        {voted ? (
+          <CustomTooltip placement="top" title="You already voted">
+            <Box display="flex" flexDirection="row">
+              <Button
+                variant="contained"
+                size="medium"
+                color="success"
+                disabled={voted}
+                className={styles.button}
+                onClick={() =>
+                  voteForPlace(match.token, match.wss, selected, setVoted)
+                }
+              >
+                {t("vote")}
+              </Button>
+            </Box>
+          </CustomTooltip>
+        ) : (
+          <Box display="flex" flexDirection="row">
+            <Button
+              variant="contained"
+              size="medium"
+              color="success"
+              className={styles.button}
+              onClick={() =>
+                voteForPlace(match.token, match.wss, selected, setVoted)
+              }
+            >
+              {t("vote")}
+            </Button>
+          </Box>
+        )}
+      </Box>
     </Layout>
   );
 };

@@ -19,7 +19,7 @@ import http from "../plugins/axios";
 import axios from "axios";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-
+import ChoosePlace from "./choose-place";
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
@@ -76,44 +76,42 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Votation = function ({
-  t,
-  role = "spy",
-  finishTime = "Mon May 04 2020 07:00:00 GMT-0500",
-  match,
-}) {
+const Votation = function ({ t, match }) {
   const myInput = useRef();
   const [players, setPlayers] = useState([]);
+  const [locations, setLocations] = useState({});
   const styles = useStyles();
+  const [hasEnded, setHasEnded] = useState(false);
   const vote = async (p) => {
     console.log(match.users[p]);
-    match.wss.send(JSON.stringify({method: "CREATE_VOTE", token: match.token, idVote: match.users[p].id}));
+    match.wss.send(
+      JSON.stringify({
+        method: "CREATE_VOTE",
+        token: match.token,
+        idVote: match.users[p].id,
+      })
+    );
     match.wss.onmessage = (e) => {
-      console.log(e);
-    }
-    /*try {
-      console.log(p);
-      console.log(players[p]);
-      const res = await axios.post(
-        `http://localhost:3001/matches/createVote/${match.token}`,
-        {
-          votedPlayer: players[p],
+      let method = "";
+      const response = JSON.parse(e.data);
+      if (!response.error) {
+        method = response.method;
+        switch (method) {
+          case "END_MATCH":
+            setHasEnded(true);
+            break;
         }
-      );
-      console.log(res);
-      return Router.push("/publish-votation");
-    } catch (error) {
-      return Router.push("/publish-votation");
-      console.error(error);
-    }*/
+      }
+      console.log("chat container", e);
+    };
   };
   const createTable = () => {
     let table = [];
     for (let i = 0; i < players.length; i++) {
       table.push(
-        <Card className={styles.card}>
+        <Card className={styles.card} onClick={() => vote(i)}>
           <CardContent>
-            <Button onClick={() => vote(i)} key={i}>
+            <Button key={i}>
               <Box
                 display="flex"
                 justifyContent="left"
@@ -144,17 +142,7 @@ const Votation = function ({
   };
   const getPlayers = async () => {
     setPlayers(match.users);
-    /*if (match !== null) {
-      const response = await axios.get(
-        `http://localhost:3001/matches/token/${match.token}`
-      );
-      console.log("res ", response);
-      const p = response.data["players"];
-      if (p) {
-        console.log(p);
-        setPlayers(p);
-      }
-    }*/
+    match.locations && setLocations(match.locations);
   };
   useEffect(() => {
     console.log("useEffect votation ", match);
@@ -173,7 +161,7 @@ const Votation = function ({
         </Typography>
       </Box>
       <Box style={{ marginBottom: 20 }}>
-        <Countdown finishTime={finishTime} t={t} />
+        <Countdown finishTime={match.endTime} t={t} />
       </Box>
 
       <Box
@@ -183,13 +171,21 @@ const Votation = function ({
         flexWrap="wrap"
         margin="0px 20% 0px 20%"
       >
-        {createTable()}
+        {match.player.role !== "Spy" ? (
+          createTable()
+        ) : (
+          <>
+            {" "}
+            <ChoosePlace />
+          </>
+        )}
       </Box>
       <Box display="flex" flexDirection="row">
         <Button
           variant="contained"
           size="medium"
           color="success"
+          disabled={hasEnded}
           className={styles.button}
           startIcon={<NavigationSharp />}
           onClick={() => Router.push("/publish-votation")}
@@ -204,17 +200,21 @@ const Votation = function ({
 Votation.getInitialProps = async () => {
   try {
     const players = match.users;
-
-    console.log("votation match", match);
+    const locations = match.locations;
+    const endTime = match.endTime;
     return {
       namespacesRequired: ["votation"],
       players,
+      locations,
+      endTime,
     };
   } catch (error) {
     console.error(error);
     return {
       namespacesRequired: ["votation"],
       players: [],
+      locations: {},
+      endTime: undefined,
     };
   }
 };

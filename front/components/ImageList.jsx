@@ -58,17 +58,19 @@ const ImageList = function ({
             <GridListTile
               key={`img_${index}`}
               cols={1}
-              onClick={() => setSelected(tile._id)}
+              onClick={() => {
+                setSelected(tile.id);
+              }}
               className={styles.itemImage}
             >
               <img src={tile[fieldImage]} alt={tile[fieldTitle]} />
               <GridListTileBar
                 actionIcon={
                   <IconButton aria-label={`icon ${tile[fieldTitle]}`}>
-                    {selected !== tile._id && (
+                    {selected !== tile.id && (
                       <RadioButtonUnchecked className={styles.icon} />
                     )}
-                    {selected === tile._id && (
+                    {selected === tile.id && (
                       <CheckCircle className={styles.icon} />
                     )}
                   </IconButton>

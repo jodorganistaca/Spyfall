@@ -1,12 +1,19 @@
 import Layout from "../components/Layout";
 import React, { useState, useEffect, useRef } from "react";
-import { Typography, Button, makeStyles, Box } from "@material-ui/core";
+import {
+  Typography,
+  Button,
+  makeStyles,
+  Box,
+  Tooltip,
+} from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
 import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import http from "../plugins/axios";
 import { beginMatch } from "../store/actions/matches";
+import CustomTooltip from "../components/CustomTooltip";
 const useStyles = makeStyles((theme) => ({
   button: {
     width: 160,
@@ -33,46 +40,36 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const listenMatch = () => {
-    
     match.wss.onmessage = (e) => {
       let method = "";
       const response = JSON.parse(e.data);
       method = response.method;
-      switch(method){
+      switch (method) {
         case "JOIN_MATCH":
           setPlayers(response.waitingUsers);
           break;
         case "BEGIN_MATCH":
-
           break;
       }
       console.log("waiting room ", e);
-
-    }
+    };
     console.log(match);
     console.log(match !== null);
-    if(match !== null && match.waitingUsers !== undefined ){
-      console.log(match.waitingUsers)
+    if (match !== null && match.waitingUsers !== undefined) {
+      console.log(match.waitingUsers);
       setPlayers(match.waitingUsers);
     }
-    
   };
   //if (!match) {
-    //return <Redirect to="/" />;
+  //return <Redirect to="/" />;
   //}
 
-  const loadInitialPlayers = async (matchId) => {
-    const res = await http.get(`/matches/${matchId}`);
-    setPlayers(res.data.pendingToAssign);
-    console.log("Players ->", players);
-  };
-
-  if(match && match.wss){
+  if (match && match.wss) {
     match.wss.onmessage = (e) => {
       let method = "";
       const response = JSON.parse(e.data);
       method = response.method;
-      switch(method){
+      switch (method) {
         case "JOIN_MATCH":
           setPlayers(response.waitingUsers);
           break;
@@ -80,15 +77,13 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
           setPlayers(response.waitingUsers);
           break;
       }
-
-    }
+    };
   }
 
   useEffect(() => {
-    
-    if(match && match.wss){
+    if (match && match.wss) {
       listenMatch();
-      console.log("web socket waiting room ",match.wss)
+      console.log("web socket waiting room ", match.wss);
     }
   }, []);
 
@@ -107,7 +102,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
             {t("match-code")}
           </Typography>
           <Typography align="center" variant="h3" color="primary">
-            { match === null ? "" : match.token }
+            {match === null ? "" : match.token}
           </Typography>
         </Box>
 
@@ -122,15 +117,35 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
 
         <AvatarList items={players} />
 
-        {(true || isOwner) && (
-          <Button
-            className={styles.button}
-            variant="contained"
-            size="medium"
-            onClick={() => beginMatch(match.wss, match.token)}
+        {isOwner && players.length <= 1 ? (
+          <CustomTooltip
+            placement="top"
+            title="Matches require at least 2 players"
           >
-            {t("next")}
-          </Button>
+            {/* Span porque así toca https://material-ui.com/es/components/tooltips/ */}
+            <span>
+              <Button
+                className={styles.button}
+                variant="contained"
+                disabled={players.length <= 1}
+                size="medium"
+                onClick={() => beginMatch(match.wss, match.token)}
+              >
+                {t("next")}
+              </Button>
+            </span>
+          </CustomTooltip>
+        ) : (
+          <>
+            <Button
+              className={styles.button}
+              variant="contained"
+              size="medium"
+              onClick={() => beginMatch(match.wss, match.token)}
+            >
+              {t("next")}
+            </Button>
+          </>
         )}
       </Box>
     </Layout>
