@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "build": "next build && next start",
+    "build": "next run build && npm run start",
     "start": "next start"
   },
   "dependencies": {
