@@ -142,9 +142,6 @@ function Alert(props) {
 }
 
 const Play = function ({ t, places, match, endMatch }) {
-  if (!match) {
-    return <Layout></Layout>;
-  }
   useEffect(() => {
     if (!match) {
       Router.push("/");
