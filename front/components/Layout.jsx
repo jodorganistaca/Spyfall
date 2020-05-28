@@ -27,7 +27,7 @@ export function Layout(props) {
   useEffect(() => {
     store.dispatch(loadUser());
   }, []);
-  const { children, auth, secondary = false } = props;
+  const { children, auth, secondary = false, info, ...rest } = props;
 
   return (
     <Box height="100%">
@@ -45,14 +45,15 @@ export function Layout(props) {
       >
         <Container className={styles.container}>
           <Paper elevation={3} className={styles.paper}>
-            <AppBar auth={auth} />
+            <AppBar role="banner" auth={auth} info={info} />
             <Box
+              role="main"
               display="flex"
               flexDirection="column"
               alignItems="center"
               alignSelf="stretch"
               flex={1}
-              {...props}
+              {...rest}
             >
               {children}
             </Box>

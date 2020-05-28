@@ -93,7 +93,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   }, []);
 
   return (
-    <Layout secondary>
+    <Layout secondary info={t("info")}>
       <Box
         display="flex"
         flexDirection="column"

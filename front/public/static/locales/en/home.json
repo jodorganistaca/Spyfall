@@ -1,4 +1,5 @@
 {
+  "info": "Click Create Match Button for Start playing this will generate a code or Join Match if you already have a code",
   "title": "Play with your friends!",
   "create-match": "Create match",
   "join-match": "Join match",

@@ -147,7 +147,7 @@ const PublishVotation = function PublishVotation({
     getPlayers();
   }, []);
   return (
-    <Layout secondary={true}>
+    <Layout secondary={true} info={t("info")}>
       <Box display="flex" flexDirection="row" width="70%">
         <Typography align="center" variant="subtitle1" margin="0px 20% 0px 20%">
           {t("votation")}

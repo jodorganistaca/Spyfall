@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   Typography,
   Box,
+  Grid,
   makeStyles,
   Button,
   IconButton,
@@ -25,6 +26,8 @@ import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import Http from "../plugins/axios";
+import CustomTooltip from "../components/CustomTooltip";
+import { Help } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -60,7 +63,17 @@ const useStyles = makeStyles((theme) => ({
     borderWidth: "0px",
     borderColor: "transparent",
     flexDirection: "column",
+    alignItems: "center",
   },
+  rightBar: {
+    [theme.breakpoints.up("md")]: {
+      textAlign: "end",
+      paddingRight: 40,
+    },
+    [theme.breakpoints.down("sm")]: {
+      textAlign: "center",
+    },
+  }
 }));
 
 const Home = function Home(props) {
@@ -109,14 +122,13 @@ const Home = function Home(props) {
     //return () => ws.current.close();
   }, []);
   return (
-    <Layout justifyContent="space-between">
+    <Layout justifyContent="space-between" info={t("info")}>
       {
         // <Modal openModal={openModal} handleCloseModal={handleCloseModal} />
       }
       <Box className={styles.imageContainer}>
-        <Image src="/assets/logo.png" aspectRatio={1.9} />
+        <Image role="none" src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
-
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography
           align="center"
@@ -222,14 +234,14 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic"
                 label={t("name")}
-                style={{ width: 300 }}
+                style={{ width: 300, left: "10%"}}
                 variant="outlined"
                 value={guestName}
                 onChange={(event) => setGuestName(event.target.value)}
               />
             </form>
             <Button
-              className={styles.button}
+              style={{ width: 300,  left: "10%", borderRadius: "87px",letterSpacing: 1.25, }}
               color="primary"
               variant="contained"
               onClick={() => handleGuestName(guestName)}
@@ -267,7 +279,7 @@ const Home = function Home(props) {
                   <TextField
                     id="outlined-basic-2"
                     label={t("name")}
-                    style={{ width: 300 }}
+                    style={{ width: 300,  left: "10%"}}
                     variant="outlined"
                     value={guestName}
                     onChange={(event) => setGuestName(event.target.value)}
@@ -282,14 +294,14 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic-3"
                 label={t("code")}
-                style={{ width: 300 }}
+                style={{ width: 300,  left: "10%" }}
                 variant="outlined"
                 value={matchCode}
                 onChange={(event) => setMatchCode(event.target.value)}
               />
             </form>
             <Button
-              className={styles.button}
+              style={{ width: 300,  left: "10%", borderRadius: "87px",letterSpacing: 1.25, }}
               color="primary"
               variant="contained"
               onClick={() =>
