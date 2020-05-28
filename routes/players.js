@@ -3,6 +3,7 @@ const router = express.Router();
 const config = require("config");
 const db = require("../db/MongoUtils");
 const dbName = config.get("dbName");
+const usersCollection = config.get("usersCollection");
 const { check, validationResult } = require("express-validator");
 const { User } = require("../db/models/User");
 const { Player } = require("../db/models/Player");
@@ -53,5 +54,22 @@ router.post(
     return res.status(200).json(newPlayer);
   }
 );
+
+/**
+ * GET /players
+ * Returns scoreboard.
+ * @access public
+ */
+router.get("/", function (req, res) {
+  db.getDocumentsPromise(dbName, usersCollection).then((docs) => {
+    let resp = docs;
+    resp.sort((a, b) => b.score - a.score);
+
+    if (docs.length >= 100) {
+      resp = resp.slice(0, 100);
+    }
+    return res.status(200).json(resp);
+  });
+});
 
 module.exports = router;
