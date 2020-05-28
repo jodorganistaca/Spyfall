@@ -735,19 +735,23 @@ const Message = ({ content, sender, user, date }) => {
       display="flex"
       alignSelf="stretch"
       width="100%"
-      justifyContent={sender === "receiver" ? "flex-start" : "flex-end"}
+      justifyContent={sender === "receiver" ? "" : ""}
       marginTop="3px"
       marginBottom="3px"
     >
       {sender === "receiver" && (
         <Box>
-          <Avatar src={user.avatar} className={styles.small} />
+          <Avatar
+            src={user.avatar}
+            className={styles.small}
+            style={{ margin: "auto" }}
+          />
           <p
             style={{
-              fontSize: "0.5em",
+              fontSize: "50%",
               textAlign: "center",
-              wordBreak: "break-all",
-              maxWidth: "55px",
+              wordBreak: "break-word",
+              maxWidth: "70px",
             }}
           >
             {user.name}
@@ -758,7 +762,6 @@ const Message = ({ content, sender, user, date }) => {
       <Box
         margin="0px 10px 0px 10px"
         padding="10px 20px 10px 20px"
-        bgcolor={sender === "receiver" ? "primary.main" : "secondary.main"}
         style={{
           borderRadius: "20px",
           borderTopRightRadius: sender !== "receiver" ? "0px" : "20px",
@@ -767,6 +770,8 @@ const Message = ({ content, sender, user, date }) => {
           maxWidth: 220,
           height: "100%",
           wordBreak: "break-word",
+          backgroundColor:
+            sender === "receiver" ? "rgba(141, 141, 141, 0.7)" : "#ada",
         }}
       >
         <Typography
@@ -778,14 +783,18 @@ const Message = ({ content, sender, user, date }) => {
       </Box>
       {sender === "sender" && (
         <Box>
-          <Avatar src={user.avatar} className={styles.small} />
+          <Avatar
+            src={user.avatar}
+            className={styles.small}
+            style={{ margin: "auto" }}
+          />
           <p
             style={{
-              fontSize: "0.8em",
+              fontSize: "50%",
               textAlign: "center",
               margin: "auto",
-              wordBreak: "break-all",
-              maxWidth: "75px",
+              wordBreak: "break-word",
+              maxWidth: "70px",
             }}
           >
             {user.name}
