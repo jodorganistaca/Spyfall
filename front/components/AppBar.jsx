@@ -8,7 +8,7 @@ import {
   Typography,
   Button,
 } from "@material-ui/core";
-import { withTranslation } from "../plugins/i18n";
+import { withTranslation, Router } from "../plugins/i18n";
 import { ExpandMore, ExpandLess, Help, EmojiEvents } from "@material-ui/icons";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
@@ -104,7 +104,11 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
             onClose={(_) => setAnchor(null)}
             anchorEl={anchor}
           >
-            <MenuItem role="menuitem" aria-label="how-to-play">
+            <MenuItem
+              role="menuitem"
+              aria-label="how-to-play"
+              onClick={() => Router.push("how-to-play")}
+            >
               {t("how-to-play")}
             </MenuItem>
             {auth && auth.user && (
