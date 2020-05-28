@@ -735,7 +735,7 @@ const Message = ({ content, sender, user, date }) => {
       display="flex"
       alignSelf="stretch"
       width="100%"
-      justifyContent={sender === "receiver" ? "" : ""}
+      justifyContent={sender === "receiver" ? "flex-start" : "flex-end"}
       marginTop="3px"
       marginBottom="3px"
     >
