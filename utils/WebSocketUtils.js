@@ -104,7 +104,7 @@ exports.setup = (server, session) => {
               if (!name) {
                 throw new Error("Error: Name is required to join a match");
               }
-              const fakeEmail = `${name}@nouser.com`;
+              const fakeEmail = `${name.toLowerCase()}@nouser.com`;
               user = new User(fakeEmail, name);
             }
             joinMatch(token, user, ws);
@@ -311,7 +311,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
     clients[token].notSpies = notSpies;
     clients[token].waiting = false;
     let endTime = new Date();
-    endTime.setMinutes(endTime.getMinutes() + 8);
+    endTime.setMinutes(endTime.getMinutes() + 2);
     for (const [email, obj] of Object.entries(spies)) {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
       const copy = Object.assign({}, obj.player);
@@ -495,6 +495,7 @@ const createVote = (token, idVote, ws) => {
       }
       if (!clients[token].spies || !clients[token].notSpies)
         throw new Error("Match has not begun. Therefore voting is prohibited");
+      if (clients[token].ended) throw new Error("Match already ended");
       let idVotingUser =
         clients[token].clientsDictionary[ws._socket.remoteAddress].id;
       let idEmail =
@@ -598,6 +599,7 @@ const endMatch = (token) => {
     } else {
       clients[token].ended = true;
       let scoreboard = [];
+      let players = [];
       for (const [emailId, { client, player }] of Object.entries(
         clients[token].connectedClients
       )) {
@@ -622,25 +624,29 @@ const endMatch = (token) => {
       for (const [id, { client, player }] of Object.entries(
         clients[token].spies
       )) {
-        const copyOfUser = Object.assign({}, player.user);
-        copyOfUser._id && delete copyOfUser._id;
+        const copyOfPlayer = _.cloneDeep(player);
+        copyOfPlayer.user._id && delete copyOfPlayer.user._id;
         if (winnerRole === "Spies") {
-          winners.push(copyOfUser);
+          winners.push(copyOfPlayer.user);
         }
-        scoreboard.push(copyOfUser);
+        scoreboard.push(copyOfPlayer.user);
+        players.push(copyOfPlayer);
       }
       for (const [id, { client, player }] of Object.entries(
         clients[token].notSpies
       )) {
-        const copyOfUser = Object.assign({}, player.user);
-        copyOfUser._id && delete copyOfUser._id;
+        const copyOfPlayer = _.cloneDeep(player);
+        copyOfPlayer.user._id && delete copyOfPlayer.user._id;
         if (winnerRole === "Not Spies") {
-          winners.push(copyOfUser);
+          winners.push(copyOfPlayer.user);
         }
-        scoreboard.push(copyOfUser);
+        scoreboard.push(copyOfPlayer.user);
+        players.push(copyOfPlayer);
       }
 
       let score = clients[token].score;
+      console.log(clients[token]);
+      let location = clients[token].location;
       this.notifyChanges(token, {
         method: "END_MATCH",
         ended: true,
@@ -648,6 +654,8 @@ const endMatch = (token) => {
         winners,
         scoreboard,
         score,
+        players,
+        location,
       });
     }
   } else {

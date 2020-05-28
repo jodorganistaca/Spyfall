@@ -267,23 +267,27 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic"
                 label={t("name")}
-                style={{ width: 300 }}
+                style={{ width: "100%" }}
                 variant="outlined"
                 value={guestName}
+                autoFocus
                 onKeyDown={(e) => {
                   if (e.key == "Enter") return handleGuestName(guestName);
                 }}
                 onChange={(event) => setGuestName(event.target.value)}
               />
             </form>
-            <Button
-              className={styles.button}
-              color="primary"
-              variant="contained"
-              onClick={() => handleGuestName(guestName)}
-            >
-              {t("create-match")}
-            </Button>
+            <div style={{ width: "100%", textAlign: "center" }}>
+              <Button
+                className={styles.button}
+                color="primary"
+                variant="contained"
+                style={{ margin: "auto" }}
+                onClick={() => handleGuestName(guestName)}
+              >
+                {t("create-match")}
+              </Button>
+            </div>
           </div>
         </Fade>
       </Modal>
@@ -316,9 +320,10 @@ const Home = function Home(props) {
                   <TextField
                     id="outlined-basic-2"
                     label={t("name")}
-                    style={{ width: 300 }}
+                    style={{ width: "100%" }}
                     variant="outlined"
                     value={guestName}
+                    autoFocus
                     onChange={(event) => setGuestName(event.target.value)}
                   />
                 </form>
@@ -336,7 +341,7 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic-3"
                 label={t("code")}
-                style={{ width: 300 }}
+                style={{ width: "100%" }}
                 variant="outlined"
                 value={matchCode}
                 onChange={(event) => setMatchCode(event.target.value)}
@@ -348,18 +353,20 @@ const Home = function Home(props) {
                 }}
               />
             </form>
-            <Button
-              className={styles.button}
-              color="primary"
-              variant="contained"
-              onClick={() =>
-                auth.user
-                  ? async () => userLoggedJoin(auth.user.user, matchCode)
-                  : openJoinModal(guestName, matchCode)
-              }
-            >
-              {t("join-match")}
-            </Button>
+            <div style={{ width: "100%", textAlign: "center" }}>
+              <Button
+                className={styles.button}
+                color="primary"
+                variant="contained"
+                onClick={() =>
+                  auth.user
+                    ? async () => userLoggedJoin(auth.user.user, matchCode)
+                    : openJoinModal(guestName, matchCode)
+                }
+              >
+                {t("join-match")}
+              </Button>
+            </div>
           </div>
         </Fade>
       </Modal>

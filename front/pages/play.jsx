@@ -10,23 +10,33 @@ import {
   GridList,
   GridListTile,
   GridListTileBar,
+  TextField,
+  Avatar,
+  Card,
+  CardContent,
+  Paper,
+  Popover,
 } from "@material-ui/core";
-import { useState, useEffect } from "react";
+import { Send, Image } from "@material-ui/icons";
+import { useState, useEffect, useRef, Component } from "react";
 import moment from "moment/moment";
 import AvatarList from "../components/AvatarList";
 import { Help } from "@material-ui/icons";
+import { Chat as ChatIcon } from "@material-ui/icons";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import CustomTooltip from "../components/CustomTooltip";
-import Chat from "../components/Chat";
-import Votation from "./votation";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked";
 import CheckCircle from "@material-ui/icons/CheckCircle";
 import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import http from "../plugins/axios";
+import { NavigationSharp } from "@material-ui/icons";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
+import { endMatch } from "../store/actions/matches";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -61,6 +71,10 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: "100%",
     marginTop: "30px",
   },
+  small: {
+    width: theme.spacing(3),
+    height: theme.spacing(3),
+  },
   gridList: {
     width: "auto",
     height: "auto",
@@ -72,6 +86,17 @@ const useStyles = makeStyles((theme) => ({
       cursor: "pointer",
     },
   },
+  imageContainer: { height: "auto", width: "320px", marginTop: 45 },
+  card: {
+    margin: "5px 5px 5px 5px",
+    width: 250,
+    height: "95px",
+    flex: "0 0 45%",
+  },
+  message: {
+    backgroundColor: theme.palette.background.paper,
+  },
+  chatIcon: { color: theme.palette.success.main },
 }));
 
 const RoleImage = (props) => (
@@ -111,45 +136,95 @@ const Countdown = ({ finishTime, t }) => {
   );
 };
 
-const Play = function ({ t, places, match }) {
-  if (!match) {
-    console.log("Match not found");
-  }
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+const Play = function ({ t, places, match, endMatch }) {
   useEffect(() => {
+    if (!match) {
+      Router.push("/");
+    }
     listenMatch(match.wss);
   }, []);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [messages, setMessages] = useState([]);
   const styles = useStyles();
-  const role = match.player.role;
+  const role = match && match.player ? match.player.role : "";
   const [voted, setVoted] = useState(false);
+  const [openAlert, setOpenAlert] = useState(false);
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenAlert(false);
+  };
 
   const listenMatch = (wss) => {
     wss.onmessage = (e) => {
       let method = "";
       const response = JSON.parse(e.data);
-      if (!response.error) {
-        method = response.method;
-        switch (method) {
-          case "END_MATCH":
-            Router.push("/votation");
-            break;
-          case "CREATE_VOTE":
-            if (response.voted == true) setVoted(true);
-            break;
-        }
+      console.log(response);
+      method = response.method;
+      console.log("no error");
+      switch (method) {
+        case "END_MATCH":
+          endMatch(response);
+          break;
+        case "CREATE_VOTE":
+          if (response.voted == true) {
+            setVoted(true);
+            setAlertMessage(t("vote-registration"));
+            setAlertSeverity("success");
+            setOpenAlert(true);
+          }
+          if (response.error) {
+            setVoted(true);
+            setAlertMessage(response.error);
+            setAlertSeverity("error");
+            setOpenAlert(true);
+          }
+          break;
+        case "CHAT":
+          let theMessages = response.chat;
+          if (theMessages && theMessages.length) {
+            theMessages.forEach((element) => {
+              if (element.user.id == match.player.user.id) {
+                element.sender = "sender";
+              } else element.sender = "receiver";
+              element.content = element.message;
+            });
+            theMessages.sort((a, b) => b.date - a.date);
+            setMessages(theMessages);
+          }
+          break;
       }
-      console.log("chat container", e);
     };
   };
 
-  const voteForPlace = (token, wss, idVote) => {
-    wss.send(
+  const voteForPlace = (idVote) => {
+    match.wss.send(
       JSON.stringify({
         method: "CREATE_VOTE",
-        token: token,
+        token: match.token,
         idVote,
       })
     );
+    setTimeout(() => setOpenModal(false), 2000);
+  };
+
+  const voteForUser = (selected) => {
+    match.wss.send(
+      JSON.stringify({
+        method: "CREATE_VOTE",
+        token: match.token,
+        idVote: match.users[selected].id,
+      })
+    );
+    setTimeout(() => setOpenModal(false), 2000);
   };
 
   return (
@@ -183,10 +258,10 @@ const Play = function ({ t, places, match }) {
             <img width="200px" src={match.location.image} />
           )}
           <Typography color="primary" variant="h4">
-            {t(`${role === "Spy" ? role : match.location.name}-title`)}
+            {t(`${role === "Spy" ? "spy-title" : role}`)}
           </Typography>
           <Typography variant="subtitle1">
-            {t(`${role}-description`)}
+            {t(`${role === "Spy" ? "spy" : "non-spy"}-description`)}
           </Typography>
         </Grid>
         <Grid xs={12} md={2} item className={styles.rightBar}>
@@ -204,7 +279,7 @@ const Play = function ({ t, places, match }) {
             </Grid>
 
             <Grid xs={6} md={12} item>
-              <Chat title={t("chat")} />
+              <Chat title={t("chat")} t={t} messages={messages} match={match} />
             </Grid>
           </Grid>
         </Grid>
@@ -235,7 +310,7 @@ const Play = function ({ t, places, match }) {
           setOpenModal(true);
         }}
       >
-        {t(`I know where is everybody!`)}
+        {t(`${role === "Spy" ? "spy-votation" : "non-spy-votation"}`)}
       </Button>
 
       <Modal
@@ -253,7 +328,13 @@ const Play = function ({ t, places, match }) {
           <div className={styles.paper}>
             {match.player.role !== "Spy" ? (
               <>
-                <Votation />
+                <Votation
+                  t={t}
+                  match={match}
+                  voted={voted}
+                  setVoted={setVoted}
+                  vote={voteForUser}
+                />
               </>
             ) : (
               <>
@@ -269,10 +350,20 @@ const Play = function ({ t, places, match }) {
           </div>
         </Fade>
       </Modal>
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={4000}
+        onClose={handleCloseAlert}
+      >
+        <Alert onClose={handleCloseAlert} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 };
 
+//#region ChoosePlace
 /*
 Choose place
  */
@@ -333,7 +424,7 @@ const ImageList = function ({
   );
 };
 
-const ChoosePlace = function ({ t, match, voteForPlace, voted, setVoted }) {
+const ChoosePlace = function ({ t, match, voteForPlace, voted }) {
   const styles = useStyles();
   const [selected, setSelected] = useState("");
   let locations = [];
@@ -372,12 +463,9 @@ const ChoosePlace = function ({ t, match, voteForPlace, voted, setVoted }) {
               <Button
                 variant="contained"
                 size="medium"
-                color="success"
                 disabled={voted}
                 className={styles.button}
-                onClick={() =>
-                  voteForPlace(match.token, match.wss, selected, setVoted)
-                }
+                onClick={() => voteForPlace(selected)}
               >
                 {t("vote")}
               </Button>
@@ -390,9 +478,7 @@ const ChoosePlace = function ({ t, match, voteForPlace, voted, setVoted }) {
               size="medium"
               color="success"
               className={styles.button}
-              onClick={() =>
-                voteForPlace(match.token, match.wss, selected, setVoted)
-              }
+              onClick={() => voteForPlace(selected)}
             >
               {t("vote")}
             </Button>
@@ -403,6 +489,314 @@ const ChoosePlace = function ({ t, match, voteForPlace, voted, setVoted }) {
   );
 };
 
+//#endregion ChoosePlace
+
+//#region Votation
+
+const Votation = function ({ t, match, vote, voted, setVoted }) {
+  const [players, setPlayers] = useState([]);
+  const [selected, setSelected] = useState(-1);
+  const styles = useStyles();
+  const createTable = () => {
+    let table = [];
+    for (let i = 0; i < players.length; i++) {
+      table.push(
+        <Card className={styles.card} key={i} onClick={() => setSelected(i)}>
+          <CardContent>
+            <Button key={i}>
+              <Box
+                display="flex"
+                justifyContent="left"
+                alignItems="center"
+                flexWrap="wrap"
+              >
+                <Box margin="0px 10px 0px 10px">
+                  <Avatar
+                    align="center"
+                    alt={`${players[i].name}`}
+                    src={`${players[i].avatar}`}
+                    className={styles.small}
+                  ></Avatar>
+                </Box>
+                <Typography
+                  align="center"
+                  variant="subtitle1"
+                  style={{
+                    fontSize: "0.9em",
+                    wordBreak: "break-all",
+                    maxWidth: "90px",
+                  }}
+                >
+                  {players[i].name}
+                </Typography>
+              </Box>
+            </Button>
+            <IconButton aria-label={`icon ${players[i].name}`}>
+              {selected !== i && (
+                <RadioButtonUnchecked className={styles.icon} />
+              )}
+              {selected === i && <CheckCircle className={styles.icon} />}
+            </IconButton>
+          </CardContent>
+        </Card>
+      );
+    }
+    return table;
+  };
+  const getPlayers = async () => {
+    setPlayers(match.users);
+  };
+  useEffect(() => {
+    getPlayers();
+  }, []);
+  return (
+    <Layout secondary>
+      <Box display="flex" flexDirection="column" alignItems="left">
+        <Typography
+          align="left"
+          variant="h4"
+          style={{ marginBottom: 5, marginTop: 50, letterSpacing: 1.25 }}
+          onClick={() => console.log(players, "\n match ", match)}
+        >
+          {t("Vote for a player")}
+        </Typography>
+      </Box>
+      <Box
+        display="flex"
+        flexDirection="row"
+        justifyContent="center"
+        flexWrap="wrap"
+        margin="0px 20% 0px 20%"
+      >
+        {createTable()}
+      </Box>
+      {voted ? (
+        <CustomTooltip placement="top" title="You already voted">
+          <Box display="flex" flexDirection="row">
+            <Button
+              variant="contained"
+              size="medium"
+              color="success"
+              disabled={voted}
+              className={styles.button}
+              onClick={() => vote(selected)}
+            >
+              {t("vote")}
+            </Button>
+          </Box>
+        </CustomTooltip>
+      ) : (
+        <Box display="flex" flexDirection="row">
+          <Button
+            variant="contained"
+            size="medium"
+            color="success"
+            className={styles.button}
+            onClick={() => vote(selected)}
+          >
+            {t("vote")}
+          </Button>
+        </Box>
+      )}
+    </Layout>
+  );
+};
+
+//#endregion Votation
+
+//#region Chat
+const Chat = function ({ title, match, messages, t }) {
+  const [anchor, setAnchor] = useState(null);
+  const [messageToSend, setMessageToSend] = useState("");
+  const inputMessage = useRef(null);
+
+  const setFocus = () => {
+    inputMessage.current.focus();
+  };
+
+  const sendMessage = (token, chattingUser) => {
+    match.wss.send(
+      JSON.stringify({
+        method: "CHAT",
+        token,
+        message: messageToSend,
+        chattingUser,
+      })
+    );
+    setMessageToSend("");
+  };
+  const styles = useStyles();
+
+  return (
+    <>
+      <CustomTooltip
+        title={title}
+        aria-label={title}
+        style={{ fontSize: "0.83rem" }}
+      >
+        <IconButton
+          className={styles.chatIcon}
+          variant="contained"
+          onClick={(event) => {
+            setAnchor(event.currentTarget);
+            setFocus();
+          }}
+        >
+          <ChatIcon style={{ width: 30, height: 30 }} />
+        </IconButton>
+      </CustomTooltip>
+
+      <Popover
+        id="simple-menu"
+        anchorEl={anchor}
+        keepMounted
+        open={anchor !== null}
+        onClose={() => setAnchor(null)}
+        disableAutoFocus
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Box justifyContent="space-between" height="100%">
+          <Box bgcolor="secondary.light" width="100%" padding="5px">
+            <Typography variant="subtitle1" style={{ color: "#fff" }}>
+              Chat
+            </Typography>
+          </Box>
+
+          <Paper
+            elevation={1}
+            style={{
+              maxHeight: "275px",
+              minHeight: "200px",
+              display: "flex",
+              flexDirection: "column-reverse",
+              margin: "5px",
+              position: "relative",
+              overflow: "auto",
+            }}
+          >
+            <PerfectScrollbar
+              style={{
+                height: "100%",
+                minHeight: "200px",
+                display: "flex",
+                flexDirection: "column-reverse",
+                margin: "5px",
+              }}
+            >
+              {messages.map((value, i) => (
+                <Message
+                  key={i}
+                  content={value.content}
+                  sender={value.sender}
+                  user={value.user}
+                />
+              ))}
+            </PerfectScrollbar>
+          </Paper>
+
+          <Box justifyContent="center" alignContent="center" padding="10px">
+            <TextField
+              style={{ flex: 3, width: "auto" }}
+              label={t("write-message")}
+              value={messageToSend}
+              autoFocus
+              ref={inputMessage}
+              onChange={(e) => setMessageToSend(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key == "Enter")
+                  sendMessage(match.token, match.player.user);
+              }}
+            />
+            <IconButton
+              onClick={() => {
+                return sendMessage(match.token, match.player.user);
+              }}
+            >
+              <Send />
+            </IconButton>
+          </Box>
+        </Box>
+      </Popover>
+    </>
+  );
+};
+
+const Message = ({ content, sender, user, date }) => {
+  const styles = useStyles();
+  return (
+    <Box
+      display="flex"
+      alignSelf="stretch"
+      width="100%"
+      justifyContent={sender === "receiver" ? "flex-start" : "flex-end"}
+      marginTop="3px"
+      marginBottom="3px"
+    >
+      {sender === "receiver" && (
+        <Box>
+          <Avatar src={user.avatar} className={styles.small} />
+          <p
+            style={{
+              fontSize: "0.5em",
+              textAlign: "center",
+              wordBreak: "break-all",
+              maxWidth: "55px",
+            }}
+          >
+            {user.name}
+          </p>
+        </Box>
+      )}
+
+      <Box
+        margin="0px 10px 0px 10px"
+        padding="10px 20px 10px 20px"
+        bgcolor={sender === "receiver" ? "primary.main" : "secondary.main"}
+        style={{
+          borderRadius: "20px",
+          borderTopRightRadius: sender !== "receiver" ? "0px" : "20px",
+          borderTopLeftRadius: sender === "receiver" ? "0px" : "20px",
+          alignSelf: sender === "receiver" ? "flex-start" : "flex-end",
+          maxWidth: 220,
+          height: "100%",
+          wordBreak: "break-word",
+        }}
+      >
+        <Typography
+          align={sender == "receiver" ? "start" : "end"}
+          variant="caption"
+        >
+          {content}
+        </Typography>
+      </Box>
+      {sender === "sender" && (
+        <Box>
+          <Avatar src={user.avatar} className={styles.small} />
+          <p
+            style={{
+              fontSize: "0.8em",
+              textAlign: "center",
+              margin: "auto",
+              wordBreak: "break-all",
+              maxWidth: "75px",
+            }}
+          >
+            {user.name}
+          </p>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+//#endregion Chat
 Play.getInitialProps = async () => {
   let places = [];
 
@@ -415,5 +809,5 @@ Play.getInitialProps = async () => {
 const mapStateToProps = (state) => ({ match: state.matches.match });
 
 export default withTranslation("play")(
-  connect(mapStateToProps, () => ({}))(Play)
+  connect(mapStateToProps, { endMatch })(Play)
 );

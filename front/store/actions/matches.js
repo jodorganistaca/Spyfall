@@ -11,21 +11,18 @@ import {
   JOIN_MATCH_SUCCESS,
   JOIN_MATCH_FAIL,
   MESSAGE_RECEIVED,
+  ENDED_MATCH_SUCCESS,
 } from "./types";
 
-export const createMatch = (wss, name) => (dispatch) => {
+export const createMatch = (wss, name) => async (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name }));
-    console.log(name);
-    console.log(wss);
     let token;
-    wss.onmessage = (e) => {
+    wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
-      console.log("create Match ", e);
       if (response["token"]) {
         token = response["token"];
-        console.log("create match ", token, " wss ", wss);
-        dispatch({
+        await dispatch({
           type: CREATE_MATCH_SUCCESS,
           payload: {
             wss,
@@ -33,11 +30,10 @@ export const createMatch = (wss, name) => (dispatch) => {
             waitingUsers: response.waitingUsers,
           },
         });
-        //wss.close();
+        console.log("redirect to waiting room");
+        return Router.push("/waiting-room");
       }
     };
-    console.log("redirect to waiting room");
-    return Router.push("/waiting-room");
   } catch (error) {
     console.log(error);
     return dispatch({
@@ -46,13 +42,13 @@ export const createMatch = (wss, name) => (dispatch) => {
   }
 };
 
-export const joinMatch = (wss, name, token) => (dispatch) => {
+export const joinMatch = (wss, name, token) => async (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "JOIN_MATCH", token, name }));
-    wss.onmessage = (e) => {
+    wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
       if (!response.error) {
-        dispatch({
+        await dispatch({
           type: JOIN_MATCH_SUCCESS,
           payload: {
             wss,
@@ -72,16 +68,31 @@ export const joinMatch = (wss, name, token) => (dispatch) => {
   }
 };
 
-export const beginMatch = (wss, token) => (dispatch) => {
+export const endMatch = (response) => async (dispatch) => {
+  try {
+    console.log(response);
+    if (!response.error) {
+      await dispatch({
+        type: ENDED_MATCH_SUCCESS,
+        payload: response,
+      });
+      return Router.push("/publish-votation");
+    }
+  } catch (error) {
+    console.error("error", error);
+  }
+};
+
+export const beginMatch = (wss, token) => async (dispatch) => {
   try {
     wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
-    wss.onmessage = (e) => {
+    wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
       console.log(e);
       if (!response.error) {
         response.token = token;
         response.wss = wss;
-        dispatch({
+        await dispatch({
           type: BEGIN_MATCH_SUCCESS,
           payload: response,
         });

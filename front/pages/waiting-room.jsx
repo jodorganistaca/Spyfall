@@ -14,6 +14,8 @@ import PropTypes from "prop-types";
 import http from "../plugins/axios";
 import { beginMatch } from "../store/actions/matches";
 import CustomTooltip from "../components/CustomTooltip";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 const useStyles = makeStyles((theme) => ({
   button: {
     width: 160,
@@ -36,9 +38,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("");
+  const [openAlert, setOpenAlert] = useState(false);
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenAlert(false);
+  };
   const listenMatch = () => {
     match.wss.onmessage = (e) => {
       let method = "";
@@ -46,17 +61,20 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
       method = response.method;
       switch (method) {
         case "JOIN_MATCH":
-          setPlayers(response.waitingUsers);
+          if (!response.error) {
+            setPlayers(response.waitingUsers);
+            setAlertMessage("A user joined to the match!");
+            setAlertSeverity("info");
+            setOpenAlert(true);
+          }
+
           break;
         case "BEGIN_MATCH":
           break;
       }
       console.log("waiting room ", e);
     };
-    console.log(match);
-    console.log(match !== null);
-    if (match !== null && match.waitingUsers !== undefined) {
-      console.log(match.waitingUsers);
+    if (match != null && match.waitingUsers != null) {
       setPlayers(match.waitingUsers);
     }
   };
@@ -64,26 +82,9 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   //return <Redirect to="/" />;
   //}
 
-  if (match && match.wss) {
-    match.wss.onmessage = (e) => {
-      let method = "";
-      const response = JSON.parse(e.data);
-      method = response.method;
-      switch (method) {
-        case "JOIN_MATCH":
-          setPlayers(response.waitingUsers);
-          break;
-        case "MATCH_CREATION":
-          setPlayers(response.waitingUsers);
-          break;
-      }
-    };
-  }
-
   useEffect(() => {
     if (match && match.wss) {
       listenMatch();
-      console.log("web socket waiting room ", match.wss);
     }
   }, []);
 
@@ -148,6 +149,15 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
           </>
         )}
       </Box>
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={4000}
+        onClose={handleCloseAlert}
+      >
+        <Alert onClose={handleCloseAlert} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 }
