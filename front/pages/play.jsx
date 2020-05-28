@@ -1,5 +1,6 @@
 import Layout from "../components/Layout";
 import { withTranslation } from "../plugins/i18n";
+import Router from "next/router";
 import {
   Box,
   Button,
@@ -30,7 +31,6 @@ import CustomTooltip from "../components/CustomTooltip";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked";
 import CheckCircle from "@material-ui/icons/CheckCircle";
-import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import http from "../plugins/axios";
 import { NavigationSharp } from "@material-ui/icons";
@@ -141,10 +141,10 @@ function Alert(props) {
 }
 
 const Play = function ({ t, places, match, endMatch }) {
+  if (!match) {
+    Router.push("/");
+  }
   useEffect(() => {
-    if (!match) {
-      Router.push("/");
-    }
     listenMatch(match.wss);
   }, []);
   const [alertMessage, setAlertMessage] = useState("");
