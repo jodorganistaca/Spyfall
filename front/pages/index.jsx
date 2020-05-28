@@ -87,8 +87,7 @@ const Home = function Home(props) {
   };
 
   const userLoggedJoin = async (user) => {
-    const token = prompt("Tóken de la partida?");
-    await joinMatch(user, token);
+    await joinMatch(ws.current, null, code);
   };
 
   const openJoinModal = async (name, code) => {
@@ -143,7 +142,7 @@ const Home = function Home(props) {
                 startIcon={<Add />}
                 onClick={
                   auth.user
-                    ? async () => createMatch(auth.user.user)
+                    ? async () => createMatch(ws.current, auth.user.user)
                     : async () => setOpenModal(true)
                 }
               >
@@ -173,7 +172,7 @@ const Home = function Home(props) {
               startIcon={<Add />}
               onClick={
                 auth.user
-                  ? async () => createMatch(auth.user.user)
+                  ? async () => createMatch(ws.current, auth.user.user)
                   : async () => setOpenModal(true)
               }
             >
