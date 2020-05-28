@@ -44,6 +44,7 @@ const Message = ({ content, sender, user, date }) => (
         borderTopLeftRadius: sender === "receiver" ? "0px" : "20px",
         alignSelf: sender === "receiver" ? "flex-start" : "flex-end",
         width: 150,
+        wordBreak: "break-all",
       }}
     >
       <Typography
@@ -68,15 +69,21 @@ class ChatContainer extends Component {
     this.match = props.match;
     this.state = {
       messages: [],
-      messageToSend: undefined,
+      messageToSend: "",
       id: 0,
     };
   }
 
-  sendMessage = (wss, token, message, chattingUser) => {
+  sendMessage = (token, chattingUser) => {
     this.match.wss.send(
-      JSON.stringify({ method: "CHAT", token, message: "Gola", chattingUser })
+      JSON.stringify({
+        method: "CHAT",
+        token,
+        message: this.state.messageToSend,
+        chattingUser,
+      })
     );
+    this.setState({ messageToSend: "" });
   };
 
   listenMatch = () => {
@@ -121,15 +128,21 @@ class ChatContainer extends Component {
       else element.user = "receiver";
       element.content = element.message;
     });
+    messages.sort((a, b) => new Date(b.date) - new Date(a.date));
+    this.setState({ messages });
   }
 
   handleChange(e) {
-    this.setState({ messageToSend: e.value });
+    this.setState({ messageToSend: e.target.value });
   }
 
   render() {
     return (
-      <Box justifyContent="space-between" height="100%">
+      <Box
+        justifyContent="space-between"
+        height="300px"
+        style={{ overflow: "scroll" }}
+      >
         <Box bgcolor="secondary.light" width="100%" padding="5px">
           <Typography variant="subtitle1" style={{ color: "#fff" }}>
             Chat
@@ -140,7 +153,7 @@ class ChatContainer extends Component {
           elevation={1}
           style={{
             height: "100%",
-            minHeight: "300px",
+            minHeight: "200px",
             display: "flex",
             flexDirection: "column-reverse",
             margin: "5px",
@@ -149,7 +162,7 @@ class ChatContainer extends Component {
           <PerfectScrollbar
             style={{
               height: "100%",
-              minHeight: "300px",
+              minHeight: "200px",
               display: "flex",
               flexDirection: "column-reverse",
               margin: "5px",
@@ -171,17 +184,15 @@ class ChatContainer extends Component {
             style={{ flex: 3, width: "auto" }}
             label="Escribe tu mensaje aquí"
             value={this.state.messageToSend}
-            onChange={this.handleChange.bind(this)}
+            onChange={(e) => this.setState({ messageToSend: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key == "Enter")
+                this.sendMessage(this.match.token, this.match.player.user);
+            }}
           />
           <IconButton
             onClick={() => {
-              console.log("Se enviara un mensaje");
-              return this.sendMessage(
-                this.match.wss,
-                this.match.token,
-                this.state.messageToSend,
-                this.match.player.user
-              );
+              return this.sendMessage(this.match.token, this.match.player.user);
             }}
           >
             <Send />

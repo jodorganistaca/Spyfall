@@ -1,6 +1,8 @@
+const withPlugins = require("next-compose-plugins");
+const optimizedImages = require("next-optimized-images");
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 
-module.exports = {
+const nextConfig = {
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,
@@ -15,3 +17,13 @@ module.exports = {
     return config;
   },
 };
+
+module.exports = withPlugins([
+  [
+    optimizedImages,
+    {
+      /* config for next-optimized-images */
+    },
+  ],
+  nextConfig,
+]);

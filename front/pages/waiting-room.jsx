@@ -1,12 +1,21 @@
 import Layout from "../components/Layout";
 import React, { useState, useEffect, useRef } from "react";
-import { Typography, Button, makeStyles, Box } from "@material-ui/core";
+import {
+  Typography,
+  Button,
+  makeStyles,
+  Box,
+  Tooltip,
+} from "@material-ui/core";
 import AvatarList from "../components/AvatarList";
 import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import http from "../plugins/axios";
-import { beginMatch } from "../store/actions/matches";
+import { beginMatch, beginMatchNonOwner } from "../store/actions/matches";
+import CustomTooltip from "../components/CustomTooltip";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 const useStyles = makeStyles((theme) => ({
   button: {
     width: 160,
@@ -29,68 +38,63 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+function WaitingRoom({
+  t,
+  match,
+  isOwner,
+  beginMatch,
+  beginMatchNonOwner,
+  wss,
+}) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [beganMatch, setBeganMatch] = useState(false);
+  const [alertSeverity, setAlertSeverity] = useState("");
+  const [openAlert, setOpenAlert] = useState(false);
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenAlert(false);
+  };
   const listenMatch = () => {
-    
-    match.wss.onmessage = (e) => {
-      let method = "";
-      const response = JSON.parse(e.data);
-      method = response.method;
-      switch(method){
-        case "JOIN_MATCH":
-          setPlayers(response.waitingUsers);
-          break;
-        case "BEGIN_MATCH":
-
-          break;
-      }
-      console.log("waiting room ", e);
-
+    if (match && match.wss) {
+      match.wss.onmessage = (e) => {
+        let method = "";
+        const response = JSON.parse(e.data);
+        method = response.method;
+        switch (method) {
+          case "JOIN_MATCH":
+            if (!response.error) {
+              setPlayers(response.waitingUsers);
+              setAlertMessage("A user joined to the match!");
+              setAlertSeverity("info");
+              setOpenAlert(true);
+            }
+            break;
+          case "BEGIN_MATCH":
+            return beginMatchNonOwner(response, match.token, match.wss);
+            break;
+        }
+        console.log("waiting room ", e);
+      };
     }
-    console.log(match);
-    console.log(match !== null);
-    if(match !== null && match.waitingUsers !== undefined ){
-      console.log(match.waitingUsers)
-      setPlayers(match.waitingUsers);
-    }
-    
   };
   //if (!match) {
-    //return <Redirect to="/" />;
+  //return <Redirect to="/" />;
   //}
 
-  const loadInitialPlayers = async (matchId) => {
-    const res = await http.get(`/matches/${matchId}`);
-    setPlayers(res.data.pendingToAssign);
-    console.log("Players ->", players);
-  };
-
-  if(match && match.wss){
-    match.wss.onmessage = (e) => {
-      let method = "";
-      const response = JSON.parse(e.data);
-      method = response.method;
-      switch(method){
-        case "JOIN_MATCH":
-          setPlayers(response.waitingUsers);
-          break;
-        case "MATCH_CREATION":
-          setPlayers(response.waitingUsers);
-          break;
-      }
-
-    }
-  }
-
   useEffect(() => {
-    
-    if(match && match.wss){
+    if (match && match.wss) {
       listenMatch();
-      console.log("web socket waiting room ",match.wss)
+      match.waitingUsers && setPlayers(match.waitingUsers);
     }
-  }, []);
+  }, [match]);
 
   return (
     <Layout secondary info={t("info")}>
@@ -107,7 +111,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
             {t("match-code")}
           </Typography>
           <Typography align="center" variant="h3" color="primary">
-            { match === null ? "" : match.token }
+            {match === null ? "" : match.token}
           </Typography>
         </Box>
 
@@ -122,17 +126,72 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
 
         <AvatarList items={players} />
 
-        {(true || isOwner) && (
-          <Button
-            className={styles.button}
-            variant="contained"
-            size="medium"
-            onClick={() => beginMatch(match.wss, match.token)}
+        {isOwner ? (
+          players.length <= 1 ? (
+            <CustomTooltip
+              placement="top"
+              title="Matches require at least 2 players"
+            >
+              {/* Span porque así toca https://material-ui.com/es/components/tooltips/ */}
+              <span>
+                <Button
+                  className={styles.button}
+                  variant="contained"
+                  disabled={players.length <= 1}
+                  size="medium"
+                  onClick={() => {
+                    setBeganMatch(true);
+                    beginMatch(match.wss, match.token);
+                  }}
+                >
+                  {t("next")}
+                </Button>
+              </span>
+            </CustomTooltip>
+          ) : (
+            <>
+              <Button
+                className={styles.button}
+                variant="contained"
+                size="medium"
+                onClick={() => {
+                  setBeganMatch(true);
+                  beginMatch(match.wss, match.token);
+                }}
+              >
+                {t("next")}
+              </Button>
+            </>
+          )
+        ) : (
+          <CustomTooltip
+            placement="top"
+            title="Only the creator of the match can start it"
           >
-            {t("next")}
-          </Button>
+            {/* Span porque así toca https://material-ui.com/es/components/tooltips/ */}
+            <span>
+              <Button
+                className={styles.button}
+                variant="contained"
+                disabled={!isOwner}
+                size="medium"
+                onClick={() => beginMatch(match.wss, match.token)}
+              >
+                {t("next")}
+              </Button>
+            </span>
+          </CustomTooltip>
         )}
       </Box>
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={4000}
+        onClose={handleCloseAlert}
+      >
+        <Alert onClose={handleCloseAlert} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 }
@@ -153,5 +212,5 @@ const mapStateToProps = (state) => ({
 });
 
 export default withTranslation("waiting-room")(
-  connect(mapStateToProps, { beginMatch })(WaitingRoom)
+  connect(mapStateToProps, { beginMatch, beginMatchNonOwner })(WaitingRoom)
 );

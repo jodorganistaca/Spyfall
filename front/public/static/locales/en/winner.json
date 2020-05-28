@@ -1,7 +1,13 @@
 {
-    "title": "THE SPIES ARE THE WINNERS!",
-    "next-round": "NEXT ROUND",
-    "finish": "FINISH",
-    "participants": "spies",
-    "secret-place": "secret place"
+  "the": "THE",
+  "Spies": "SPIES",
+  "Agents": "AGENTS",
+  "winners": "ARE THE WINNERS!",
+  "users-winners": "WINNERS",
+  "player": "PLAYER",
+  "score": "SCORE",
+  "play-again": "PLAY AGAIN",
+  "finish": "FINISH",
+  "participants": "spies",
+  "secret-place": "SECRET PLACE"
 }

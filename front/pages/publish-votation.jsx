@@ -16,13 +16,18 @@ import axios from "axios";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
+    width: 160,
     borderRadius: "87px",
-    margin: "0px 0px 32px 10px",
-    width: 220,
-    letterSpacing: 1.25,
+    color: "white",
+    marginBottom: 50,
+    color: theme.palette.getContrastText(theme.palette.success.main),
+    backgroundColor: theme.palette.success.main,
+    "&:hover": {
+      backgroundColor: "#1B7D46",
+    },
   },
   socialIcon: {
     borderRadius: "50%",
@@ -46,29 +51,35 @@ const useStyles = makeStyles({
     flex: "0 0 33%",
     margin: "0px 10% 0px 0%",
   },
-});
+}));
 
-const PublishVotation = function PublishVotation({ 
+const PublishVotation = ({
   t,
-  data,
-  match
-}) {
+  match,
+  players,
+  scoreboard,
+  score,
+  winnerRole,
+}) => {
   const styles = useStyles();
-  const [players, setPlayers] = useState([]);
-  const [votes, setVotes] = useState([]);
+  console.log("props", players);
   const createTable = () => {
     let table = [];
-  
+
     for (let i = 0; i < players.length; i++) {
       table.push(
-        <Card className={styles.card}>
+        <Card key={i} className={styles.card}>
           <CardContent className={styles.cardContent}>
             <Typography align="center" variant="subtitle2">
               {players[i].user.name}
             </Typography>
             <Box display="flex" justifyContent="center" alignItems="center">
-              <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}>
-              </Avatar>
+              <Avatar
+                align="center"
+                margin="auto"
+                alt={`${players[i].user.name}`}
+                src={`${players[i].user.avatar}`}
+              ></Avatar>
             </Box>
           </CardContent>
         </Card>
@@ -78,151 +89,124 @@ const PublishVotation = function PublishVotation({
   };
   const createResults = () => {
     let r = [];
-    for(let i = 0; i < players.length; i++){
-      r.push(          
-          <Box display="flex" flexDirection="row">
-            <Box display="flex" flexDirection="column" marginLeft="5%">
-              <Box display="flex">
-                <Avatar align="center" margin="auto" src={`${players[i].user.avatar}`}></Avatar>
-                <Typography
-                  align="center"
-                  variant="subtitle1"
-                  style={{ marginLeft: "10px" }}
-                >
-                  {players[i].user.name}
-                </Typography>
-              </Box>
-            </Box>
-            <Box display="flex" flexDirection="column" marginLeft="48%">
-              {
-                players[i].votes === null ?
-                <Typography align="center" variant="subtitle1">
-                  {t("0")}
-                </Typography>
-                :
-                <Typography align="center" variant="subtitle1">
-                  {players[i].votes}
-                </Typography>
-              }
-              
+    for (let i = 0; i < players.length; i++) {
+      r.push(
+        <Box display="flex" flexDirection="row" marginBottom="10px">
+          <Box display="flex" flexDirection="column" width="33%" margin="auto">
+            <Box display="flex" textAlign="center" margin="auto">
+              <Avatar
+                src={`${players[i].user.avatar}`}
+                alt={`${players[i].user.name}`}
+              ></Avatar>
+              <Typography
+                align="center"
+                variant="subtitle1"
+                style={{ marginLeft: "10px" }}
+              >
+                {players[i].user.name}
+              </Typography>
             </Box>
           </Box>
+          <Box display="flex" flexDirection="column" width="33%" margin="auto">
+            <Typography align="center" variant="subtitle1">
+              {players[i].role}
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="column" width="33%" margin="auto">
+            <Typography align="center" variant="subtitle1">
+              {players[i].votes}
+            </Typography>
+          </Box>
+        </Box>
       );
     }
     return r;
-  }
-  const countVotes = () =>{
-    let max = 0;
-    let player;
-    for(let p of players){
-      if(p.votes !== undefined){
-        console.log(p.votes);
-        if(p.votes > max){
-          max = p.votes;
-          player = p;
-        }
-      }
-    }
-    if(player.role === "Spy"){
-      console.log(player);
-      return Router.push("/winner");
-    }else{
-      return Router.push("/winner")
-    }
-  }
-  const getPlayers = async () => {
-    if(match!==null){
-      const response = await axios.get(`http://localhost:3001/matches/token/${match.token}`);
-      console.log("res ", response)
-      const p = response.data["players"];
-      if (p) {
-        console.log(p);
-        setPlayers(p);
-        
-      }
-    }
   };
 
-  useEffect(() => {
-    getPlayers();
-  }, []);
   return (
     <Layout secondary={true} info={t("info")}>
-      <Box display="flex" flexDirection="row" width="70%">
-        <Typography align="center" variant="subtitle1" margin="0px 20% 0px 20%">
-          {t("votation")}
-        </Typography>
-      </Box>
-
-      <Box
-        display="flex"
-        flexDirection="row"
-        justifyContent="center"
-        flexWrap="wrap"
-        margin="0px 20% 0px 20%"
-      >
-        {createTable()}
-      </Box>
-
-      <Divider
-        variant="fullWidth"
-        style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
-      />
-
       <Box display="flex" flexDirection="row" width="70%">
         <Typography align="left" variant="subtitle1">
           {t("results")}
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" width="100%" justifyContent="center" flexWrap="wrap" justifyContent="center">
-        <Box display="flex" flexDirection="column" alignItems="left" flex="0 0 34%">
-        <Box display="flex" flexDirection="row">
-          <Box display="flex" flexDirection="column" marginLeft="5%">
-              <Typography align="left" variant="subtitle1">
+      <Divider
+        variant="fullWidth"
+        style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
+      />
+      <Box
+        display="block"
+        flexDirection="row"
+        width="100%"
+        justifyContent="center"
+        flexWrap="wrap"
+        justifyContent="center"
+      >
+        <Box
+          display="block"
+          flexDirection="column"
+          alignItems="center"
+          flex="auto"
+        >
+          <Box display="flex" flexDirection="row">
+            <Box
+              display="flex"
+              flexDirection="column"
+              width="33%"
+              margin="auto"
+            >
+              <Typography align="center" variant="subtitle1">
                 {t("player")}
               </Typography>
             </Box>
-            <Box display="flex" flexDirection="column" marginLeft="48%">
+            <Box
+              display="flex"
+              flexDirection="column"
+              width="33%"
+              margin="auto"
+            >
+              <Typography align="center" variant="subtitle1">
+                {t("role")}
+              </Typography>
+            </Box>
+            <Box
+              display="flex"
+              flexDirection="column"
+              width="33%"
+              margin="auto"
+            >
               <Typography align="center" variant="subtitle1">
                 {t("votes")}
               </Typography>
             </Box>
           </Box>
-          {createResults()}       
-        </Box> 
+          {createResults()}
+        </Box>
       </Box>
-
-      <Button color="primary" onClick={() => countVotes()}>
+      <Button
+        className={styles.button}
+        variant="contained"
+        disabled={players.length <= 1}
+        size="medium"
+        onClick={() => Router.push("/winner")}
+      >
         {t("continue")}
       </Button>
     </Layout>
   );
 };
 
-PublishVotation.getInitialProps = async () => {
-  try {
-    const response = await http.get("/matches/token/39bfbcd0-92be-11ea-9598-7be414cf025f");
-    const data = response.data;
-    return {
-      namespacesRequired: ["publish-votation"],
-      data
-    }
-  } catch (error) {
-    console.error(error);
-    return {
-      namespacesRequired: ["publish-votation"],
-      players: []
-    }
-  }  
-};
-
 PublishVotation.propTypes = {
   match: PropTypes.object,
 };
 
-const mapStateToProps = (state) => ({ match: state.matches.match });
+const mapStateToProps = (state) => {
+  const { match, players, scoreboard, score, winnerRole } = state.matches;
+
+  return { match, players, scoreboard, score, winnerRole };
+};
 
 export default withTranslation("publish-votation")(
-  connect(mapStateToProps,null)(PublishVotation)
+  connect(mapStateToProps, null)(PublishVotation)
 );

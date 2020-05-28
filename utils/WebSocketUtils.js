@@ -75,8 +75,7 @@ exports.setup = (server, session) => {
           })
         );
       }
-
-      //Decrypt method and token
+      console.log("Petition received", msg);
       const { method, token } = msg;
       try {
         switch (method) {
@@ -86,6 +85,10 @@ exports.setup = (server, session) => {
               if (!name) {
                 throw new Error("Error: Username is required to join a match");
               }
+              if (name.length < 4 || name.length > 8)
+                throw new Error(
+                  "Error: The username can be up to 8 characters long (minimum 4 characters)"
+                );
               const regexp = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
               if (regexp.test(name)) {
                 throw new Error(
@@ -97,6 +100,7 @@ exports.setup = (server, session) => {
             }
             const { maxRounds } = msg;
             createMatch(maxRounds, user, ws);
+            console.log("New server status after create:", clients);
             break;
           case JOIN_MATCH:
             if (!user) {
@@ -104,18 +108,21 @@ exports.setup = (server, session) => {
               if (!name) {
                 throw new Error("Error: Name is required to join a match");
               }
-              const fakeEmail = `${name}@nouser.com`;
+              const fakeEmail = `${name.toLowerCase()}@nouser.com`;
               user = new User(fakeEmail, name);
             }
             joinMatch(token, user, ws);
+            console.log("New match status after join:", clients[token]);
             break;
           case BEGIN_MATCH:
             const { minimumSpies } = msg;
             beginMatch(token, minimumSpies);
+            console.log("New match status after begin:", clients[token]);
             break;
           case CHAT:
             const { message, chattingUser } = msg;
             chatWithinMatch(token, message, chattingUser);
+            console.log("New match status after chat:", clients[token]);
             break;
           case CREATE_TIMER:
             const { duration } = msg;
@@ -124,6 +131,7 @@ exports.setup = (server, session) => {
           case CREATE_VOTE:
             const { idVote } = msg;
             createVote(token, idVote, ws);
+            console.log("New match status after vote:", clients[token]);
             break;
           default:
             throw new Error(`Method: ${method} not defined`);
@@ -169,11 +177,17 @@ const createMatch = (maxRounds, user, client) => {
     tempToken
   ).then((newMatch) => {
     clients[newMatch.token] = newMatch;
+    console.log(
+      "Created new match",
+      clients[newMatch.token],
+      "with token",
+      newMatch.token
+    );
     let waitingUsers = [];
     for (const [email, { client, user }] of Object.entries(
       clients[newMatch.token].connectedClients
     )) {
-      const userCopy = Object.assign({}, user);
+      const userCopy = _.cloneDeep(user);
       delete userCopy.email;
       waitingUsers.push(userCopy);
     }
@@ -311,7 +325,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
     clients[token].notSpies = notSpies;
     clients[token].waiting = false;
     let endTime = new Date();
-    endTime.setMinutes(endTime.getMinutes() + 8);
+    endTime.setMinutes(endTime.getMinutes() + 2);
     for (const [email, obj] of Object.entries(spies)) {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
       const copy = Object.assign({}, obj.player);
@@ -495,6 +509,7 @@ const createVote = (token, idVote, ws) => {
       }
       if (!clients[token].spies || !clients[token].notSpies)
         throw new Error("Match has not begun. Therefore voting is prohibited");
+      if (clients[token].ended) throw new Error("Match already ended");
       let idVotingUser =
         clients[token].clientsDictionary[ws._socket.remoteAddress].id;
       let idEmail =
@@ -598,6 +613,7 @@ const endMatch = (token) => {
     } else {
       clients[token].ended = true;
       let scoreboard = [];
+      let players = [];
       for (const [emailId, { client, player }] of Object.entries(
         clients[token].connectedClients
       )) {
@@ -622,25 +638,29 @@ const endMatch = (token) => {
       for (const [id, { client, player }] of Object.entries(
         clients[token].spies
       )) {
-        const copyOfUser = Object.assign({}, player.user);
-        copyOfUser._id && delete copyOfUser._id;
+        const copyOfPlayer = _.cloneDeep(player);
+        copyOfPlayer.user._id && delete copyOfPlayer.user._id;
         if (winnerRole === "Spies") {
-          winners.push(copyOfUser);
+          winners.push(copyOfPlayer.user);
         }
-        scoreboard.push(copyOfUser);
+        scoreboard.push(copyOfPlayer.user);
+        players.push(copyOfPlayer);
       }
       for (const [id, { client, player }] of Object.entries(
         clients[token].notSpies
       )) {
-        const copyOfUser = Object.assign({}, player.user);
-        copyOfUser._id && delete copyOfUser._id;
+        const copyOfPlayer = _.cloneDeep(player);
+        copyOfPlayer.user._id && delete copyOfPlayer.user._id;
         if (winnerRole === "Not Spies") {
-          winners.push(copyOfUser);
+          winners.push(copyOfPlayer.user);
         }
-        scoreboard.push(copyOfUser);
+        scoreboard.push(copyOfPlayer.user);
+        players.push(copyOfPlayer);
       }
 
       let score = clients[token].score;
+      console.log(clients[token]);
+      let location = clients[token].location;
       this.notifyChanges(token, {
         method: "END_MATCH",
         ended: true,
@@ -648,6 +668,8 @@ const endMatch = (token) => {
         winners,
         scoreboard,
         score,
+        players,
+        location,
       });
     }
   } else {
