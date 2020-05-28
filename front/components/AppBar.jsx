@@ -70,6 +70,7 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           <IconButton
             id="menubutton"
             aria-controls="simple-menu"
+            aria-label="simple-menu-button"
             aria-haspopup="true"
             onClick={(event) => setAnchor(event.currentTarget)}
           >
