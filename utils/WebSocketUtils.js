@@ -274,7 +274,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       let spy = clients[token].connectedClients[tmpEmail];
       //TODO: Set default location of spy using collection
       spy.user.id = newIds.pop();
-      spy.player = new Player(_.cloneDeep(spy.user), "Spy", "Any");
+      spy.player = new Player(Object.assign({}, spy.user), "Spy", "Any");
       const theSpy = _.cloneDeep(spy.user);
       //User is now redundant as is in the player object.
       delete spy.user;
@@ -288,8 +288,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       theSpyCopy.player.user.score = 0;
       spies[tmpEmail] = theSpyCopy;
     }
-
-    let notSpies = _.cloneDeep(clients[token].connectedClients);
+    let notSpies = Object.assign({}, clients[token].connectedClients);
     for (const [email, obj] of Object.entries(spies)) {
       //Delete all objects with email that belong in spies object
       delete notSpies[email];
@@ -329,7 +328,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
     endTime.setMinutes(endTime.getMinutes() + 2);
     for (const [email, obj] of Object.entries(spies)) {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
-      const copy = _.cloneDeep(obj.player);
+      const copy = Object.assign({}, obj.player);
       delete copy.user.email;
       let alsoSpies = allSpies;
       alsoSpies = alsoSpies.filter((e) => e.id !== obj.player.user.id);
@@ -347,7 +346,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
 
     for (const [email, obj] of Object.entries(notSpies)) {
       clients[token].clientsDictionary[obj.client].id = obj.player.user.id;
-      const copy = _.cloneDeep(obj.player);
+      const copy = Object.assign({}, obj.player);
       delete copy.user.email;
       clients[token].clientsDictionary[obj.client].ws.send(
         JSON.stringify({
@@ -427,7 +426,7 @@ const joinMatch = (token, user, client) => {
     for (const [email, { client, user }] of Object.entries(
       clients[token].connectedClients
     )) {
-      const userCopy = _.cloneDeep(user);
+      const userCopy = Object.assign({}, user);
       delete userCopy.email;
       waitingUsers.push(userCopy);
     }
@@ -618,8 +617,8 @@ const endMatch = (token) => {
       for (const [emailId, { client, player }] of Object.entries(
         clients[token].connectedClients
       )) {
-        if (player && player.user && player.user._id) {
-          const userObj = _.cloneDeep(player.user);
+        if (player.user._id) {
+          const userObj = Object.assign({}, player.user);
           delete userObj._id;
           delete userObj.id;
           db.findAndUpdateOnePromise(
