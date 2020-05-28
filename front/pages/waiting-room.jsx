@@ -118,17 +118,48 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
 
         <AvatarList items={players} />
 
-        {isOwner && players.length <= 1 ? (
+        {isOwner ? (
+          players.length <= 1 ? (
+            <CustomTooltip
+              placement="top"
+              title="Matches require at least 2 players"
+            >
+              {/* Span porque así toca https://material-ui.com/es/components/tooltips/ */}
+              <span>
+                <Button
+                  className={styles.button}
+                  variant="contained"
+                  disabled={players.length <= 1}
+                  size="medium"
+                  onClick={() => beginMatch(match.wss, match.token)}
+                >
+                  {t("next")}
+                </Button>
+              </span>
+            </CustomTooltip>
+          ) : (
+            <>
+              <Button
+                className={styles.button}
+                variant="contained"
+                size="medium"
+                onClick={() => beginMatch(match.wss, match.token)}
+              >
+                {t("next")}
+              </Button>
+            </>
+          )
+        ) : (
           <CustomTooltip
             placement="top"
-            title="Matches require at least 2 players"
+            title="Only the creator of the match can start it"
           >
             {/* Span porque así toca https://material-ui.com/es/components/tooltips/ */}
             <span>
               <Button
                 className={styles.button}
                 variant="contained"
-                disabled={players.length <= 1}
+                disabled={!isOwner}
                 size="medium"
                 onClick={() => beginMatch(match.wss, match.token)}
               >
@@ -136,17 +167,6 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
               </Button>
             </span>
           </CustomTooltip>
-        ) : (
-          <>
-            <Button
-              className={styles.button}
-              variant="contained"
-              size="medium"
-              onClick={() => beginMatch(match.wss, match.token)}
-            >
-              {t("next")}
-            </Button>
-          </>
         )}
       </Box>
       <Snackbar

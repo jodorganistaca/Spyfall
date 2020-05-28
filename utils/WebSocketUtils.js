@@ -75,8 +75,7 @@ exports.setup = (server, session) => {
           })
         );
       }
-
-      //Decrypt method and token
+      console.log("Petition received", msg);
       const { method, token } = msg;
       try {
         switch (method) {
@@ -97,6 +96,7 @@ exports.setup = (server, session) => {
             }
             const { maxRounds } = msg;
             createMatch(maxRounds, user, ws);
+            console.log("New server status after create:", clients);
             break;
           case JOIN_MATCH:
             if (!user) {
@@ -108,14 +108,17 @@ exports.setup = (server, session) => {
               user = new User(fakeEmail, name);
             }
             joinMatch(token, user, ws);
+            console.log("New match status after join:", clients[token]);
             break;
           case BEGIN_MATCH:
             const { minimumSpies } = msg;
             beginMatch(token, minimumSpies);
+            console.log("New match status after begin:", clients[token]);
             break;
           case CHAT:
             const { message, chattingUser } = msg;
             chatWithinMatch(token, message, chattingUser);
+            console.log("New match status after chat:", clients[token]);
             break;
           case CREATE_TIMER:
             const { duration } = msg;
@@ -124,6 +127,7 @@ exports.setup = (server, session) => {
           case CREATE_VOTE:
             const { idVote } = msg;
             createVote(token, idVote, ws);
+            console.log("New match status after vote:", clients[token]);
             break;
           default:
             throw new Error(`Method: ${method} not defined`);
