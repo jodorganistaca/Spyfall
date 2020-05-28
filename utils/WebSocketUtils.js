@@ -221,6 +221,7 @@ const createMatch = (maxRounds, user, client) => {
  * @throws {Error} if the specified number of minimumSpies is greater or equal to the number of waiting players (i.e Match without not-spy users).
  */
 const beginMatch = (token, minimumSpies = 1, restart = false) => {
+  console.log("before begin match", clients[token]);
   if (!token) {
     throw new Error("Match's token is required");
   }
