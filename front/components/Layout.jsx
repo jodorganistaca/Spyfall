@@ -45,8 +45,9 @@ export function Layout(props) {
       >
         <Container className={styles.container}>
           <Paper elevation={3} className={styles.paper}>
-            <AppBar auth={auth} info={info} />
+            <AppBar role="banner" auth={auth} info={info} />
             <Box
+              role="main"
               display="flex"
               flexDirection="column"
               alignItems="center"

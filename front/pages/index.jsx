@@ -127,7 +127,7 @@ const Home = function Home(props) {
         // <Modal openModal={openModal} handleCloseModal={handleCloseModal} />
       }
       <Box className={styles.imageContainer}>
-        <Image src="/assets/logo.png" aspectRatio={1.9} />
+        <Image role="none" src="/assets/logo.png" aspectRatio={1.9} />
       </Box>
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography

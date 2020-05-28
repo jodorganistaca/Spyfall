@@ -56,9 +56,9 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
   if (hidden) return <></>;
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" width="100%">
+    <Box role="navigation" display="flex" flexDirection="column" alignItems="center" width="100%">
       <Box className={styles.bar} flexDirection="row">
-        <SpyFallLogo style={{ width: 130, height: 60 }} />
+        <SpyFallLogo role="none" style={{ width: 130, height: 60 }} />
 
         <Box display="flex" justifyContent="center" alignItems="center">
           {auth && auth.user ? (
@@ -68,6 +68,7 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           )}
 
           <IconButton
+            id="menubutton"
             aria-controls="simple-menu"
             aria-haspopup="true"
             onClick={(event) => setAnchor(event.currentTarget)}
@@ -77,14 +78,16 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           </IconButton>
 
           <Menu
+            id="simple-menu"
+            role="none"
             open={anchor !== null}
             keepMounted
             onClose={(_) => setAnchor(null)}
             anchorEl={anchor}
           >
-            <MenuItem>{t("how-to-play")}</MenuItem>
+            <MenuItem role="menuitem" aria-label="how-to-play">{t("how-to-play")}</MenuItem>
             {auth && auth.user && (
-              <MenuItem onClick={() => logout()}>{t("logout")}</MenuItem>
+              <MenuItem role="menuitem" aria-label="logout" onClick={() => logout()}>{t("logout")}</MenuItem>
             )}
           </Menu>
         </Box>
