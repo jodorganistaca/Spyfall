@@ -7,6 +7,7 @@ import {
   JOIN_MATCH_FAIL,
   MESSAGE_RECEIVED,
   ENDED_MATCH_SUCCESS,
+  ERROR,
 } from "../actions/types";
 
 const initialState = {
@@ -68,6 +69,12 @@ export default function (state = initialState, action) {
         score,
         players,
         location,
+      };
+    case ERROR:
+      return {
+        ...state,
+        error: payload,
+        errorSeverity: "error",
       };
     default:
       return state;

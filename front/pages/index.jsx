@@ -27,6 +27,8 @@ import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import Http from "../plugins/axios";
 import CustomTooltip from "../components/CustomTooltip";
+import { Alert } from "../components/Alert";
+
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
@@ -65,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Home = function Home(props) {
-  const { t, helloWorld, auth, createMatch, joinMatch } = props;
+  const { t, helloWorld, auth, createMatch, joinMatch, error } = props;
   const styles = useStyles();
 
   const handleCodeEnter = async (code) => {
@@ -102,7 +104,7 @@ const Home = function Home(props) {
   const ws = useRef(null);
 
   useEffect(() => {
-    let HOST = "ws://spyfall.ml:3001";
+    let HOST = "ws://localhost:3001";
     ws.current = new WebSocket(HOST);
     ws.current.onopen = (e) => {
       console.log("Ws connected");
@@ -370,6 +372,7 @@ const Home = function Home(props) {
           </div>
         </Fade>
       </Modal>
+      {error && <Alert error={error} errorSeverity="error" />}
     </Layout>
   );
 };
@@ -383,7 +386,12 @@ Home.propTypes = {
   createMatch: PropTypes.func.isRequired,
   joinMatch: PropTypes.func.isRequired,
 };
-const mapStateToProps = (state) => ({ auth: state.auth, match: state.match });
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  match: state.match,
+  error: state.matches.error,
+  errorSeverity: state.matches.errorSeverity,
+});
 
 const mapDispatchToProps = {
   append: appendToString,

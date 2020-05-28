@@ -85,6 +85,10 @@ exports.setup = (server, session) => {
               if (!name) {
                 throw new Error("Error: Username is required to join a match");
               }
+              if (name.length < 4 || name.length > 8)
+                throw new Error(
+                  "Error: The username can be up to 8 characters long (min. 4)"
+                );
               const regexp = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
               if (regexp.test(name)) {
                 throw new Error(
@@ -173,11 +177,17 @@ const createMatch = (maxRounds, user, client) => {
     tempToken
   ).then((newMatch) => {
     clients[newMatch.token] = newMatch;
+    console.log(
+      "Created new match",
+      clients[newMatch.token],
+      "with token",
+      newMatch.token
+    );
     let waitingUsers = [];
     for (const [email, { client, user }] of Object.entries(
       clients[newMatch.token].connectedClients
     )) {
-      const userCopy = Object.assign({}, user);
+      const userCopy = _.cloneDeep(user);
       delete userCopy.email;
       waitingUsers.push(userCopy);
     }
