@@ -20,6 +20,7 @@ export const createMatch = (wss, name) => async (dispatch) => {
     let token;
     wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
+      console.log(response);
       if (response["token"]) {
         token = response["token"];
         await dispatch({
@@ -47,6 +48,7 @@ export const joinMatch = (wss, name, token) => async (dispatch) => {
     wss.send(JSON.stringify({ method: "JOIN_MATCH", token, name }));
     wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
+      console.log(response);
       if (!response.error) {
         await dispatch({
           type: JOIN_MATCH_SUCCESS,
@@ -88,7 +90,7 @@ export const beginMatch = (wss, token) => async (dispatch) => {
     wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
     wss.onmessage = async (e) => {
       const response = JSON.parse(e.data);
-      console.log(e);
+      console.log(response);
       if (!response.error) {
         response.token = token;
         response.wss = wss;

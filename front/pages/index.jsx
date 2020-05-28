@@ -343,6 +343,7 @@ const Home = function Home(props) {
                 style={{ width: "100%" }}
                 variant="outlined"
                 value={matchCode}
+                autoFocus={auth.user}
                 onChange={(event) => setMatchCode(event.target.value)}
                 onKeyDown={(e) => {
                   if (e.key == "Enter")
@@ -359,7 +360,7 @@ const Home = function Home(props) {
                 variant="contained"
                 onClick={() =>
                   auth.user
-                    ? async () => userLoggedJoin(auth.user.user, matchCode)
+                    ? async () => userLoggedJoin(matchCode)
                     : openJoinModal(guestName, matchCode)
                 }
               >
