@@ -149,7 +149,7 @@ const Votation = function ({ t, match }) {
     getPlayers();
   }, []);
   return (
-    <Layout secondary={true}>
+    <Layout secondary={true} info={t("info")}>
       <Box display="flex" flexDirection="column" alignItems="left">
         <Typography
           align="left"

@@ -124,7 +124,7 @@ const PublishVotation = ({
   };
 
   return (
-    <Layout secondary={true}>
+    <Layout secondary={true} info={t("info")}>
       <Box display="flex" flexDirection="row" width="70%">
         <Typography align="left" variant="subtitle1">
           {t("results")}

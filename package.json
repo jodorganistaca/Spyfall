@@ -8,7 +8,8 @@
     "test": "jest",
     "heroku-postbuild": "cd ./front && npm install && npm run build",
     "start": "concurrently \"npm run start-wrap\" \"cd ./front && npm run build && npm run start\"",
-    "dev": "concurrently \"npm run start-dev\" \"cd ./front && npm run dev\""
+    "dev": "concurrently \"npm run start-dev\" \"cd ./front && npm run dev\"",
+    "poblate": "cd db/ && node PoblateDB"
   },
   "dependencies": {
     "@shelf/jest-mongodb": "^1.1.5",

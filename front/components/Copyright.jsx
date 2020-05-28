@@ -2,7 +2,7 @@ import { Typography, Box } from "@material-ui/core";
 
 export default function Copyright() {
   return (
-    <Box textAlign="center">
+    <Box role="contentinfo" textAlign="center">
       <Typography
         align="center"
         variant="caption"

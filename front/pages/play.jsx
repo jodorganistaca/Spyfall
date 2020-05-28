@@ -99,9 +99,10 @@ const useStyles = makeStyles((theme) => ({
   chatIcon: { color: theme.palette.success.main },
 }));
 
-const RoleImage = (props) => (
-  <img width="200px" {...props} src={`/assets/${props.role}.png`} />
-);
+const RoleImage = (props) => {
+  const { ...rest } = props;
+  <img width="200px" {...rest} src={`/assets/${rest.role}.png`} />;
+};
 
 const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
@@ -228,7 +229,7 @@ const Play = function ({ t, places, match, endMatch }) {
   };
 
   return (
-    <Layout secondary>
+    <Layout secondary info={t("info")}>
       <Grid container justify="center" alignItems="center">
         <Grid
           alignItems="center"

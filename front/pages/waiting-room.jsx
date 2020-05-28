@@ -97,7 +97,7 @@ function WaitingRoom({
   }, [match]);
 
   return (
-    <Layout secondary>
+    <Layout secondary info={t("info")}>
       <Box
         display="flex"
         flexDirection="column"
