@@ -27,7 +27,7 @@ export function Layout(props) {
   useEffect(() => {
     store.dispatch(loadUser());
   }, []);
-  const { children, auth, secondary = false, info } = props;
+  const { children, auth, secondary = false, info, ...rest } = props;
 
   return (
     <Box height="100%">
@@ -52,7 +52,7 @@ export function Layout(props) {
               alignItems="center"
               alignSelf="stretch"
               flex={1}
-              {...props}
+              {...rest}
             >
               {children}
             </Box>

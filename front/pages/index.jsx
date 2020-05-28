@@ -63,6 +63,7 @@ const useStyles = makeStyles((theme) => ({
     borderWidth: "0px",
     borderColor: "transparent",
     flexDirection: "column",
+    alignItems: "center",
   },
   rightBar: {
     [theme.breakpoints.up("md")]: {
@@ -233,14 +234,14 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic"
                 label={t("name")}
-                style={{ width: 300 }}
+                style={{ width: 300, left: "10%"}}
                 variant="outlined"
                 value={guestName}
                 onChange={(event) => setGuestName(event.target.value)}
               />
             </form>
             <Button
-              className={styles.button}
+              style={{ width: 300,  left: "10%", borderRadius: "87px",letterSpacing: 1.25, }}
               color="primary"
               variant="contained"
               onClick={() => handleGuestName(guestName)}
@@ -278,7 +279,7 @@ const Home = function Home(props) {
                   <TextField
                     id="outlined-basic-2"
                     label={t("name")}
-                    style={{ width: 300 }}
+                    style={{ width: 300,  left: "10%"}}
                     variant="outlined"
                     value={guestName}
                     onChange={(event) => setGuestName(event.target.value)}
@@ -293,14 +294,14 @@ const Home = function Home(props) {
               <TextField
                 id="outlined-basic-3"
                 label={t("code")}
-                style={{ width: 300 }}
+                style={{ width: 300,  left: "10%" }}
                 variant="outlined"
                 value={matchCode}
                 onChange={(event) => setMatchCode(event.target.value)}
               />
             </form>
             <Button
-              className={styles.button}
+              style={{ width: 300,  left: "10%", borderRadius: "87px",letterSpacing: 1.25, }}
               color="primary"
               variant="contained"
               onClick={() =>

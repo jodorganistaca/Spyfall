@@ -46,9 +46,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const RoleImage = (props) => (
-  <img width="200px" {...props} src={`/assets/${props.role}.png`} />
-);
+const RoleImage = (props) => {
+  const { ...rest } = props;
+  (<img width="200px" {...rest} src={`/assets/${rest.role}.png`} />)};
 
 const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
@@ -85,7 +85,11 @@ const Countdown = ({ finishTime, t }) => {
 
 const Play = function ({ t, places, match }) {
   const styles = useStyles();
-  const role = match.player.role;
+  let role = "";
+  if(match !== null && match.player !== undefined){
+    role = match.player.role;
+  }
+  
   useEffect(() => {
     console.log("useEffect play ", match);
   }, []);

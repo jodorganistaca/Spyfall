@@ -5,10 +5,14 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Typography
+  Typography,
+  Button
 } from "@material-ui/core";
 import { withTranslation } from "../plugins/i18n";
 import { ExpandMore, ExpandLess, Help } from "@material-ui/icons";
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
 import { useState } from "react";
 import SpyFallLogo from "../public/assets/logo.svg";
 import CustomTooltip from "../components/CustomTooltip";
@@ -20,6 +24,27 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     display: "flex",
     justifyContent: "space-between",
+  },
+  modal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "10px",
+  },
+  paper: {
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    borderRadius: "10px",
+    borderWidth: "0px",
+    borderColor: "transparent",
+    flexDirection: "column",
+  },
+  button: {
+    borderRadius: "87px",
+    margin: "10px 2px 2px 2px",
+    width: 300,
+    letterSpacing: 1.25,
   },
 }));
 
@@ -64,12 +89,12 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           </Menu>
         </Box>
       </Box>
-      <Box display="flex" flexDirection="row" alignItems="center" width="100%">
+      <Box display="flex" flexDirection="row-reverse" alignItems="center" width="100%">
         <CustomTooltip
-          title={t("how-to-play")}
-          aria-label={t("how-to-play")}
-          style={{ fontSize: "0.83rem" }}
-          tabindex={0}
+          title={t("help")}
+          aria-label={t("help")}
+          style={{ fontSize: "0.83rem", right: "15px" }}
+          tabIndex={0}
         >
           <IconButton color="secondary" variant="contained" onClick={() => setShowInfo(!showInfo)}>
             <Help style={{ width: 30, height: 30 }} />
@@ -80,9 +105,33 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
       <Box display="flex" flexDirection="row" alignItems="center" width="100%">
         {
           showInfo ?
-          <Typography variant="h5" style={{width: "200px", marginTop: `${info.length}px`,position: "absolute"}}>
-            {info}
-          </Typography>
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            className={styles.modal}
+            open={showInfo}
+            onClose={() => setShowInfo(false)}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{ timeout: 500 }}
+          >
+            <Fade in={showInfo}>
+              <div className={styles.paper}>
+                <Typography variant="h5" style={{width: "300px", }}>
+                  {info}
+                </Typography>
+                
+                <Button
+                  className={styles.button}
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setShowInfo(false)}
+                >
+                  {t("ok")}
+                </Button>
+              </div>
+            </Fade>
+          </Modal>
           :
           <div/>
         }

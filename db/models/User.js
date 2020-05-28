@@ -9,11 +9,12 @@ module.exports.User = class {
   constructor(
     email,
     name,
-    avatar = "https://www.twago.es/img/2018/default/no-user.png"
+    avatar = "https://www.twago.es/img/2018/default/no-user.png",
+    score
   ) {
     this.email = email;
     this.name = name;
     this.avatar = avatar;
-    this.score = 0;
+    this.score = score;
   }
 };
