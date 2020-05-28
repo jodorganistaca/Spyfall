@@ -14,6 +14,7 @@ import { withTranslation } from "../plugins/i18n";
 import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import confetti from "canvas-confetti";
+import Winners from "../components/Winners";
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", marginTop: 20 },
   button: {
@@ -133,48 +134,7 @@ const Winner = function Winner({
           margin="0 auto"
           width="50%"
         >
-          <Typography align="center" variant="subtitle2">
-            {t("users-winners")}
-          </Typography>
-          <Box
-            display="block"
-            flexDirection="row"
-            width="100%"
-            justifyContent="center"
-            flexWrap="wrap"
-            justifyContent="center"
-          >
-            <Box
-              display="block"
-              flexDirection="column"
-              alignItems="center"
-              flex="auto"
-            >
-              <Box display="flex" flexDirection="row">
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  margin="auto"
-                  width="50%"
-                >
-                  <Typography align="center" variant="subtitle1">
-                    {t("player")}
-                  </Typography>
-                </Box>
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  width="50%"
-                  margin="auto"
-                >
-                  <Typography align="center" variant="subtitle1" width="50%">
-                    {t("score")}
-                  </Typography>
-                </Box>
-              </Box>
-              {createWinners(winners)}
-            </Box>
-          </Box>
+          <Winners rows={winners}></Winners>
         </Box>
         <Box
           display="flex"

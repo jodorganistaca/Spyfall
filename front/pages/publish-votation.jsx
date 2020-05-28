@@ -15,6 +15,7 @@ import http from "../plugins/axios";
 import axios from "axios";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import VotationTable from "../components/VotationTable";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -143,46 +144,7 @@ const PublishVotation = ({
         flexWrap="wrap"
         justifyContent="center"
       >
-        <Box
-          display="block"
-          flexDirection="column"
-          alignItems="center"
-          flex="auto"
-        >
-          <Box display="flex" flexDirection="row">
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("role")}
-              </Typography>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </Box>
-          </Box>
-          {createResults()}
-        </Box>
+        <VotationTable rows={players}></VotationTable>
       </Box>
       <Button
         className={styles.button}
