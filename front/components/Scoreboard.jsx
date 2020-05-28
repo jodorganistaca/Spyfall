@@ -266,7 +266,7 @@ export default function EnhancedTable({ rows }) {
 
   return (
     <div className={classes.root}>
-      <Paper className={classes.paper}>
+      <Paper role="main" className={classes.paper}>
         <EnhancedTableToolbar numSelected={selected.length} />
         <TableContainer>
           <Table
