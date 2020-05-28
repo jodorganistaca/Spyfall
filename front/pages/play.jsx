@@ -99,10 +99,9 @@ const useStyles = makeStyles((theme) => ({
   chatIcon: { color: theme.palette.success.main },
 }));
 
-const RoleImage = (props) => {
-  const { ...rest } = props;
-  <img width="200px" {...rest} src={`/assets/${rest.role}.png`} />;
-};
+const RoleImage = (props) => (
+  <img width="200px" {...props} src={`/assets/${props.role}.png`} />
+);
 
 const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
