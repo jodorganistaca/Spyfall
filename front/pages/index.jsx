@@ -203,7 +203,10 @@ const Home = function Home(props) {
           </Box>
         )}
 
-        <Box onClick={() => Router.push("/how-to-play")}>
+        <Box
+          onClick={() => Router.push("/how-to-play")}
+          style={{ cursor: "pointer" }}
+        >
           {t("how-to-play")}
         </Box>
       </Box>

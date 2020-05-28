@@ -107,7 +107,7 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
             <MenuItem
               role="menuitem"
               aria-label="how-to-play"
-              onClick={() => Router.push("how-to-play")}
+              onClick={() => Router.push("/how-to-play")}
             >
               {t("how-to-play")}
             </MenuItem>
