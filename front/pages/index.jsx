@@ -104,7 +104,7 @@ const Home = function Home(props) {
   const ws = useRef(null);
 
   useEffect(() => {
-    let HOST = "ws://localhost:3001";
+    let HOST = "ws://spyfall.ml:3001";
     ws.current = new WebSocket(HOST);
     ws.current.onopen = (e) => {
       console.log("Ws connected");
