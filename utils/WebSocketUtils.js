@@ -274,6 +274,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
       if (spies[tmpEmail]) continue;
       let spy = clients[token].connectedClients[tmpEmail];
       //TODO: Set default location of spy using collection
+      console.log("Setting user:", tmpEmail, "with user", spy);
       spy.user.id = newIds.pop();
       spy.player = new Player(Object.assign({}, spy.user), "Spy", "Any");
       const theSpy = _.cloneDeep(spy.user);
@@ -301,6 +302,7 @@ const beginMatch = (token, minimumSpies = 1, restart = false) => {
     shuffle(roles);
     for (const [email, obj] of Object.entries(notSpies)) {
       //Get another random id
+      console.log("Setting user:", email, "with user", obj);
       obj.user.id = newIds.pop();
       //Assign locations to remaining (not spies) players
       let newRole = roles.pop();
@@ -404,12 +406,7 @@ const joinMatch = (token, user, client) => {
             "User already exists in the match, try changing your username or play anonymously"
           );
         if (clients[token].clientsDictionary[client._socket.remoteAddress]) {
-          let tempEmail =
-            clients[token].clientsDictionary[client._socket.remoteAddress]
-              .email;
-          delete clients[token].clientsDictionary[client._socket.remoteAddress];
-          delete clients[token].connectedClients[tempEmail];
-          return joinMatch(token, user, client);
+          throw new Error("User already connected from this ip");
         }
         clients[token].connectedClients[user.email] = {
           client: client._socket.remoteAddress,
