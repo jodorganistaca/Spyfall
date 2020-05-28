@@ -1,4 +1,5 @@
 {
+  "info": "Haga clic en el botón \"Crear partida\" para comenzar a jugar, esto generará un código o \"Unirse a una partida\" si ya tiene un código",
   "title": "¡Juega con tus amigos ahora!",
   "create-match": "Crear partida",
   "join-match": "Unirse a una partida",

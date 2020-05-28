@@ -81,7 +81,7 @@ const Winner = function Winner({
     })();
   }, []);
   return (
-    <Layout>
+    <Layout info={t("info")}>
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography
           align="center"

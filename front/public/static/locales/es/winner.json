@@ -1,7 +1,14 @@
 {
-    "title": "¡LOS ESPIAS SON LOS GANADORES!",
-    "next-round": "Siguiente Ronda",
-    "finish": "Terminar",
-    "participants": "espias",
-    "secret-place": "lugar secreto"
+    "info": "En esta página puedes visualizar al ganador que es el espía, el lugar y los resultados",
+    "the": "LOS",
+    "Spies": "ESPIAS",
+    "Agents": "AGENTES",
+    "winners": "SON LOS GANADORES!",
+    "users-winners": "GANADORES",
+    "player": "JUGADOR",
+    "score": "PUNTAJE",
+    "play-again": "JUGAR DE NUEVO",
+    "finish": "TERMINAR",
+    "participants": "espías",
+    "secret-place": "LUGAR SECRETO"
 }

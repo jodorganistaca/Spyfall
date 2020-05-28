@@ -1,7 +1,8 @@
 {
+  "info": "Klicken Sie auf \"Neues Spiel\", um mit dem Spielen zu beginnen. Dadurch wird ein Code generiert oder \"Spiel beitreten\", wenn Sie bereits einen Code haben.",
   "title": "Spiel mit deinen Freunden!",
-  "create-match": "Neue Match",
-  "join-match": "Nimm an einem Match teil",
+  "create-match": "Neues Spiel",
+  "join-match": "Spiel beitreten",
   "name": "Name",
   "code": "Code",
   "how-to-play": "Spielanleitung",

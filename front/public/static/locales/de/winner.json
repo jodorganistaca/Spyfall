@@ -1,7 +1,14 @@
 {
-    "title": "DIE SPIONE SIND DIE GEWINNER!",
-    "next-round": "NÄCHSTE RUNDE",
-    "finish": "FERTIG",
-    "participants": "SPION",
-    "secret-place": "GEHEIMER ORT"    
+    "info": "Auf dieser Seite können Sie den Gewinner, den Spion, den Ort und die Ergebnisse visualisieren",
+    "the": "DIE",
+    "Spies": "SPIES",
+    "Agents": "AGENTEN",
+    "winners": "SIND DIE GEWINNER!",
+    "users-winners": "GEWINNER",
+    "player": "SPIELER",
+    "score": "SCORE",
+    "play-again": "WIEDER SPIELEN",
+    "finish": "BEENDEN",
+    "participants": "Spione",
+    "secret-place": "SECRET PLACE"
 }
