@@ -203,7 +203,9 @@ const Home = function Home(props) {
           </Box>
         )}
 
-        <NextLink href="/how-to-play">{t("how-to-play")}</NextLink>
+        <Box onClick={() => Router.push("/how-to-play")}>
+          {t("how-to-play")}
+        </Box>
       </Box>
       {!auth.user && (
         <>
