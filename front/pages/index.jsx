@@ -103,7 +103,7 @@ const Home = function Home(props) {
   const ws = useRef(null);
 
   useEffect(() => {
-    let HOST = "ws://localhost:3001";
+    let HOST = "ws://spyfall.ml:3001";
     ws.current = new WebSocket(HOST);
     ws.current.onopen = (e) => {
       console.log("Ws connected");
@@ -223,7 +223,7 @@ const Home = function Home(props) {
               <IconButton
                 aria-label="Google"
                 onClick={() =>
-                  location.assign("http://localhost:3001/auth/google")
+                  location.assign("http://spyfall.ml:3001/auth/google")
                 }
               >
                 <GoogleIcon className={styles.socialIcon} />
@@ -231,7 +231,7 @@ const Home = function Home(props) {
               <IconButton
                 aria-label="Facebook"
                 onClick={() =>
-                  location.assign("http://localhost:3001/auth/facebook")
+                  location.assign("http://spyfall.ml:3001/auth/facebook")
                 }
               >
                 <FacebookIcon className={styles.socialIcon} />
