@@ -57,13 +57,14 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
   const [playersPosition, setPlayersPosition] = useState(false);
   const [rows, setRows] = useState([]);
 
-  if (hidden) return <></>;
-
-  useEffect(async () => {
-    try {
-      let rows = await http.get("http://spyfall.ml:3001/players");
-      setRows(rows.data);
-    } catch (error) {}
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        let rows = await http.get("http://spyfall.ml:3001/players");
+        setRows(rows.data);
+      } catch (error) {}
+    };
+    getData();
   }, []);
 
   return (
