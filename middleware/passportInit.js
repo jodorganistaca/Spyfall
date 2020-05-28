@@ -14,7 +14,7 @@ const passportInit = () => {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://spyfall.ml:3001/auth/google/callback",
+        callbackURL: "http://localhost:3001/auth/google/callback",
       },
       function (accessToken, refreshToken, profile, cb) {
         console.log("Begiin Google Login");
@@ -42,7 +42,7 @@ const passportInit = () => {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://spyfall.ml:3001/auth/facebook/callback",
+        callbackURL: "http://localhost:3001/auth/facebook/callback",
         profileFields: [
           "id",
           "displayName",

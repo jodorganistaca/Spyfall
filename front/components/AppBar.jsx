@@ -9,7 +9,7 @@ import {
   Button
 } from "@material-ui/core";
 import { withTranslation } from "../plugins/i18n";
-import { ExpandMore, ExpandLess, Help } from "@material-ui/icons";
+import { ExpandMore, ExpandLess, Help, EmojiEvents } from "@material-ui/icons";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
@@ -52,6 +52,7 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
   const styles = useStyles();
   const [anchor, setAnchor] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [playersPosition, setPlayersPosition] = useState(false);
 
   if (hidden) return <></>;
 
@@ -98,14 +99,27 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           title={t("help")}
           aria-label={t("help")}
           style={{ fontSize: "0.83rem", right: "15px" }}
-          tabIndex={0}
         >
           <IconButton color="secondary" variant="contained" onClick={() => setShowInfo(!showInfo)}>
             <Help style={{ width: 30, height: 30 }} />
           </IconButton>
         </CustomTooltip>
+      </Box>
+     
+      <Box display="flex" flexDirection="row-reverse" alignItems="center" width="100%">
+        <CustomTooltip
+          title={t("Trophy")}
+          aria-label={t("trophy")}
+          style={{ fontSize: "0.83rem", right: "15px" }}
+        >
+          <IconButton style={{ color: 'yellow', right: "15px"  }} variant="contained" onClick={() => setPlayersPosition(!playersPosition)}>
+            <EmojiEvents style={{ width: 30, height: 30 }} />
+          </IconButton>
+        </CustomTooltip>
         
       </Box>
+      
+      {/*Modal for info of a single page*/ }
       <Box display="flex" flexDirection="row" alignItems="center" width="100%">
         {
           showInfo ?
@@ -130,6 +144,40 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
                   color="primary"
                   variant="contained"
                   onClick={() => setShowInfo(false)}
+                >
+                  {t("ok")}
+                </Button>
+              </div>
+            </Fade>
+          </Modal>
+          :
+          <div/>
+        }
+      </Box>
+
+      {/*Modal for positions of the players*/}
+      <Box display="flex" flexDirection="row" alignItems="center" width="100%">
+        {
+          playersPosition ?
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            className={styles.modal}
+            open={playersPosition}
+            onClose={() => setPlayersPosition(false)}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{ timeout: 500 }}
+          >
+            <Fade in={playersPosition}>
+              <div className={styles.paper}>
+                
+                
+                <Button
+                  className={styles.button}
+                  color="primary"
+                  variant="contained"
+                  onClick={() => setPlayersPosition(false)}
                 >
                   {t("ok")}
                 </Button>

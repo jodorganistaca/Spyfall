@@ -89,6 +89,7 @@ export const endMatch = (response) => async (dispatch) => {
 
 export const beginMatch = (wss, token) => async (dispatch) => {
   wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
+  console.log("hereeeee");
 };
 
 export const beginMatchNonOwner = (response, token, wss) => async (

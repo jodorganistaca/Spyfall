@@ -14,7 +14,7 @@ import { Router } from "../../plugins/i18n";
 
 export const loadUser = () => async (dispatch) => {
   try {
-    const res = await http.get("http://spyfall.ml:3001/auth/getProfile", {
+    const res = await http.get("http://localhost:3001/auth/getProfile", {
       withCredentials: true,
     });
     dispatch({

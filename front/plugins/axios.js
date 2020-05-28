@@ -8,7 +8,7 @@ const Http = axios.create({
 });
 
 export const http = axios.create({
-  baseURL: "http://spyfall.ml:3001",
+  baseURL: "http://localhost:3001",
   timeout: 5000,
 });
 
