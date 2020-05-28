@@ -30,7 +30,7 @@ import Http from "../plugins/axios";
 import CustomTooltip from "../components/CustomTooltip";
 import { Alert } from "../components/Alert";
 import { Help } from "@material-ui/icons";
-
+import Scoreboard from "../components/Scoreboard";
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
   button: {
@@ -113,6 +113,7 @@ const Home = function Home(props) {
   const [matchCode, setMatchCode] = useState(undefined);
   const [guestName, setGuestName] = useState(undefined);
   const [hasWs, setHasWs] = useState(false);
+  const [rows, setRows] = useState([]);
   const ws = useRef(null);
 
   useEffect(() => {
@@ -126,6 +127,14 @@ const Home = function Home(props) {
 
     //return () => ws.current.close();
   }, []);
+
+  useEffect(async () => {
+    try {
+      let rows = await http.get("http://localhost:3001/players");
+      setRows(rows.data);
+    } catch (error) {}
+  }, []);
+
   return (
     <Layout justifyContent="space-between" info={t("info")}>
       {
@@ -384,6 +393,7 @@ const Home = function Home(props) {
         </Fade>
       </Modal>
       {error && <Alert error={error} errorSeverity="error" />}
+      <Scoreboard rows={rows} />
     </Layout>
   );
 };
