@@ -87,7 +87,7 @@ const Home = function Home(props) {
   };
 
   const userLoggedJoin = async (code) => {
-    await joinMatch(ws.current, null, code);
+    await joinMatch(ws.current, "", code);
   };
 
   const openJoinModal = async (name, code) => {
@@ -348,7 +348,7 @@ const Home = function Home(props) {
                 onKeyDown={(e) => {
                   if (e.key == "Enter")
                     return auth.user
-                      ? async () => userLoggedJoin(matchCode)
+                      ? userLoggedJoin(matchCode)
                       : openJoinModal(guestName, matchCode);
                 }}
               />
@@ -360,7 +360,7 @@ const Home = function Home(props) {
                 variant="contained"
                 onClick={() =>
                   auth.user
-                    ? async () => userLoggedJoin(matchCode)
+                    ? userLoggedJoin(matchCode)
                     : openJoinModal(guestName, matchCode)
                 }
               >
