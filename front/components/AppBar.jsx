@@ -13,11 +13,13 @@ import { ExpandMore, ExpandLess, Help, EmojiEvents } from "@material-ui/icons";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SpyFallLogo from "../public/assets/logo.svg";
 import CustomTooltip from "../components/CustomTooltip";
 import { logout } from "../store/actions/auth";
 import { connect } from "react-redux";
+import http from "../plugins/axios";
+import Scoreboard from "../components/Scoreboard";
 
 const useStyles = makeStyles((theme) => ({
   bar: {
@@ -53,8 +55,16 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
   const [anchor, setAnchor] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
   const [playersPosition, setPlayersPosition] = useState(false);
+  const [rows, setRows] = useState([]);
 
   if (hidden) return <></>;
+
+  useEffect(async () => {
+    try {
+      let rows = await http.get("http://localhost:3001/players");
+      setRows(rows.data);
+    } catch (error) {}
+  }, []);
 
   return (
     <Box role="navigation" display="flex" flexDirection="column" alignItems="center" width="100%">
@@ -171,16 +181,18 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           >
             <Fade in={playersPosition}>
               <div className={styles.paper}>
+                <Scoreboard rows={rows} />
+                <div style={{ width: "100%", textAlign: "center" }}>
+                  <Button
+                    className={styles.button}
+                    color="primary"
+                    variant="contained"
+                    onClick={() => setPlayersPosition(false)}
+                  >
+                    {t("ok")}
+                  </Button>
+                </div>
                 
-                
-                <Button
-                  className={styles.button}
-                  color="primary"
-                  variant="contained"
-                  onClick={() => setPlayersPosition(false)}
-                >
-                  {t("ok")}
-                </Button>
               </div>
             </Fade>
           </Modal>

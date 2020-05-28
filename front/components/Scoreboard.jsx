@@ -300,7 +300,7 @@ export default function EnhancedTable({ rows }) {
                       key={row._id}
                     >
                       <TableCell align="center">
-                        <Avatar alt="User photo" src={row.avatar}></Avatar>
+                        <Avatar style={{ left: "30%" }} alt="User photo" src={row.avatar}></Avatar>
                       </TableCell>
                       <TableCell align="center">{row.name}</TableCell>
                       <TableCell align="center">{row.score}</TableCell>
