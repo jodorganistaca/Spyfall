@@ -12,7 +12,7 @@ import { Router, withTranslation, Redirect } from "../plugins/i18n";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import http from "../plugins/axios";
-import { beginMatch } from "../store/actions/matches";
+import { beginMatch, beginMatchNonOwner } from "../store/actions/matches";
 import CustomTooltip from "../components/CustomTooltip";
 import Snackbar from "@material-ui/core/Snackbar";
 import MuiAlert from "@material-ui/lab/Alert";
@@ -46,6 +46,7 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const [alertMessage, setAlertMessage] = useState("");
+  const [beganMatch, setBeganMatch] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
   const handleCloseAlert = (event, reason) => {
@@ -70,6 +71,9 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
 
           break;
         case "BEGIN_MATCH":
+          if (!beganMatch) {
+            return beginMatchNonOwner(response);
+          }
           break;
       }
       console.log("waiting room ", e);
@@ -131,7 +135,10 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
                   variant="contained"
                   disabled={players.length <= 1}
                   size="medium"
-                  onClick={() => beginMatch(match.wss, match.token)}
+                  onClick={() => {
+                    setBeganMatch(true);
+                    beginMatch(match.wss, match.token);
+                  }}
                 >
                   {t("next")}
                 </Button>
@@ -143,7 +150,10 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
                 className={styles.button}
                 variant="contained"
                 size="medium"
-                onClick={() => beginMatch(match.wss, match.token)}
+                onClick={() => {
+                  setBeganMatch(true);
+                  beginMatch(match.wss, match.token);
+                }}
               >
                 {t("next")}
               </Button>

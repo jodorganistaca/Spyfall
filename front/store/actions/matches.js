@@ -107,3 +107,19 @@ export const beginMatch = (wss, token) => async (dispatch) => {
     });
   };
 };
+
+export const beginMatchNonOwner = (response) => async (dispatch) => {
+  if (!response.error) {
+    response.token = token;
+    response.wss = wss;
+    await dispatch({
+      type: BEGIN_MATCH_SUCCESS,
+      payload: response,
+    });
+    return Router.push("/play");
+  }
+  return dispatch({
+    type: ERROR,
+    payload: response.error,
+  });
+};
