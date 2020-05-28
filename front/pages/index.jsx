@@ -86,7 +86,7 @@ const Home = function Home(props) {
     }
   };
 
-  const userLoggedJoin = async (user) => {
+  const userLoggedJoin = async (code) => {
     await joinMatch(ws.current, null, code);
   };
 
@@ -347,7 +347,7 @@ const Home = function Home(props) {
                 onKeyDown={(e) => {
                   if (e.key == "Enter")
                     return auth.user
-                      ? async () => userLoggedJoin(auth.user.user, matchCode)
+                      ? async () => userLoggedJoin(matchCode)
                       : openJoinModal(guestName, matchCode);
                 }}
               />
