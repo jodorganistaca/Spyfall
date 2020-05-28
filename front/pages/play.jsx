@@ -1,5 +1,6 @@
 import Layout from "../components/Layout";
 import { withTranslation } from "../plugins/i18n";
+import Router from "next/router";
 import {
   Box,
   Button,
@@ -30,7 +31,6 @@ import CustomTooltip from "../components/CustomTooltip";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked";
 import CheckCircle from "@material-ui/icons/CheckCircle";
-import { Router } from "../plugins/i18n";
 import { connect } from "react-redux";
 import http from "../plugins/axios";
 import { NavigationSharp } from "@material-ui/icons";
@@ -99,10 +99,9 @@ const useStyles = makeStyles((theme) => ({
   chatIcon: { color: theme.palette.success.main },
 }));
 
-const RoleImage = (props) => {
-  const { ...rest } = props;
-  <img width="200px" {...rest} src={`/assets/${rest.role}.png`} />;
-};
+const RoleImage = (props) => (
+  <img width="200px" {...props} src={`/assets/${props.role}.png`} />
+);
 
 const Countdown = ({ finishTime, t }) => {
   const getTimeLeft = () => {
@@ -143,12 +142,9 @@ function Alert(props) {
 
 const Play = function ({ t, places, match, endMatch }) {
   if (!match) {
-    return <Layout></Layout>;
+    Router.push("/");
   }
   useEffect(() => {
-    if (!match) {
-      Router.push("/");
-    }
     listenMatch(match.wss);
   }, []);
   const [alertMessage, setAlertMessage] = useState("");
@@ -745,13 +741,17 @@ const Message = ({ content, sender, user, date }) => {
     >
       {sender === "receiver" && (
         <Box>
-          <Avatar src={user.avatar} className={styles.small} />
+          <Avatar
+            src={user.avatar}
+            className={styles.small}
+            style={{ margin: "auto" }}
+          />
           <p
             style={{
-              fontSize: "0.5em",
+              fontSize: "50%",
               textAlign: "center",
-              wordBreak: "break-all",
-              maxWidth: "55px",
+              wordBreak: "break-word",
+              maxWidth: "70px",
             }}
           >
             {user.name}
@@ -762,7 +762,6 @@ const Message = ({ content, sender, user, date }) => {
       <Box
         margin="0px 10px 0px 10px"
         padding="10px 20px 10px 20px"
-        bgcolor={sender === "receiver" ? "primary.main" : "secondary.main"}
         style={{
           borderRadius: "20px",
           borderTopRightRadius: sender !== "receiver" ? "0px" : "20px",
@@ -771,6 +770,8 @@ const Message = ({ content, sender, user, date }) => {
           maxWidth: 220,
           height: "100%",
           wordBreak: "break-word",
+          backgroundColor:
+            sender === "receiver" ? "rgba(141, 141, 141, 0.7)" : "#ada",
         }}
       >
         <Typography
@@ -782,14 +783,18 @@ const Message = ({ content, sender, user, date }) => {
       </Box>
       {sender === "sender" && (
         <Box>
-          <Avatar src={user.avatar} className={styles.small} />
+          <Avatar
+            src={user.avatar}
+            className={styles.small}
+            style={{ margin: "auto" }}
+          />
           <p
             style={{
-              fontSize: "0.8em",
+              fontSize: "50%",
               textAlign: "center",
               margin: "auto",
-              wordBreak: "break-all",
-              maxWidth: "75px",
+              wordBreak: "break-word",
+              maxWidth: "70px",
             }}
           >
             {user.name}

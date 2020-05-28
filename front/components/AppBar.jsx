@@ -6,7 +6,7 @@ import {
   MenuItem,
   IconButton,
   Typography,
-  Button
+  Button,
 } from "@material-ui/core";
 import { withTranslation } from "../plugins/i18n";
 import { ExpandMore, ExpandLess, Help, EmojiEvents } from "@material-ui/icons";
@@ -57,17 +57,24 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
   const [playersPosition, setPlayersPosition] = useState(false);
   const [rows, setRows] = useState([]);
 
-  if (hidden) return <></>;
-
-  useEffect(async () => {
-    try {
-      let rows = await http.get("http://localhost:3001/players");
-      setRows(rows.data);
-    } catch (error) {}
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        let rows = await http.get("http://spyfall.ml:3001/players");
+        setRows(rows.data);
+      } catch (error) {}
+    };
+    getData();
   }, []);
 
   return (
-    <Box role="navigation" display="flex" flexDirection="column" alignItems="center" width="100%">
+    <Box
+      role="navigation"
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      width="100%"
+    >
       <Box className={styles.bar} flexDirection="row">
         <SpyFallLogo role="none" style={{ width: 130, height: 60 }} />
 
@@ -97,42 +104,66 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
             onClose={(_) => setAnchor(null)}
             anchorEl={anchor}
           >
-            <MenuItem role="menuitem" aria-label="how-to-play">{t("how-to-play")}</MenuItem>
+            <MenuItem role="menuitem" aria-label="how-to-play">
+              {t("how-to-play")}
+            </MenuItem>
             {auth && auth.user && (
-              <MenuItem role="menuitem" aria-label="logout" onClick={() => logout()}>{t("logout")}</MenuItem>
+              <MenuItem
+                role="menuitem"
+                aria-label="logout"
+                onClick={() => logout()}
+              >
+                {t("logout")}
+              </MenuItem>
             )}
           </Menu>
         </Box>
       </Box>
-      <Box display="flex" flexDirection="row-reverse" alignItems="center" width="100%">
+      <Box
+        display="flex"
+        flexDirection="row-reverse"
+        alignItems="center"
+        width="100%"
+      >
         <CustomTooltip
           title={t("help")}
           aria-label={t("help")}
           style={{ fontSize: "0.83rem", right: "15px" }}
         >
-          <IconButton color="secondary" variant="contained" onClick={() => setShowInfo(!showInfo)}>
+          <IconButton
+            color="secondary"
+            variant="contained"
+            onClick={() => setShowInfo(!showInfo)}
+          >
             <Help style={{ width: 30, height: 30 }} />
           </IconButton>
         </CustomTooltip>
       </Box>
-     
-      <Box display="flex" flexDirection="row-reverse" alignItems="center" width="100%">
+
+      <Box
+        display="flex"
+        flexDirection="row-reverse"
+        alignItems="center"
+        width="100%"
+      >
         <CustomTooltip
           title={t("Trophy")}
           aria-label={t("trophy")}
           style={{ fontSize: "0.83rem", right: "15px" }}
         >
-          <IconButton style={{ color: 'yellow', right: "15px"  }} variant="contained" onClick={() => setPlayersPosition(!playersPosition)}>
+          <IconButton
+            style={{ color: "yellow", right: "15px" }}
+            variant="contained"
+            onClick={() => setPlayersPosition(!playersPosition)}
+          >
             <EmojiEvents style={{ width: 30, height: 30 }} />
           </IconButton>
         </CustomTooltip>
-        
       </Box>
-      
-      {/*Modal for info of a single page*/ }
+
+      {/*Modal for info of a single page*/}
       <Box display="flex" flexDirection="row" alignItems="center" width="100%">
-        {
-          showInfo ?
+        {showInfo ? (
           <Modal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
@@ -145,10 +176,10 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
           >
             <Fade in={showInfo}>
               <div className={styles.paper}>
-                <Typography variant="h5" style={{width: "300px", }}>
+                <Typography variant="h5" style={{ width: "300px" }}>
                   {info}
                 </Typography>
-                
+
                 <Button
                   className={styles.button}
                   color="primary"
@@ -160,15 +191,14 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
               </div>
             </Fade>
           </Modal>
-          :
-          <div/>
-        }
+        ) : (
+          <div />
+        )}
       </Box>
 
       {/*Modal for positions of the players*/}
       <Box display="flex" flexDirection="row" alignItems="center" width="100%">
-        {
-          playersPosition ?
+        {playersPosition ? (
           <Modal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
@@ -192,16 +222,14 @@ const AppBar = function ({ hidden = false, t, auth, logout, info }) {
                     {t("ok")}
                   </Button>
                 </div>
-                
               </div>
             </Fade>
           </Modal>
-          :
-          <div/>
-        }
+        ) : (
+          <div />
+        )}
       </Box>
     </Box>
-    
   );
 };
 

@@ -15,6 +15,7 @@ import http from "../plugins/axios";
 import axios from "axios";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import VotationTable from "../components/VotationTable";
 
 const useStyles = makeStyles((theme) => ({
   imageContainer: { height: "auto", width: "320px", marginTop: 45 },
@@ -125,16 +126,6 @@ const PublishVotation = ({
 
   return (
     <Layout secondary={true} info={t("info")}>
-      <Box display="flex" flexDirection="row" width="70%">
-        <Typography align="left" variant="subtitle1">
-          {t("results")}
-        </Typography>
-      </Box>
-
-      <Divider
-        variant="fullWidth"
-        style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
-      />
       <Box
         display="block"
         flexDirection="row"
@@ -143,46 +134,7 @@ const PublishVotation = ({
         flexWrap="wrap"
         justifyContent="center"
       >
-        <Box
-          display="block"
-          flexDirection="column"
-          alignItems="center"
-          flex="auto"
-        >
-          <Box display="flex" flexDirection="row">
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("player")}
-              </Typography>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("role")}
-              </Typography>
-            </Box>
-            <Box
-              display="flex"
-              flexDirection="column"
-              width="33%"
-              margin="auto"
-            >
-              <Typography align="center" variant="subtitle1">
-                {t("votes")}
-              </Typography>
-            </Box>
-          </Box>
-          {createResults()}
-        </Box>
+        <VotationTable rows={players}></VotationTable>
       </Box>
       <Button
         className={styles.button}
