@@ -126,16 +126,6 @@ const PublishVotation = ({
 
   return (
     <Layout secondary={true} info={t("info")}>
-      <Box display="flex" flexDirection="row" width="70%">
-        <Typography align="left" variant="subtitle1">
-          {t("results")}
-        </Typography>
-      </Box>
-
-      <Divider
-        variant="fullWidth"
-        style={{ height: 1, width: "80%", margin: "30px 0px 30px 0px" }}
-      />
       <Box
         display="block"
         flexDirection="row"
