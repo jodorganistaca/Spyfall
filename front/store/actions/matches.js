@@ -95,6 +95,7 @@ export const beginMatch = (wss, token) => async (dispatch) => {
 export const beginMatchNonOwner = (response, token, wss) => async (
   dispatch
 ) => {
+  console.log("beginMatchNonOwner", response, token, wss);
   if (!response.error) {
     response.token = token;
     response.wss = wss;

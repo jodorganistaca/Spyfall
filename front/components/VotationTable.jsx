@@ -304,10 +304,10 @@ export default function EnhancedTable({ rows }) {
                         <Avatar
                           style={{ left: "30%" }}
                           alt="User photo"
-                          src={row.avatar}
+                          src={row.user.avatar}
                         ></Avatar>
                       </TableCell>
-                      <TableCell align="center">{row.name}</TableCell>
+                      <TableCell align="center">{row.user.name}</TableCell>
                       <TableCell align="center">{row.role}</TableCell>
                       <TableCell align="center">{row.votes}</TableCell>
                     </TableRow>

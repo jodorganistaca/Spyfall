@@ -67,6 +67,7 @@ function WaitingRoom({
       match.wss.onmessage = (e) => {
         let method = "";
         const response = JSON.parse(e.data);
+        console.log("waiting room ", response);
         method = response.method;
         switch (method) {
           case "JOIN_MATCH":
@@ -79,9 +80,7 @@ function WaitingRoom({
             break;
           case "BEGIN_MATCH":
             return beginMatchNonOwner(response, match.token, match.wss);
-            break;
         }
-        console.log("waiting room ", e);
       };
     }
   };
