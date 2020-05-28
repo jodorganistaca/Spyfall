@@ -78,7 +78,7 @@ function WaitingRoom({
             }
             break;
           case "BEGIN_MATCH":
-            return beginMatchNonOwner(response);
+            return beginMatchNonOwner(response, match.token, match.wss);
             break;
         }
         console.log("waiting room ", e);

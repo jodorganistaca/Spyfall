@@ -91,7 +91,9 @@ export const beginMatch = (wss, token) => async (dispatch) => {
   wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
 };
 
-export const beginMatchNonOwner = (response) => async (dispatch) => {
+export const beginMatchNonOwner = (response, token, wss) => async (
+  dispatch
+) => {
   if (!response.error) {
     response.token = token;
     response.wss = wss;
