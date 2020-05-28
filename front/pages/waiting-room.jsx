@@ -42,7 +42,14 @@ function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
+function WaitingRoom({
+  t,
+  match,
+  isOwner,
+  beginMatch,
+  beginMatchNonOwner,
+  wss,
+}) {
   const styles = useStyles();
   const [players, setPlayers] = useState([]);
   const [alertMessage, setAlertMessage] = useState("");
@@ -56,30 +63,26 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
     setOpenAlert(false);
   };
   const listenMatch = () => {
-    match.wss.onmessage = (e) => {
-      let method = "";
-      const response = JSON.parse(e.data);
-      method = response.method;
-      switch (method) {
-        case "JOIN_MATCH":
-          if (!response.error) {
-            setPlayers(response.waitingUsers);
-            setAlertMessage("A user joined to the match!");
-            setAlertSeverity("info");
-            setOpenAlert(true);
-          }
-
-          break;
-        case "BEGIN_MATCH":
-          if (!beganMatch) {
+    if (match && match.wss) {
+      match.wss.onmessage = (e) => {
+        let method = "";
+        const response = JSON.parse(e.data);
+        method = response.method;
+        switch (method) {
+          case "JOIN_MATCH":
+            if (!response.error) {
+              setPlayers(response.waitingUsers);
+              setAlertMessage("A user joined to the match!");
+              setAlertSeverity("info");
+              setOpenAlert(true);
+            }
+            break;
+          case "BEGIN_MATCH":
             return beginMatchNonOwner(response);
-          }
-          break;
-      }
-      console.log("waiting room ", e);
-    };
-    if (match != null && match.waitingUsers != null) {
-      setPlayers(match.waitingUsers);
+            break;
+        }
+        console.log("waiting room ", e);
+      };
     }
   };
   //if (!match) {
@@ -89,8 +92,9 @@ function WaitingRoom({ t, match, isOwner, beginMatch, wss }) {
   useEffect(() => {
     if (match && match.wss) {
       listenMatch();
+      match.waitingUsers && setPlayers(match.waitingUsers);
     }
-  }, []);
+  }, [match]);
 
   return (
     <Layout secondary>
@@ -208,5 +212,5 @@ const mapStateToProps = (state) => ({
 });
 
 export default withTranslation("waiting-room")(
-  connect(mapStateToProps, { beginMatch })(WaitingRoom)
+  connect(mapStateToProps, { beginMatch, beginMatchNonOwner })(WaitingRoom)
 );

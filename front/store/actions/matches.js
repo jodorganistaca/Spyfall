@@ -89,23 +89,6 @@ export const endMatch = (response) => async (dispatch) => {
 
 export const beginMatch = (wss, token) => async (dispatch) => {
   wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
-  wss.onmessage = async (e) => {
-    const response = JSON.parse(e.data);
-    console.log(response);
-    if (!response.error) {
-      response.token = token;
-      response.wss = wss;
-      await dispatch({
-        type: BEGIN_MATCH_SUCCESS,
-        payload: response,
-      });
-      return Router.push("/play");
-    }
-    return dispatch({
-      type: ERROR,
-      payload: response.error,
-    });
-  };
 };
 
 export const beginMatchNonOwner = (response) => async (dispatch) => {

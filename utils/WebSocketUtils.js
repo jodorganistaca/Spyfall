@@ -87,7 +87,7 @@ exports.setup = (server, session) => {
               }
               if (name.length < 4 || name.length > 8)
                 throw new Error(
-                  "Error: The username can be up to 8 characters long (min. 4)"
+                  "Error: The username can be up to 8 characters long (minimum 4 characters)"
                 );
               const regexp = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
               if (regexp.test(name)) {

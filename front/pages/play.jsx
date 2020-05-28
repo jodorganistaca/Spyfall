@@ -253,7 +253,7 @@ const Play = function ({ t, places, match, endMatch }) {
 
         <Grid item xs={8} style={{ textAlign: "center" }}>
           {role === "Spy" ? (
-            <RoleImage style={{ marginBottom: 20 }} role={role} />
+            <RoleImage style={{ marginBottom: 20 }} role={"spy"} />
           ) : (
             <img width="200px" src={match.location.image} />
           )}
