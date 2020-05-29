@@ -13,12 +13,6 @@ const HowToPlay = function ({ t }) {
       <Typography variant="body1" style={{ margin: "20px 30px 50px 30px" }}>
         {t("instructions")}
       </Typography>
-      <Typography variant="body1" style={{ margin: "20px 30px 50px 30px" }}>
-        {t("instructions")}
-      </Typography>
-      <Typography variant="body1" style={{ margin: "20px 30px 50px 30px" }}>
-        {t("instructions")}
-      </Typography>
     </Layout>
   );
 };

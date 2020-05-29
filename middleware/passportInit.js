@@ -14,7 +14,7 @@ const passportInit = () => {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3001/auth/google/callback",
+        callbackURL: "http://spyfall.ml:3001/auth/google/callback",
       },
       function (accessToken, refreshToken, profile, cb) {
         console.log("Begiin Google Login");
@@ -23,15 +23,7 @@ const passportInit = () => {
           imageUrl = profile.photos[0].value;
         }
         //TODO: Encrypt Google id
-        let potentialOldUser = new User(
-          profile.emails[0].value,
-          profile.displayName,
-          imageUrl
-        );
-        Object.keys(potentialOldUser).forEach(
-          (key) =>
-            potentialOldUser[key] === undefined && delete potentialOldUser[key]
-        );
+        let potentialOldUser = { email: profile.emails[0].value };
         db.findOrCreateDocumentPromise(
           dbName,
           usersCollection,
@@ -50,7 +42,7 @@ const passportInit = () => {
         clientID: process.env.FACEBOOK_CLIENT_ID,
         clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
         //TODO: Change URL
-        callbackURL: "http://localhost:3001/auth/facebook/callback",
+        callbackURL: "http://spyfall.ml:3001/auth/facebook/callback",
         profileFields: [
           "id",
           "displayName",

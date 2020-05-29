@@ -5,6 +5,9 @@ import {
   BEGIN_MATCH_FAIL,
   JOIN_MATCH_SUCCESS,
   JOIN_MATCH_FAIL,
+  MESSAGE_RECEIVED,
+  ENDED_MATCH_SUCCESS,
+  ERROR,
 } from "../actions/types";
 
 const initialState = {
@@ -41,6 +44,37 @@ export default function (state = initialState, action) {
         ...state,
         matchBegun: false,
         match: null,
+      };
+    case MESSAGE_RECEIVED:
+      return {
+        ...state,
+        chat: payload.chat,
+      };
+    case ENDED_MATCH_SUCCESS:
+      const {
+        ended,
+        winnerRole,
+        winners,
+        scoreboard,
+        score,
+        players,
+        location,
+      } = payload;
+      return {
+        ...state,
+        ended,
+        winnerRole,
+        winners,
+        scoreboard,
+        score,
+        players,
+        location,
+      };
+    case ERROR:
+      return {
+        ...state,
+        error: payload,
+        errorSeverity: "error",
       };
     default:
       return state;

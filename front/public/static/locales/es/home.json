@@ -1,9 +1,14 @@
 {
+  "info": "Haga clic en el botón \"Crear partida\" para comenzar a jugar, esto generará un código o \"Unirse a una partida\" si ya tiene un código",
   "title": "¡Juega con tus amigos ahora!",
   "create-match": "Crear partida",
   "join-match": "Unirse a una partida",
+  "name": "Nombre",
+  "code": "Código",
   "how-to-play": "¿Cómo jugar?",
   "login-title": "Inicia sesión para guardar tu marcador",
   "change-locale": "Cambiar idioma",
-  "or": "o"
+  "or": "o",
+  "modal-create-title": "Ingrese su nombre o apodo",
+  "modal-title": "¿A qué partida deseas ingresar?"
 }

@@ -1,7 +1,9 @@
 {
+  "info": "In this page you can visualize the votes of all people if the spy vote for the correct place won, if the person who have the maximum votes is the spy the agents won",
   "votation": "VOTATION",
   "results": "RESULTS",
   "player": "PLAYER",
   "votes": "VOTES",
+  "role": "ROLE",
   "continue": "Continue"
 }

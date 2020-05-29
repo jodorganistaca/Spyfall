@@ -4,92 +4,109 @@ import { setAlert } from "./alert";
 import {
   CREATE_MATCH_SUCCESS,
   CREATE_MATCH_FAIL,
+  JOIN_MATCH_SUCCESSFUL,
+  START_MATCH_SUCCESSFUL,
   BEGIN_MATCH_SUCCESS,
   BEGIN_MATCH_FAIL,
   JOIN_MATCH_SUCCESS,
   JOIN_MATCH_FAIL,
+  MESSAGE_RECEIVED,
+  ENDED_MATCH_SUCCESS,
+  ERROR,
 } from "./types";
 
-const getCookie = (cname) => {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == " ") {
-      c = c.substring(1);
+export const createMatch = (wss, name) => async (dispatch) => {
+  wss.send(JSON.stringify({ method: "MATCH_CREATION", maxRounds: 5, name }));
+  let token;
+  wss.onmessage = async (e) => {
+    const response = JSON.parse(e.data);
+    console.log(response);
+    if (response["token"]) {
+      token = response["token"];
+      await dispatch({
+        type: CREATE_MATCH_SUCCESS,
+        payload: {
+          wss,
+          token,
+          waitingUsers: response.waitingUsers,
+        },
+      });
+      console.log("redirect to waiting room");
+      return Router.push("/waiting-room");
     }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-};
-
-export const createMatch = (user) => async (dispatch) => {
-  try {
-    const res = await http.post("/matches", {
-      withCredentials: true,
-      maxRounds: 5,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    await http.put(`/matches/join/${res.data.token}`, {
-      user,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    dispatch({
-      type: CREATE_MATCH_SUCCESS,
-      payload: res.data,
-    });
-    return Router.push("/waiting-room");
-  } catch (error) {
     return dispatch({
-      type: CREATE_MATCH_FAIL,
+      type: ERROR,
+      payload: response.error,
     });
-  }
+  };
 };
 
-export const beginMatch = (matchId) => async (dispatch) => {
-  try {
-    const res = await http.put(`/matches/beginMatch/${matchId}`, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
+export const joinMatch = (wss, name, token) => async (dispatch) => {
+  let asNumber = new Number(token);
+  if (isNaN(asNumber)) {
+    return dispatch({
+      type: ERROR,
+      payload: "The token must be a number",
     });
-    dispatch({
+  }
+  wss.send(JSON.stringify({ method: "JOIN_MATCH", token: asNumber, name }));
+  wss.onmessage = async (e) => {
+    const response = JSON.parse(e.data);
+    console.log(response);
+    if (!response.error) {
+      await dispatch({
+        type: JOIN_MATCH_SUCCESS,
+        payload: {
+          wss,
+          token,
+          waitingUsers: response.waitingUsers,
+        },
+      });
+      return Router.push("/waiting-room");
+    } else {
+      return dispatch({
+        type: ERROR,
+        payload: response.error,
+      });
+    }
+  };
+};
+
+export const endMatch = (response) => async (dispatch) => {
+  console.log(response);
+  if (!response.error) {
+    await dispatch({
+      type: ENDED_MATCH_SUCCESS,
+      payload: response,
+    });
+    return Router.push("/publish-votation");
+  }
+  return dispatch({
+    type: ERROR,
+    payload: response.error,
+  });
+};
+
+export const beginMatch = (wss, token) => async (dispatch) => {
+  wss.send(JSON.stringify({ method: "BEGIN_MATCH", token, minimumSpies: 1 }));
+  console.log("hereeeee");
+};
+
+export const beginMatchNonOwner = (response, token, wss) => async (
+  dispatch
+) => {
+  console.log("beginMatchNonOwner", response, token, wss);
+  if (!response.error) {
+    response.token = token;
+    response.wss = wss;
+    await dispatch({
       type: BEGIN_MATCH_SUCCESS,
-      payload: res.data,
+      payload: response,
     });
-    return Router.push("/choose-place");
-  } catch (error) {
-    return dispatch({
-      type: BEGIN_MATCH_FAIL,
-    });
+    return Router.push("/play");
   }
-};
-
-export const joinMatch = (user, token) => async (dispatch) => {
-  try {
-    const res = await http.put(`/matches/join/${token}`, {
-      withCredentials: true,
-      user,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    dispatch({
-      type: JOIN_MATCH_SUCCESS,
-      payload: res.data,
-    });
-    return Router.push("/waiting-room");
-  } catch (error) {
-    return dispatch({
-      type: JOIN_MATCH_FAIL,
-    });
-  }
+  return dispatch({
+    type: ERROR,
+    payload: response.error,
+  });
 };

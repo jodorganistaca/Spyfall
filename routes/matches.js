@@ -6,6 +6,7 @@ const { check, validationResult } = require("express-validator");
 const dbName = config.get("dbName");
 const matchesCollection = config.get("matchesCollection");
 const locationsCollection = config.get("locationsCollection");
+const WebSocketUtils = require("../utils/WebSocketUtils");
 const { Match } = require("../db/models/Match");
 const { Message } = require("../db/models/Message");
 const { Timer } = require("../db/models/Timer");
@@ -21,6 +22,29 @@ router.get("/", function (req, res) {
   db.getDocumentsPromise(dbName, matchesCollection).then((docs) =>
     res.json(docs)
   );
+});
+
+/**
+ * GET /matches/testGenerate
+ * Returns all matches in the database.
+ * @access public
+ */
+router.get("/testGenerate/:id/:minplayers", function (req, res) {
+  try {
+    WebSocketUtils.generatePlayers(req.params.id, req.params.minplayers);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  return res.status(200).json({ msg: "Match created" });
+});
+
+/**
+ * GET /matches/testNotify
+ * Returns all matches in the database.
+ * @access public
+ */
+router.get("/testGenerate/:id/:minplayers", function (req, res) {
+  WebSocketUtils.notifyChanges;
 });
 
 /**
@@ -83,116 +107,38 @@ router.post(
     ).isInt({ gt: 0 }),
   ],
   function (req, res) {
-    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
     const { maxRounds } = req.body;
-    db.createOneDocumentPromise(
-      dbName,
-      matchesCollection,
-      new Match([], maxRounds)
-    ).then((docs) => {
-      res.cookie("Spyfall-Match", JSON.stringify({ matchId: docs.ops[0]._id }));
-      return res.status(201).json(docs.ops[0]);
-    });
+    return res.status(201).json(WebSocketUtils.createMatch(maxRounds));
   }
 );
 
 /**
- * PUT /matches/beginMatch/:token
+ * PUT /matches/beginMatch/:id
  * Sets match's waiting status to false
  * @access public
  */
 
 //TODO: Assign players
-router.put("/beginMatch/:id", function (req, res) {
-  db.findOnePromise(dbName, matchesCollection, req.params.id).then((docs) => {
-    let updatedMatch;
-    if (docs && docs[0]) {
-      updatedMatch = docs[0];
-      updatedMatch.waiting = false;
-      //Select the spy
-      const spy =
-        updatedMatch.pendingToAssign[
-          Math.floor(Math.random() * updatedMatch.pendingToAssign.length)
-        ];
-      const indexSpy = updatedMatch.pendingToAssign.indexOf(spy);
-      updatedMatch.pendingToAssign.splice(indexSpy, 1);
-      db.getDocumentsPromise(dbName, locationsCollection).then((locations) => {
-        const location =
-          locations[Math.floor(Math.random() * locations.length)];
-        updatedMatch.pendingToAssign.forEach((element) => {
-          let tempPlayer = {};
-          tempPlayer.user = element;
-          tempPlayer.location = location;
-          tempPlayer.role = "Non spy";
-          updatedMatch.players.push(tempPlayer);
-        });
-        let tempSpy = {};
-        tempSpy.user = spy;
-        tempSpy.location = "None";
-        tempSpy.role = "Spy";
-        updatedMatch.pendingToAssign = [];
-        updatedMatch.players.push(tempSpy);
-        db.findAndUpdateOnePromise(
-          dbName,
-          matchesCollection,
-          req.params.id,
-          updatedMatch
-        ).then((docs) => {
-          if (docs.ok === 1) {
-            return res.status(200).json(updatedMatch);
-          } else return res.status(500).json({ msg: "Server error" });
-        });
-      });
-    } else return res.status(400).json({ msg: "Match not found" });
-  });
-});
-
-/**
- * PUT /matches/join/:token
- * Adds a user to the match.
- * @param player Body parameter player. Must be consistent with Player Model.
- * @access public
- */
 router.put(
-  "/join/:token",
+  "/beginMatch/:id",
   [
-    check("user", "User must be authenticated in order to join a match")
-      .not()
-      .isEmpty(),
+    check(
+      "minimumSpies",
+      "Minimum number of rounds is required and must be a positive number"
+    ).isInt({ gt: 0 }),
   ],
   function (req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { maxRounds } = req.body;
+    try {
+      WebSocketUtils.generatePlayers(req.params.id, minimumSpies);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
     }
-    const { user } = req.body;
-    db.findOneObjectPromise(dbName, matchesCollection, {
-      token: req.params.token,
-    }).then((docs) => {
-      let updatedMatch;
-      if (docs && docs[0]) {
-        updatedMatch = docs[0];
-        const _id = docs[0]._id;
-        if (docs[0].pendingToAssign && docs[0].pendingToAssign.length === 12) {
-          return res.status(404).json({ msg: "Match is already full" });
-        }
-        db.findAndUpdateOnePromise(dbName, matchesCollection, _id, docs[0], {
-          $push: {
-            pendingToAssign: user,
-          },
-        }).then((docs) => {
-          if (docs.ok === 1) {
-            updatedMatch.pendingToAssign.push(user);
-            res.cookie("Spyfall-Match", JSON.stringify({ matchId: _id }));
-            return res.status(200).json(updatedMatch);
-          } else return res.status(500).json({ msg: "Server error" });
-        });
-      } else return res.status(400).json({ msg: "Match not found" });
-    });
+    return res.status(200).json({ msg: "Match created" });
   }
 );
 
@@ -230,6 +176,7 @@ router.put(
         }).then((docs) => {
           if (docs.ok === 1) {
             updatedMatch.chat.push(newMessage);
+            WebSocketUtils.notifyChanges(_id, updatedMatch);
             return res.status(200).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
@@ -280,6 +227,7 @@ router.put(
         ).then((docs) => {
           if (docs.ok === 1) {
             return res.status(200).json(updatedMatch);
+            WebSocketUtils.notifyChanges(_id, updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
       } else return res.status(400).json({ msg: "Match not found" });
@@ -322,6 +270,7 @@ router.post(
           updatedMatch
         ).then((docs) => {
           if (docs.ok === 1) {
+            WebSocketUtils.notifyChanges(_id, updatedMatch);
             return res.status(201).json(updatedMatch);
           } else return res.status(500).json({ msg: "Server error" });
         });
@@ -374,6 +323,7 @@ router.post(
             updatedMatch
           ).then((docs) => {
             if (docs.ok === 1) {
+              WebSocketUtils.notifyChanges(_id, updatedMatch);
               return res.status(201).json(updatedMatch);
             } else return res.status(500).json({ msg: "Server error" });
           });

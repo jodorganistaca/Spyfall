@@ -1,9 +1,14 @@
 {
+  "info": "Click Create Match Button for Start playing this will generate a code or Join Match if you already have a code",
   "title": "Play with your friends!",
   "create-match": "Create match",
   "join-match": "Join match",
+  "name": "Name",
+  "code": "Code",
   "how-to-play": "How to play?",
   "login-title": "Login to save progress",
   "change-locale": "Change language",
-  "or": "or"
+  "or": "or",
+  "modal-create-title": "Please enter your name or nickname",
+  "modal-title": "In which match do you want to play?"
 }

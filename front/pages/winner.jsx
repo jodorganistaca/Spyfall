@@ -8,21 +8,25 @@ import {
   Avatar,
 } from "@material-ui/core";
 import Image from "material-ui-image";
+import { useEffect } from "react";
 import { NavigationSharp } from "@material-ui/icons";
 import { withTranslation } from "../plugins/i18n";
 import { Router } from "../plugins/i18n";
-
+import { connect } from "react-redux";
+import confetti from "canvas-confetti";
+import Winners from "../components/Winners";
 const useStyles = makeStyles((theme) => ({
-  imageContainer: { height: "auto", width: "320px", marginTop: 45 },
+  imageContainer: { height: "auto", marginTop: 20 },
   button: {
-    borderRadius: "87px",
-    width: 220,
-    letterSpacing: 1.25,
-    padding: "10px 30px 10px 30px",
+    width: 160,
     borderRadius: "87px",
     color: "white",
-    margin: "50px 10px 50px 10px",
-    color: theme.palette.getContrastText(theme.palette.error.main),
+    marginBottom: 50,
+    color: theme.palette.getContrastText(theme.palette.success.main),
+    backgroundColor: theme.palette.success.main,
+    "&:hover": {
+      backgroundColor: "#1B7D46",
+    },
   },
   button1: {
     width: "auto",
@@ -39,26 +43,74 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Winner = function Winner({ t }) {
+const Winner = function Winner({
+  t,
+  winnerRole,
+  players,
+  scoreboard,
+  score,
+  match,
+  winners,
+  location,
+}) {
   const styles = useStyles();
+  useEffect(() => {
+    var end = Date.now() + 5 * 1000;
+
+    // go Buckeyes!
+    var colors = ["#bb0000", "#ffffff"];
+
+    (function frame() {
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  }, []);
   return (
-    <Layout>
+    <Layout info={t("info")}>
       <Box display="flex" flexDirection="column" alignItems="center">
         <Typography
           align="center"
           variant="h2"
           style={{ marginBottom: 40, marginTop: 50, letterSpacing: 1.25 }}
         >
-          {t("title")}
+          {t("the") +
+            " " +
+            `${t(winnerRole === "Spies" ? "Spies" : "Agents")}` +
+            " " +
+            t("winners")}
         </Typography>
       </Box>
 
-      <Box display="flex" flexDirection="row" alignItems="center" justifyContent="center" flexWrap="wrap"> 
+      <Box
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="center"
+        flexWrap="wrap"
+      >
         <Box className={styles.imageContainer}>
-          <Image src="/assets/logo.png" aspectRatio={1.9} />
-        </Box>
-        <Box className={styles.imageContainer}>
-          <img src="/assets/spy.png" width="200px" />
+          <img
+            src={
+              winnerRole === "Spies" ? "/assets/spy.png" : "/assets/agent.png"
+            }
+            width="200px"
+          />
         </Box>
       </Box>
 
@@ -66,60 +118,37 @@ const Winner = function Winner({ t }) {
         <Button
           variant="contained"
           size="medium"
-          className={styles.button1}
-          startIcon={<NavigationSharp />}
-          onClick={() => Router.push("/waiting-room")}
-        >
-          {t("next-round")}
-        </Button>
-        <Button
-          variant="contained"
-          size="medium"
-          color="primary"
           className={styles.button}
           startIcon={<NavigationSharp />}
           onClick={() => Router.push("/")}
         >
-          {t("finish")}
+          {t("play-again")}
         </Button>
       </Box>
-
 
       <Box display="flex" flexDirection="row" width="100%" flexWrap="wrap">
         <Box
           display="flex"
           flexDirection="column"
           justifyContent="left"
-          marginLeft="20%"
+          margin="0 auto"
+          width="50%"
         >
-          <Typography align="left" variant="subtitle2">
-            {t("participants")}
-          </Typography>
-          <Box display="flex" flexDirection="row" alignItems="center" marginBottom="8%">
-            <Avatar>H</Avatar>
-            <Typography align="center" variant="subtitle1">
-              {t("title")}
-            </Typography>
-          </Box>
-          <Box display="flex" flexDirection="row" alignItems="center">
-            <Avatar>H</Avatar>
-            <Typography align="center" variant="subtitle1">
-              {t("title")}
-            </Typography>
-          </Box>
+          <Winners rows={winners}></Winners>
         </Box>
         <Box
           display="flex"
           flexDirection="column"
           justifyContent="left"
-          marginLeft="10%"
+          margin="0 auto"
+          width="50%"
         >
-          <Typography align="left" variant="subtitle2">
-            {t("secret-place")}
+          <Typography align="center" variant="subtitle2">
+            {t("secret-place") + ": " + `${location.name}`.toUpperCase()}
           </Typography>
-          <Box display="flex" flexDirection="row">
+          <Box display="flex" flexDirection="row" margin="auto">
             <Box className={styles.imageContainer}>
-              <img src="/assets/spy.png" width="200px" />
+              <img src={location.image} width="200px" />
             </Box>
           </Box>
         </Box>
@@ -128,8 +157,51 @@ const Winner = function Winner({ t }) {
   );
 };
 
-Winner.getInitialProps = async () => ({
-  namespacesRequired: ["winner"],
-});
+const createWinners = (winners) => {
+  let r = [];
+  for (let i = 0; winners && i < winners.length; i++) {
+    r.push(
+      <Box display="flex" flexDirection="row" marginBottom="10px">
+        <Box display="flex" flexDirection="column" margin="auto">
+          <Box display="flex" textAlign="center" margin="auto">
+            <Avatar
+              src={`${winners[i].avatar}`}
+              alt={`${winners[i].name}`}
+            ></Avatar>
+            <Typography
+              align="center"
+              variant="subtitle1"
+              style={{ marginLeft: "10px" }}
+            >
+              {winners[i].name}
+            </Typography>
+          </Box>
+        </Box>
+        <Box display="flex" flexDirection="column" margin="auto">
+          <Typography align="center" variant="subtitle1">
+            {winners[i].score}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+  return r;
+};
 
-export default withTranslation("winner")(Winner);
+const mapStateToProps = (state) => {
+  const {
+    match,
+    players,
+    scoreboard,
+    score,
+    winnerRole,
+    winners,
+    location,
+  } = state.matches;
+
+  return { match, players, scoreboard, score, winnerRole, winners, location };
+};
+
+export default withTranslation("winner")(
+  connect(mapStateToProps, null)(Winner)
+);

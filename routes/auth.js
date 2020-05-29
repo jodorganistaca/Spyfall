@@ -16,7 +16,7 @@ router.get(
   "/facebook/callback",
   passport.authenticate("facebook", { failureRedirect: "/login" }),
   function (req, res) {
-    res.redirect("http://localhost:3000");
+    res.redirect("http://spyfall.ml:3000");
   }
 );
 
@@ -24,12 +24,11 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   function (req, res) {
-    res.redirect("http://localhost:3000");
+    res.redirect("http://spyfall.ml:3000");
   }
 );
 
 router.get("/getProfile", (req, res) => {
-  console.log(req.user);
   if (req.user) {
     return res.json({
       success: true,
